@@ -1,0 +1,38 @@
+cố gắn kích hoạt gcp billing ma không dc: 
+Action unsuccessful
+This action couldn’t be completed. [OR_BACR2_44].  CHÁN
+liên hệ google support luôn !
+ 12h để phản hồi. h chọn nguồn là bilance, cách thức là gg Pub/Sub hay Kafka đây. chơi gg hết đi
+ Um, cơ bản là éo hiểu gì về crypto  cả, pahir hiểu khái niệm chung đã mới lấy url dc. đòn bẩy,....
+ liên hệ ngân hàng và google đều không fix dc lỗi. nản
+ vì pub/sub không dc nên dùng kafka
+ tìm hiểu các khái nệm của nó: prosucter, customer, cluster, leader, partition.
+ kafka xong nhưng muốn 1 nơi làm datalake ban đầu muốn gcs nhưng mà bị cái billing nên chuyển qua AWS s3. 
+ email cho google và gọi ngân hàng mấy lần mà không giải quyết dc gì.
+ bị lỗi ambiguous reference phân biệt các trường in thường và in hoa. vì mình tra thấy spark nhận diện dc nên bỏ qua , ai ngờ nó cứ vậy hoài.
+ phải cấu hình lại spark mới dc.
+ uầy trời má, nhận ra là mình fix cứng schema luôn, mình stream hàng loạt các loại giao dịch mà
+ phải tách  và lọc giao dịch ra mới dc.
+ Làm việc với Streaming data hơi chú ý chút mới dc :
+ - async là cần thiết vì để nhanh thì phải chạy song song
+ - hạn chế tạo nhiều Object để tối ưu hiệu suất!
+ Về OOP, cái này cho ra vấn đề : MỖI JSON FILE THÌ 1 OBJECT ĐƯỢC TẠO ĐỂ XỬ LÝ?
+ - nếu 1 obejct cho mỗi file json thì cả tỉ object mất, vậy là dùng singeton rồi.
+ - nhưng nếu singeton thì viết như thế nào nếu mà stream_type thay đổi nhỉ, hiện tại mình viết sườn, và vẽ 1 lối duy nhất cho trade thôi
+ - cái này Registry? nếu muốn đăng ký cho 1 type mới?!?
+ - nếu dùng cả Registry và singeton thì gọi là gì nhỉ? Singleton Handler Registry? gọi là srr đi
+chỉnh cái cách đẩy lên và cách lấy xuống chút, cần phải gom nhóm và tách nhóm, lọc theo env
+rồi còn phải đảm bảo chạy song song đa luồng mới ổn chứ
+làm cả ngày mới nhận ra là mình đang làm Kafka Consumer Group một cách thủ công á.
+Kiểu đóng cửa nghiên cứu, tự hào phát minh ra cái bánh xe mà đem xài đi mới biết cộng đồng đã làm chiếc xe rồi
+Qua transform cũng có vòng lặp là để lấy dữ liệu thì cần schema, nhưng điều kiện viết 
+schema thì nằm trong data cần lấy, nếu mà cho mỗi bunker mỗi loại schema khác nhau thì sau này mở rộng thì phải chỉnh nhiều thức
+mà nếu muốn biết schema thì cần phải lấy từ đâu đó. giả sử trong khi producer gởi lên kafka đi, nó gởi luôn 1 luồn streaming về schema_type 
+vô 1 topic khác, kèm theo dữ liệu về topic/bunker sẽ dùng nó, sau đó ở phí transfrom mình nhận từ s3 thì cần đọc từ chổ này trước để xác định schema ( tất nhiên chổ lưu schema này là cấu trúc không cần spark pahir tự đoán)
+và khi lấy xuống thì dùng mẫu register như mình nói ở dòng 21.
+Tất nhiên, mọi thứ mình muốn là nếu có thay đổi thì thay đỏi chổ config (.env) á, đừng có thò thọc lung tung.
+UẦY MÁ, LẠI NỮA. cái vấn đề của mình mà mình định làm á, bên AWS có luôn tên là AWS Glue Schema, nhỏ hơn thì là Confluent Schema Registry.
+thật là hài hước, di tìm hiểu cách xài đã
+um, nó legacy rôi, chuyển sang AWS Glue Data Catalog
+
+
