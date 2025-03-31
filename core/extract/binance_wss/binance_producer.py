@@ -1,18 +1,13 @@
 import asyncio
 import websockets
 import json
-import sys
-
-print(sys.path)
-from dotenv import load_dotenv
 import os
 import requests
-from confluent_kafka import SerializingProducer
-from aws_glue_schema_registry.avro_encoder import AvroEncoder
-from aws_glue_schema_registry.config import (
-    AWSSchemaRegistryClient,
-    SchemaRegistryConfig,
-)
+import fastavro
+import io
+from fastavro.schema import load_schema
+from confluent_kafka import Producer
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -20,31 +15,22 @@ load_dotenv()
 class BinanceProducer:
     def __init__(self):
         # Load environment variables
-        self.WSS_ENDPOINT = os.getenv("WSS_ENDPOINT")  # WebSocket endpoint
-        self.URL_TOP = os.getenv("URL_TOP")  # API URL to get top coins
-        self.LIMIT = int(os.getenv("LIMIT"))  # Number of top coins to process
-        self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")  # Kafka topic
-        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(
-            ","
-        )  # List of stream types (e.g., trade, ticker)
-        self.BOOTSTRAP_SERVERS = os.getenv(
-            "BOOTSTRAP_SERVERS"
-        )  # Kafka bootstrap servers
-        self.AWS_DEFAULT_REGION = os.getenv(
-            "AWS_DEFAULT_REGION"
-        )  # AWS region for Glue Schema Registry
-
-        # AWS Glue Schema Registry setup
-        schema_registry_conf = SchemaRegistryConfig(region_name=self.AWS_DEFAULT_REGION)
-        self.schema_registry_client = AWSSchemaRegistryClient(schema_registry_conf)
+        self.WSS_ENDPOINT = os.getenv("WSS_ENDPOINT")
+        self.URL_TOP = os.getenv("URL_TOP")
+        self.LIMIT = int(os.getenv("LIMIT"))
+        self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
+        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+        self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
+        print(f"📌 STREAM_TYPES: {self.STREAM_TYPES}")
 
         # Kafka Producer
-        self.producer = SerializingProducer(
+        self.producer = Producer(
             {
                 "bootstrap.servers": self.BOOTSTRAP_SERVERS,
-                "key.serializer": str.encode,
             }
         )
+        # Load Avro Schema
+        self.stream_schema = self.load_stream_schema()
 
     def get_top_coins(self):
         """Fetch the top coins based on trading volume"""
@@ -55,27 +41,44 @@ class BinanceProducer:
         ]
         return [coin["symbol"].lower() for coin in top_coins]
 
+    def load_stream_schema(self):
+        stream_schema = {}
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        for stream_type in self.STREAM_TYPES:
+            # Create path to schema
+            path_scm = os.path.join(base_dir, "schema_avro", f"{stream_type}.avsc")
+            schema = load_schema(path_scm)
+            stream_schema[stream_type] = schema
+        return stream_schema
+
     async def fetch_stream(self, stream_type, symbol):
-        """Open WebSocket connection to receive real-time data for a specific stream type and symbol"""
+        """Open WebSocket connection and handle reconnection"""
         url = f"{self.WSS_ENDPOINT}/{symbol}@{stream_type}"
-        async with websockets.connect(url) as ws:
-            while True:
-                message = await ws.recv()
-                data = json.loads(message)
-                topic = self.BINANCE_TOPIC
-                schema_name = f"{stream_type}"
-                self.send_message(topic, symbol, data, schema_name)
+        while True:
+            try:
+
+                async with websockets.connect(url) as ws:
+                    print(f"📡 Establish wss streaming")
+                    while True:
+                        message = await ws.recv()
+                        data = json.loads(message)
+                        print(f"✅ Received: {data}")
+                        # self.send_message(self.BINANCE_TOPIC, symbol, data, stream_type)
+
+            except Exception as e:
+                print(f"🔄 Reconnecting WebSocket {url} due to error: {e}")
+                # await asyncio.sleep(5)
+                return
 
     def send_message(self, topic, key, message, schema_name):
         """Serialize the message using Avro and send it to Kafka"""
-        avro_encoder = AvroEncoder(self.schema_registry_client, schema_name=schema_name)
-        encoded_value = avro_encoder.encode(message)
-        self.producer.produce(topic=topic, key=key, value=encoded_value)
-        self.producer.flush()
-        print(f"✅ Sent {schema_name} to {topic}")
+        bytes_writer = io.BytesIO()
+        fastavro.writer(bytes_writer, self.stream_schema[schema_name], [message])
+        avro_bytes = bytes_writer.getvalue()
+        self.producer.produce(topic=topic, key=key.encode("utf-8"), value=avro_bytes)
 
     async def start_publish(self):
-        """Start multiple WebSocket connections concurrently for different symbols and stream types"""
+        """Start multiple WebSocket connections concurrently"""
         symbols = self.get_top_coins()
         tasks = []
 
@@ -88,4 +91,6 @@ class BinanceProducer:
 
 if __name__ == "__main__":
     producer = BinanceProducer()
-    asyncio.run(producer.start_publish())
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(producer.start_publish())
