@@ -34,5 +34,11 @@ Tất nhiên, mọi thứ mình muốn là nếu có thay đổi thì thay đỏ
 UẦY MÁ, LẠI NỮA. cái vấn đề của mình mà mình định làm á, bên AWS có luôn tên là AWS Glue Schema, nhỏ hơn thì là Confluent Schema Registry.
 thật là hài hước, di tìm hiểu cách xài đã
 um, nó legacy rôi, chuyển sang AWS Glue Data Catalog
+aws_glue_schema_registry không nhận dù đã thấy nó trong venv/lib ?
+làm mình hạ python xuống , cài lại env,... nhưng vẫn chừa nó. kiểu khong hỗ trợ. 
+Hum, aws_glue không chạy trên local dc (không thể đối xử như thư viện độc lập nên không thể tải bằng pip)
+kiểucác pub/sub như Kafka cho free nếu chỉ gởi và nhân hoặc xác định schema trước trong code, 
+nhưng nếu muốn đăng ký schema thì trả phí hoặc dùng cái khác 
+um, vì hiện tại không xài dc thẻ nên dùng Free, bà con thông cảm tôi code cứng chút.
 
 
