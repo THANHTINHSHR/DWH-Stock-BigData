@@ -1,0 +1,55 @@
+{
+    "type": "record",
+    "name": "TradeMessage",
+    "fields": [
+        {
+            "name": "stream",
+            "type": "string"
+        },
+        {
+            "name": "data",
+            "type": {
+                "type": "record",
+                "name": "TradeData",
+                "fields": [
+                    {
+                        "name": "e",
+                        "type": "string"
+                    },
+                    {
+                        "name": "E",
+                        "type": "long"
+                    },
+                    {
+                        "name": "s",
+                        "type": "string"
+                    },
+                    {
+                        "name": "t",
+                        "type": "long"
+                    },
+                    {
+                        "name": "p",
+                        "type": "string"
+                    },
+                    {
+                        "name": "q",
+                        "type": "string"
+                    },
+                    {
+                        "name": "T",
+                        "type": "long"
+                    },
+                    {
+                        "name": "m",
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "M",
+                        "type": "boolean"
+                    }
+                ]
+            }
+        }
+    ]
+}
