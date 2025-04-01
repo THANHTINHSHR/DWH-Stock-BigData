@@ -14,12 +14,6 @@ class SchemaRegistry:
         self.schema_registry_client = SchemaRegistryClient(
             {"url": self.SCHEMA_REGISTRY_URL}
         )
-        try:
-            # Thử kết nối tới Schema Registry
-            schemas = self.schema_registry_client.get_subjects()
-            print("✅ Connected to Schema Registry. Subjects:", schemas)
-        except Exception as e:
-            print(f"❌ Failed to connect to Schema Registry: {e}")
 
     def load_stream_schema(self):
         stream_schema = {}
@@ -27,11 +21,9 @@ class SchemaRegistry:
 
         for stream_type in self.STREAM_TYPES:
             path_scm = os.path.join(base_dir, f"{stream_type}.avsc")
-            logging.info(f" ✅  Loading schema from: {path_scm}")
-
             with open(path_scm, "r") as schema_file:
-                schema_json = schema_file.read()  # Đọc nội dung file giữ nguyên JSON
-                stream_schema[stream_type] = schema_json  # Lưu JSON string
+                schema_json = schema_file.read()
+                stream_schema[stream_type] = schema_json
 
         return stream_schema
 
@@ -43,9 +35,6 @@ class SchemaRegistry:
     def register_schema(self, schema_name, schema_arvo):
         try:
             schema_obj = Schema(schema_arvo, schema_type="AVRO")
-            print(f"✅ Schema Name :'{schema_name}' loaded from file")
-            print(f"✅ Schema Object :'{schema_obj}' loaded from file")
-            # Giữ nguyên JSON string
             schema_id = self.schema_registry_client.register_schema(
                 schema_name, schema_obj
             )
