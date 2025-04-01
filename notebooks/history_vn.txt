@@ -40,5 +40,18 @@ Hum, aws_glue không chạy trên local dc (không thể đối xử như thư v
 kiểucác pub/sub như Kafka cho free nếu chỉ gởi và nhân hoặc xác định schema trước trong code, 
 nhưng nếu muốn đăng ký schema thì trả phí hoặc dùng cái khác 
 um, vì hiện tại không xài dc thẻ nên dùng Free, bà con thông cảm tôi code cứng chút.
+---------------------------------------------------
+nhưng
+- nếu mình viết dạng truyền thêm schema vào mỗi khi producer gởi thì nó nặng hêm và dư thừa, 
+- nếu Dùng fastavro để đóng gói ddataa + schema thì lại nhẹ hơn nhưng lại mất đi cấu trúc vốn có ( chỉ còn byte)
+và sẽ vô nghĩa nếu lưu nó cho staging s3 để xem lại.
+- PHÁT HIỆN RA bản kafa đầy đủ hơn, bao gồm cả kafa schema register đó là  Confluent Platform 
+cái này là bản nâng cấp của kafa, do nhóm phát triển kafka làm thêm, kafka với  Confluent Platform  giống như spark với databrick :D
+tải và thay thế thôi
+- Confluent Platform. 
+- Mất cả ngày rưỡi để tìm ra lỗi kết nối giữ schema register và kafka dò thấy ui hiện, chạy trên ui dc nhưng code không dc
+túm cái háng lại là thiêu config :       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9093  
+kiểu là register lưu schem a vào bonker của  kafka á, lúc trc ko làm việc với bonker kafka nên ko biết.
+
 
 
