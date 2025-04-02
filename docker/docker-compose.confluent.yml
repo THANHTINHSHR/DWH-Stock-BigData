@@ -14,7 +14,7 @@ services:
     expose:
       - "9093"  # Port trong Docker network
     environment:
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://host.docker.internal:9092  # after build image, chane to kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -29,7 +29,7 @@ services:
     ports:
       - "8081:8081"
     environment:
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9093  # Kafka broker địa chỉ trong mạng Docker
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9093  # Kafka broker accessible from Docker
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
     depends_on:
@@ -44,7 +44,7 @@ services:
     environment:
       KAFKA_CLUSTERS_0_NAME: "local"
       KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: "kafka:9093"  # Kafka broker trong Docker network
-      KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://schema-registry:8081"  # Địa chỉ của schema registry
+      KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://schema-registry:8081"  # schema registry address
     depends_on:
       - kafka
       - schema-registry
