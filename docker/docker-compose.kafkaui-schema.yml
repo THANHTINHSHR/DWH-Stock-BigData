@@ -12,7 +12,9 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAP_SERVERS: "kafka:9092"  # Sửa lại từ localhost -> kafka
       KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"  # Sửa lại từ localhost -> zookeeper
       KAFKA_CLUSTERS_0_KAFKA_VERSION: "2.7.0"
-
+      KAFKA_CLUSTERS_0_SCHEMA_REGISTRY: "http://schema-registry:8081" # Connect to schema registry
+    networks:
+      - kafka_network
   schema-registry:
     image: confluentinc/cp-schema-registry:latest
     container_name: schema-registry
@@ -26,3 +28,9 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "kafka:9092"  # Thêm dòng này để Schema Registry biết Kafka ở đâu
       SCHEMA_REGISTRY_KAFKASTORE_TOPIC: "_schemas"
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: "*"
+    networks:
+      - kafka_network
+    
+networks:
+  kafka_network:
+    driver: bridge
