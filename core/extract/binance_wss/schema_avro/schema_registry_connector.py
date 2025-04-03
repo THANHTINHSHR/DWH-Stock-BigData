@@ -64,7 +64,8 @@ class SchemaRegistryConnector:
             return self.schema_name_to_id[schema_name]
 
         try:
-            version = self.schema_registry_client.get_version(schema_name)
+            version = self.schema_registry_client.get_version(schema_name, 1)
+            print(f"✅ Got schema ID for '{schema_name}': {version.schema_id}")
             schema_id = version.schema_id
             self.schema_name_to_id[schema_name] = schema_id
             return schema_id

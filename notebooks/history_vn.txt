@@ -69,6 +69,12 @@ nên xài tạm nó.
 - TRỜI MÁ, AvroSerializer  chả khác nào ý tưởng của mình cả, nó tách phần serializer ra khỏi avroprducer,
 tui lại phát minh ra cái bánh xe nữa hả trời.
 - mệt qué tui đi từ kafkaProducer -> avroprducer -> AvroSerializer  luôn. 
+um nếu xài avroserializer thì h khồn cần schemaregistryconnector nữa nhỉ, để xem đã
+- à không vẫn cần, schemaregistryconnector của mình hiện tại chỉ mới hỗ trợ đăng ký và lưu schema, tuy nhiên chưa phát huy hết sức mạnh chủa schemaregistry, 
+tách cả key và value của mess thành hai loại schema để dc tái sử dụng đó mới là sức mạnh
+------------------------DOCKER-----------
+thử kết nối schemaregister , kafka, ui lại với nhau mà khó quá, đảm bảo cổng trong ngòai,... :|
+khó kinh 3 ngày r
 
 
 
