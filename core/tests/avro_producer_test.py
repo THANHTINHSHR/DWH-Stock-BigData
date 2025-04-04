@@ -1,52 +1,118 @@
-from confluent_kafka import Producer
+from confluent_kafka import SerializingProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka.serialization import StringSerializer
 
-SCHEMA_REGISTRY_URL = "http://localhost:8081"  # Địa chỉ Schema Registry
-KAFKA_BROKER = "localhost:9092"  # Kafka broker
 
-# Avro Schema
-AVRO_SCHEMA = """
-{
-  "type": "record",
-  "name": "TestRecord",
-  "fields": [
-    {"name": "id", "type": "int"},
-    {"name": "name", "type": "string"}
-  ]
-}
-"""
+class AvroKafkaProducer:
+    """Kafka Producer using Avro serialization"""
 
+    def __init__(
+        self, bootstrap_servers, schema_registry_url, topic, avro_schema, schema_name
+    ):
+        """
+        Initialize the Kafka producer with Avro serialization.
 
-class AvroProducer:
-    def __init__(self, topic):
+        :param bootstrap_servers: Kafka broker address (e.g., "localhost:9092")
+        :param schema_registry_url: Schema Registry URL (e.g., "http://localhost:8081")
+        :param topic: Kafka topic name
+        :param avro_schema: Avro schema in JSON format (as a string)
+        :param schema_name: Name of the schema to register
+        """
         self.topic = topic
 
-        # Khởi tạo Schema Registry Client
-        self.schema_registry_client = SchemaRegistryClient({"url": SCHEMA_REGISTRY_URL})
+        # Initialize Schema Registry Client
+        self.schema_registry_client = SchemaRegistryClient({"url": schema_registry_url})
 
-        # Khởi tạo Avro Serializer
-        self.avro_serializer = AvroSerializer(self.schema_registry_client, AVRO_SCHEMA)
+        # Check and register schema if needed
+        self.register_schema(schema_name, avro_schema)
 
-        # Khởi tạo Kafka Producer
-        self.producer = Producer({"bootstrap.servers": KAFKA_BROKER})
+        # Create Avro Serializer
+        self.avro_serializer = AvroSerializer(self.schema_registry_client, avro_schema)
 
-    def produce(self, key, value):
+        # Configure Kafka Producer
+        self.producer_config = {
+            "bootstrap.servers": bootstrap_servers,
+            "key.serializer": StringSerializer("utf_8"),
+            "value.serializer": self.avro_serializer,
+        }
+
+        # Initialize Kafka Producer
+        self.producer = SerializingProducer(self.producer_config)
+
+    def register_schema(self, schema_name, avro_schema):
         """
-        Gửi dữ liệu Avro đến Kafka
+        Check if schema exists in Schema Registry, if not, register it.
+        """
+        subject = f"{schema_name}-value"
+        try:
+            # Check if schema exists
+            self.schema_registry_client.get_latest_version(subject)
+            print(f"✅ Schema '{subject}' already exists.")
+        except Exception:
+            # Register new schema
+            self.schema_registry_client.register_schema(subject, avro_schema)
+            print(f"✅ Registered new schema: {subject}")
+
+    def delivery_report(self, err, msg):
+        """
+        Callback function to check if the message was successfully delivered.
+
+        :param err: Error message (if any)
+        :param msg: Kafka message metadata
+        """
+        if err is not None:
+            print(f"Message delivery failed: {err}")
+        else:
+            print(
+                f"Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}"
+            )
+
+    def send_message(self, key, value):
+        """
+        Send a message to Kafka topic.
+
+        :param key: Message key (string)
+        :param value: Message value (must match Avro schema)
         """
         self.producer.produce(
-            topic=self.topic,
-            key=StringSerializer()("{}".format(key), None),
-            value=self.avro_serializer(value, None),
+            topic=self.topic, key=key, value=value, on_delivery=self.delivery_report
         )
         self.producer.flush()
-        print(f"Produced: {value}")
 
 
-# Test producer
 if __name__ == "__main__":
-    producer = AvroProducer("test_topic")
-    test_data = {"id": 1, "name": "Kafka Avro"}
-    producer.produce("key1", test_data)
+    # Kafka & Schema Registry Configuration
+    KAFKA_BOOTSTRAP_SERVERS = "localhost:9093"  # Hoặc kafka:9093 nếu chạy trong Docker
+    SCHEMA_REGISTRY_URL = (
+        "http://localhost:8081"  # Kiểm tra Schema Registry trên localhost
+    )
+    TOPIC_NAME = "test_topic"
+    SCHEMA_NAME = "TestRecord"
+
+    # Define Avro Schema
+    AVRO_SCHEMA = """
+    {
+      "type": "record",
+      "name": "TestRecord",
+      "fields": [
+        {"name": "id", "type": "int"},
+        {"name": "name", "type": "string"}
+      ]
+    }
+    """
+
+    # Initialize the Producer
+    producer = AvroKafkaProducer(
+        KAFKA_BOOTSTRAP_SERVERS,
+        SCHEMA_REGISTRY_URL,
+        TOPIC_NAME,
+        AVRO_SCHEMA,
+        SCHEMA_NAME,
+    )
+
+    # Send a test message
+    test_data = {"id": 1, "name": "Kafka Avro OOP"}
+    print(f"✅ KAFKA_BOOTSTRAP_SERVERS {KAFKA_BOOTSTRAP_SERVERS}")
+    print(f"✅ SCHEMA_REGISTRY_URL {SCHEMA_REGISTRY_URL}")
+    producer.send_message("test-key", test_data)

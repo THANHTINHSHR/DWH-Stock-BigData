@@ -74,8 +74,11 @@ um nếu xài avroserializer thì h khồn cần schemaregistryconnector nữa n
 tách cả key và value của mess thành hai loại schema để dc tái sử dụng đó mới là sức mạnh
 ------------------------DOCKER-----------
 thử kết nối schemaregister , kafka, ui lại với nhau mà khó quá, đảm bảo cổng trong ngòai,... :|
-khó kinh 3 ngày r
-
+khó kinh 3 ngày r. 
+Cuối cùng cũng cong, cơ bản là do hai file docker ko ở thư mục gốc nên nó tạo network bị sai, nên dù cổng mở nhưng tên tetwork bị sai nên ko vào / giao tiếp dc
+- Đăng ký Schema trong AvroSerializer hơi khác chút, schema dc đóng gói lại bằng lớp schema,
+sau đó đưa cho SchemaRegistryClient đi đăng ký
+- mất thời gian cho việc tìm ra lỗi [] của dữ liệu 
 
 
 

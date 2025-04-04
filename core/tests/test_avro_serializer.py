@@ -4,10 +4,11 @@ from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka.serialization import StringSerializer
 from confluent_kafka.schema_registry.avro import Schema
 
-import json
+import json, os
 
 
 class AvroKafkaProducer:
+    """Kafka Producer using Avro serialization"""
 
     def __init__(self, bootstrap_servers, schema_registry_url, topic, avro_schema):
 
@@ -46,10 +47,34 @@ class AvroKafkaProducer:
         self.producer.flush()
 
 
+class Test1:
+    def __init__(self):
+        self.schema_registry_client = SchemaRegistryClient(
+            {"url": "http://localhost:8081"}  # <-- dùng "url" là đúng trong lib này
+        )
+
+        self.load_one_schema()
+        super().__init__()
+        pass
+
+    def load_one_schema(self):
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        path_scm = os.path.join(base_dir, "trade.avro")
+        print(f"✅ path_scm: {path_scm}")
+
+        with open(path_scm, "r", encoding="utf-8") as f:
+            schema = json.load(f)
+            schema_str = json.dumps(schema)
+        schema_obj = Schema(schema_str, schema_type="AVRO")
+        self.schema_registry_client.register_schema("trade", schema_obj)
+
+
 if __name__ == "__main__":
     # Kafka & Schema Registry Configuration
-    KAFKA_BOOTSTRAP_SERVERS = "localhost:9093"  # or kafka:9093 if run in Docker
-    SCHEMA_REGISTRY_URL = "http://localhost:8081"
+    KAFKA_BOOTSTRAP_SERVERS = "localhost:9093"  # Hoặc kafka:9093 nếu chạy trong Docker
+    SCHEMA_REGISTRY_URL = (
+        "http://localhost:8081"  # Kiểm tra Schema Registry trên localhost
+    )
     TOPIC_NAME = "test_topic"
 
     # Define Avro Schema
@@ -71,20 +96,15 @@ if __name__ == "__main__":
 
     # Send a test message
     test_data = {"id": 1, "name": "Kafka Avro OOP thannh tinh"}
-    print(f"✅ KAFKA_BOOTSTRAP_SERVERS {KAFKA_BOOTSTRAP_SERVERS}")
-    print(f"✅ SCHEMA_REGISTRY_URL {SCHEMA_REGISTRY_URL}")
+
     producer.send_message("test-key", test_data)
-    print(f"✅ Sent to Kafka: SUCCESS")
-    # Khởi tạo Schema Registry Client
     schema_registry_client = SchemaRegistryClient({"url": SCHEMA_REGISTRY_URL})
     avro_schema = Schema(AVRO_SCHEMA, schema_type="AVRO")
 
-    # Đăng ký schema nếu chưa tồn tại
-    subject = "test-topic-value"  # Quy ước đặt tên: {topic}-value
+    subject = "test-topic-value"
     try:
-        print(f"✅ Schema avro_schema: is dict: {isinstance(avro_schema, dict)}")  #
-        print(f"✅type avro_schema: {type(avro_schema)}")
         schema_id = schema_registry_client.register_schema(subject, avro_schema)
         print(f"✅ Registered schema with ID: {schema_id}")
     except Exception as e:
         print(f"❌ Error registering schema: {e}")
+    test = Test1()
