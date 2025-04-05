@@ -1,15 +1,17 @@
-import json
-import os
-import logging
-import requests
-from dotenv import load_dotenv
+from confluent_kafka import SerializingProducer
 from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
+from confluent_kafka.serialization import StringSerializer
 from confluent_kafka.schema_registry.avro import Schema
+
+import json, os
+from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class SchemaRegistryConnector:
+
     _instance = None
 
     def __new__(cls):
@@ -21,91 +23,59 @@ class SchemaRegistryConnector:
     def __init__(self):
         if self._initialized:
             return
-        self.STREAM_TYPES = os.getenv("STREAM_TYPES", "").split(",")
-        self.SCHEMA_REGISTRY_URL = os.getenv(
-            "SCHEMA_REGISTRY_URL", "http://localhost:8081"
-        )
+        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+        self.SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL").split(",")
+        print(f"✅ SCHEMA_REGISTRY_URL: {self.SCHEMA_REGISTRY_URL}")
         self.schema_registry_client = SchemaRegistryClient(
-            {"url": self.SCHEMA_REGISTRY_URL}
+            {"url": self.SCHEMA_REGISTRY_URL[0]}
         )
-        self.schema_name_to_id = {}
-        self._initialized = True
-        self.register_default_schema()
+        self.load_stream_schema()
+        super().__init__()
+        pass
+
+    @classmethod
+    def get_instance(cls):
+        return cls()
 
     def load_stream_schema(self):
         stream_schema = {}
         base_dir = os.path.dirname(os.path.abspath(__file__))
 
         for stream_type in self.STREAM_TYPES:
-            path_scm = os.path.join(base_dir, f"{stream_type}.avsc")
-            with open(path_scm, "r", encoding="utf-8") as schema_file:
-                print(f"✅ type schema_file: {type(schema_file)}")
-                schema_json = schema_file.read()  # Đọc file trước
-                schema_dict = json.loads(schema_json)  # Convert string JSON thành dict
+            path_scm = os.path.join(base_dir, f"{stream_type}.avro")
+            try:
+                with open(path_scm, "r", encoding="utf-8") as schema_file:
+                    schema_str = schema_file.read()
+                    stream_schema[stream_type] = schema_str
+            except FileNotFoundError:
+                print(f"⚠️ File not found for stream type: {stream_type} at {path_scm}")
+            except Exception as e:
+                print(f"⚠️ Error reading schema file for {stream_type}: {e}")
 
-                print(f"✅ type schema_json: {type(schema_dict)}")
-                stream_schema[stream_type] = schema_dict
-                print(f"✅ Loaded schema for stream type: {stream_type}")
+        for schema_type, schema in stream_schema.items():
+            try:
+                print(f"✅ Registering schema: {schema_type}")
+                schema_avro = Schema(schema, schema_type="AVRO")
+                subject_name = f"binance_{schema_type}"
 
-        return stream_schema
+                self.schema_registry_client.register_schema(subject_name, schema_avro)
+            except Exception as e:
+                print(f"⚠️ Failed to register schema {schema_type}: {e}")
 
-    def register_default_schema(self):
-        """Register all default schemas"""
-        stream_schema = self.load_stream_schema()
-        for stream_type, schema_avro in stream_schema.items():
-            self.register_schema(stream_type, schema_avro)
+        print("✅ Finished loading schemas")
 
-    def register_schema(self, schema_name, schema_avro):
-        try:
-            # Trực tiếp sử dụng AVRO_SCHEMA dưới dạng chuỗi JSON hợp lệ
-            AVRO_SCHEMA = """
-            {
-            "type": "record",
-            "name": "TestRecord",
-            "fields": [
-                {"name": "id", "type": "int"},
-                {"name": "name", "type": "string"}
-            ]
-            }
-            """
-            schema_obj = Schema(AVRO_SCHEMA, schema_type="AVRO")
-            schema_id = self.schema_registry_client.register_schema(
-                "test_topic-value", schema_obj
-            )
-
-            print(f"✅ Schema '{schema_name}' registered with ID: {schema_id}")
-            self.schema_name_to_id[schema_name] = schema_id
-            return schema_id
-        except Exception as e:
-            print(f"❌ Error registering schema '{schema_name}': {e}")
-
-    def get_schema_id(self, schema_name):
-        """Get schema ID from cache or Schema Registry"""
-        if schema_name in self.schema_name_to_id:
-            return self.schema_name_to_id[schema_name]
-
-        try:
-            version = self.schema_registry_client.get_version(schema_name, 1)
-            schema_id = version.schema_id
-            self.schema_name_to_id[schema_name] = schema_id
-            return schema_id
-        except Exception as e:
-            logging.exception(f"❌ Error getting schema ID for '{schema_name}': {e}")
-            return None
-
-    def get_schema_by_id(self, schema_id):
-        """Get schema details by ID"""
-        schema_url = f"{self.SCHEMA_REGISTRY_URL}/schemas/ids/{schema_id}"
-        response = requests.get(schema_url)
-        return response.json().get("schema")
-
-    def get_schema_by_name(self, schema_name):
-        """Get schema details by name"""
-        schema_id = self.get_schema_id(schema_name)
-        return self.get_schema_by_id(schema_id) if schema_id else None
+    def get_schema_by_type(self, stream_type):
+        schema = self.schema_registry_client.get_latest_version(
+            f"binance_{stream_type}"
+        )
+        if schema is not None:
+            return schema.schema_str
+        else:
+            raise ValueError(f"Schema {schema_name} not found in the registry.")
+        pass
 
 
-# Example usage
 if __name__ == "__main__":
-    schema_registry = SchemaRegistryConnector()
-    # schema_registry.register_default_schema()
+
+    df = SchemaRegistryConnector()
+    # df.load_one_schema()
