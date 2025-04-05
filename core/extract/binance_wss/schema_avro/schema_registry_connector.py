@@ -26,16 +26,18 @@ class SchemaRegistryConnector:
         self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
         self.SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL").split(",")
         print(f"✅ SCHEMA_REGISTRY_URL: {self.SCHEMA_REGISTRY_URL}")
-        self.schema_registry_client = SchemaRegistryClient(
-            {"url": self.SCHEMA_REGISTRY_URL[0]}
-        )
+        self.client = SchemaRegistryClient({"url": self.SCHEMA_REGISTRY_URL[0]})
         self.load_stream_schema()
-        super().__init__()
-        pass
+        self._initialized = True
 
     @classmethod
     def get_instance(cls):
-        return cls()
+        if cls._instance is None:
+            cls._instance = cls()
+        return cls._instance
+
+    def get_client(self):
+        return self._instance.client
 
     def load_stream_schema(self):
         stream_schema = {}
@@ -58,21 +60,20 @@ class SchemaRegistryConnector:
                 schema_avro = Schema(schema, schema_type="AVRO")
                 subject_name = f"binance_{schema_type}"
 
-                self.schema_registry_client.register_schema(subject_name, schema_avro)
+                self.get_client().register_schema(subject_name, schema_avro)
             except Exception as e:
                 print(f"⚠️ Failed to register schema {schema_type}: {e}")
 
         print("✅ Finished loading schemas")
 
-    def get_schema_by_type(self, stream_type):
-        schema = self.schema_registry_client.get_latest_version(
-            f"binance_{stream_type}"
-        )
+    # Get the schema by stream type
+
+    def get_schema_by_name(self, stream_type):
+        schema = self.client.get_latest_version(f"binance_{stream_type}")
         if schema is not None:
-            return schema.schema_str
+            return schema
         else:
-            raise ValueError(f"Schema {schema_name} not found in the registry.")
-        pass
+            raise ValueError(f"Schema {stream_type} not found in the registry.")
 
 
 if __name__ == "__main__":

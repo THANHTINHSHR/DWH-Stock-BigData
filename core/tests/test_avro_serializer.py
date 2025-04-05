@@ -1,8 +1,9 @@
-from confluent_kafka import SerializingProducer
-from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka.serialization import StringSerializer
-from confluent_kafka.schema_registry.avro import Schema
+from confluent_kafka import SerializingProducer
+from core.extract.binance_wss.schema_avro.schema_registry_connector import (
+    SchemaRegistryConnector,
+)
 
 import json, os
 
@@ -15,7 +16,7 @@ class AvroKafkaProducer:
         self.topic = topic
 
         # Initialize Schema Registry Client
-        self.schema_registry_client = SchemaRegistryClient({"url": schema_registry_url})
+        self.schema_registry = SchemaRegistryConnector()
 
         # Create Avro Serializer
         self.avro_serializer = AvroSerializer(self.schema_registry_client, avro_schema)
