@@ -70,7 +70,9 @@ class ProducerManager:
                         print(f"✅ Received: {data}")
                         product = self.get_producer(stream_type)
                         # Sending message to Kafka with schema
-                        self.send_message(product, self.BINANCE_TOPIC, symbol, data)
+                        self.send_message(
+                            product, f"{self.BINANCE_TOPIC}_{stream_type}", symbol, data
+                        )
 
             except Exception as e:
                 print(f"🔄 Reconnecting WebSocket {url} due to error: {e}")
