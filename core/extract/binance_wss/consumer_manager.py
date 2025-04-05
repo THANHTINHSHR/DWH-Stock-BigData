@@ -1,4 +1,4 @@
-from kafka import KafkaConsumer
+from confluent_kafka import Consumer, KafkaException, KafkaError
 import json
 import os
 import boto3
@@ -24,62 +24,6 @@ class ConsumerManager:
         consumer = KafkaConsumer(bootstrap_servers=self.BOOTSTRAP_SERVERS)
         topics = consumer.topics()
         return [topic for topic in topics if topic.startswith("binance-")]
-
-    def register_topics(self):
-        """Create consumers for all binance topics"""
-        topics = self.get_binance_topics()
-
-        for topic in topics:
-            stream_type = topic.split("-")[
-                -1
-            ]  # Only get the stream type from topic name
-            group_id = f"{self.GROUP_ID_PREFIX}-{stream_type}"  # Create group ID based on stream type
-
-            if topic not in self.consumers:
-                consumer = KafkaConsumer(
-                    topic,
-                    group_id=group_id,
-                    bootstrap_servers=self.BOOTSTRAP_SERVERS,
-                    value_deserializer=lambda v: json.loads(v.decode("utf-8")),
-                )
-                self.consumers[topic] = consumer
-                print(f"✅ Registered Consumer for {topic} (Group: {group_id})")
-
-    def push_to_s3(self, topic):
-        """Listen to Kafka topic and push messages to S3"""
-        if topic not in self.consumers:
-            print(f"❌ Consumer for {topic} is not registered.")
-            return
-
-        consumer = self.consumers[topic]
-        print(f"📥 Listening to {topic}...")
-
-        for message in consumer:
-            try:
-                json_data = message.value
-                stream_type = json_data.get("stream", "default")
-
-                # Determine S3 key based on stream type
-                s3_key = f"{stream_type}/{uuid.uuid4()}.json"
-
-                self.s3.put_object(
-                    Bucket=self.BUCKET_NAME,
-                    Key=s3_key,
-                    Body=json.dumps(json_data),
-                    ContentType="application/json",
-                )
-
-                print(f"✅ Pushed to S3: {s3_key}")
-
-            except Exception as e:
-                print(f"❌ Error pushing to S3: {e}")
-
-    def start_consumers(self):
-        """Run all consumers in separate threads"""
-        print(f"✅ Starting consumers...")
-        for topic in self.consumers:
-            thread = threading.Thread(target=self.push_to_s3, args=(topic,))
-            thread.start()
 
 
 if __name__ == "__main__":

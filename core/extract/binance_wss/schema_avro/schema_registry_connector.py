@@ -24,6 +24,7 @@ class SchemaRegistryConnector:
         if self._initialized:
             return
         self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+        self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL").split(",")
         print(f"✅ SCHEMA_REGISTRY_URL: {self.SCHEMA_REGISTRY_URL}")
         self.client = SchemaRegistryClient({"url": self.SCHEMA_REGISTRY_URL[0]})
@@ -69,7 +70,7 @@ class SchemaRegistryConnector:
     # Get the schema by stream type
 
     def get_schema_by_name(self, stream_type):
-        schema = self.client.get_latest_version(f"binance_{stream_type}")
+        schema = self.client.get_latest_version(f"{self.BINANCE_TOPIC}_{stream_type}")
         if schema is not None:
             return schema
         else:
