@@ -94,7 +94,17 @@ nếu nó nghe trước khi push thì éo biết nghe ở đâu (chưa đăng ý
 bây h có vài cách : + 1 là cho đăng ký sau khi có lệnh consum
                     + 2 là cho đẩy topic creater lên, cho gọi hàm create topic luôn rồi mới định 
                     nghĩa consumer_manager!
+-------------------------------------------------------------------------------------------------
 - gần hoàng tất, chỉnh lại số partition cho bằng số coin để tăng số lượng coin dc xử lý cùng lúc
+- hum, hình như ít consumer hoạt động lắm thì phải, mình cho mỗi 1 consumer dc tạo ra tùy theo loại stream type
+nhưng mà 1 stream type lại có cả chục coin, có vẻ mình là tư bản cmmr, mới có 1 cái trade thôi mà ép 1 thằng chạy
+chạy xịt khói. nên thuê dựa theo số coin thì mới đúng
+PHẢI TỔ CHỨC LẠI:
+Product (Số lượng Producers) = Số lượng topcoin (ví dụ, 10 topcoins). Mỗi producer sẽ chịu trách nhiệm sản xuất dữ liệu cho một coin.
+Consumer (Số lượng Consumers) = Số lượng Partitions = Số lượng Stream Types * Số lượng Topcoins.
+- như vậy mới đảm bảo product đủ để consumer chạy .
+
+
 
 
 
