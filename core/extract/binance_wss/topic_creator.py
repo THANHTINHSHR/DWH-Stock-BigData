@@ -30,9 +30,12 @@ class TopicCreator:
     def get_top_coins(self):
         response = requests.get(self.URL_TOP)
         data = response.json()
-        top_coins = sorted(data, key=lambda x: float(x["quoteVolume"]), reverse=True)[
-            : self.LIMIT
-        ]
+        # Filter the coins that end with "USDT"
+        filtered_coins = [coin for coin in data if coin["symbol"].endswith("USDT")]
+        # Sort the filtered coins by quoteVolume and take the top
+        top_coins = sorted(
+            filtered_coins, key=lambda x: float(x["quoteVolume"]), reverse=True
+        )[: self.LIMIT]
         TopicCreator.TOPCOIN = [coin["symbol"].lower() for coin in top_coins]
 
     def create_topic(self):

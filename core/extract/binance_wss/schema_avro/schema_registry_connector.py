@@ -59,7 +59,7 @@ class SchemaRegistryConnector:
             try:
                 print(f"✅ Registering schema: {schema_type}")
                 schema_avro = Schema(schema, schema_type="AVRO")
-                subject_name = f"binance_{schema_type}"
+                subject_name = f"binance_{schema_type}-value"
 
                 self.get_client().register_schema(subject_name, schema_avro)
             except Exception as e:
@@ -70,7 +70,9 @@ class SchemaRegistryConnector:
     # Get the schema by stream type
 
     def get_schema_by_name(self, stream_type):
-        schema = self.client.get_latest_version(f"{self.BINANCE_TOPIC}_{stream_type}")
+        schema = self.client.get_latest_version(
+            f"{self.BINANCE_TOPIC}_{stream_type}-value"
+        )
         if schema is not None:
             return schema
         else:

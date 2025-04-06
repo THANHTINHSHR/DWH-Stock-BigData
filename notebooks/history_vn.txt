@@ -103,6 +103,8 @@ PHẢI TỔ CHỨC LẠI:
 Product (Số lượng Producers) = Số lượng topcoin (ví dụ, 10 topcoins). Mỗi producer sẽ chịu trách nhiệm sản xuất dữ liệu cho một coin.
 Consumer (Số lượng Consumers) = Số lượng Partitions = Số lượng Stream Types * Số lượng Topcoins.
 - như vậy mới đảm bảo product đủ để consumer chạy .
+- đã chỉnh xong producer nhưng có vẻ vài đồng không có giao dịch diễn ra nhỉ, có đồng lên tới triệu mess có đồng chả có mess nào
+- Xử lý : ình không lọc theo usdt nên v, chỉ lấy các cặp mà binance cung cấp. thêm đk lọc USDT nào
 
 
 
