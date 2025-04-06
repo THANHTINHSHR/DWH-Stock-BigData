@@ -1,5 +1,5 @@
-from confluent_kafka import SerializingProducer
-from confluent_kafka.serialization import StringSerializer
+from confluent_kafka import Producer
+
 from confluent_kafka.schema_registry.avro import AvroSerializer
 
 from core.extract.binance_wss.schema_avro.schema_registry_connector import (
@@ -15,22 +15,32 @@ class ProducerFactory:
     def __init__(self):
         self.registry = SchemaRegistryConnector.get_instance()
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
+        self.SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL")
+        self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
 
-    def create_producer(self, stream_type: str):
-        """Create Producer base on stream_type"""
-        schema = self.registry.get_schema_by_name(stream_type)
-        schema_str = schema.schema.schema_str
+    def create_producer(self):
+        """Create a Kafka producer."""
+        conf = {
+            "bootstrap.servers": self.BOOTSTRAP_SERVERS,
+            "schema.registry.url": self.SCHEMA_REGISTRY_URL,
+        }
+
+    return Producer(conf)
+
+    def get_serializer(self, stream_type: str):
+        """Return Avro serializer for given stream_type."""
+        schema_name = f"{self.BINANCE_TOPIC}_{stream_type}"
         client = self.registry.get_client()
-        serializer = AvroSerializer(
-            client,
-            schema_str,
-        )
-        return SerializingProducer(
-            {
-                "bootstrap.servers": self.BOOTSTRAP_SERVERS,
-                "key.serializer": StringSerializer("utf_8"),
-                "value.serializer": serializer,
-            }
+        return AvroSerializer(client, schema_name)
+
+    def send_data(self, data: dict, stream_type: str):
+        """Serialize and send data to Kafka."""
+        serializer = self.get_serializer(stream_type)
+        serialized_value = serializer(data)
+        self.producer.produce(
+            topic=f"{self.BINANCE_TOPIC}.{stream_type}",
+            key=data.get("symbol", ""),  # ví dụ dùng symbol làm key
+            value=serialized_value,
         )
 
 

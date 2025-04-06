@@ -5,10 +5,12 @@ import os, requests, json
 from dotenv import load_dotenv
 
 load_dotenv()
-TOPCOIN = []
 
 
 class TopicCreator:
+    # Class attribute
+    TOPCOIN = []
+
     def __init__(self):
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
         self.admin_client = AdminClient({"bootstrap.servers": self.BOOTSTRAP_SERVERS})
@@ -20,19 +22,23 @@ class TopicCreator:
         # init value for TOPCOIN
         self.get_top_coins()
 
+    @classmethod
+    def get_TOPCOIN(cls):
+        """Class method to access TOPCOIN."""
+        return cls.TOPCOIN
+
     def get_top_coins(self):
-        global TOPCOIN
         response = requests.get(self.URL_TOP)
         data = response.json()
         top_coins = sorted(data, key=lambda x: float(x["quoteVolume"]), reverse=True)[
             : self.LIMIT
         ]
-        TOPCOIN = [coin["symbol"].lower() for coin in top_coins]
+        TopicCreator.TOPCOIN = [coin["symbol"].lower() for coin in top_coins]
 
     def create_topic(self):
         num_streams = len(self.STREAM_TYPES)
-        num_partitions = num_streams * len(TOPCOIN)
-        for symbol in TOPCOIN:
+        num_partitions = num_streams * len(TopicCreator.TOPCOIN)
+        for symbol in TopicCreator.TOPCOIN:
             topic_name = f"{self.BINANCE_TOPIC}_{symbol}"  # ex : binance_btcusdt
             new_topic = NewTopic(
                 topic_name, num_partitions=num_partitions, replication_factor=1
@@ -49,4 +55,5 @@ class TopicCreator:
 
 if __name__ == "__main__":
     topic_creator = TopicCreator()
+    print(f"TOPCOIN: {TopicCreator.TOPCOIN}")
     topic_creator.create_topic()
