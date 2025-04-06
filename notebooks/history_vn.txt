@@ -81,8 +81,21 @@ sau đó đưa cho SchemaRegistryClient đi đăng ký
 - mất thời gian cho việc tìm ra lỗi [] của dữ liệu do mình comment sau đuôi biến trong .env nên nó đọc phần đuôi.
 ---------------- Producer Factory----------
 - tùy loại stream mà sẽ sinh ra các product khác nhau -> Factory pattern
-- ok, producer cơ bản xong xong àm chạy nó tạo tự động 1 cái schema binance-value , không bueets đâu ra nữa
-nhưng mà nếu đổi binacnce thành 1 cía khác thì nó không tự tọa nó NỮA
+- ok, producer cơ bản xong xong làm chạy nó tạo tự động 1 cái schema binance-value , không bueets đâu ra nữa
+nhưng mà nếu đổi binacnce thành 1 cía khác thì nó không tự taọ nó NỮA
+- consumer cũng xong, ban đầu quên biên dịch lại nên đọc không dc data :D 
+- thêm cái create topic để cấu hình topic khi push lên, như số lượng partition,....
+- h sao cái create topic nó báo tạo rồi nhưng ui ko có, phải dùng auto bên product ???
+- bây giờ có vấn dề là : create topic chỉ tạo khi producer gởi mess, mà consumer cần topic để đăng ký,
+nếu gởi mess rồi mới đk thì có bị mất dữ liệu ko, vì consumer nghe sau khi push nên có thể mất, 
+nếu nó nghe trước khi push thì éo biết nghe ở đâu (chưa đăng ý) !......
+- Giải quyết bằng gởi 1 cái mess khi Topic dc tạo luôn. nghe ổn phết
+- làm rồi nhưng vẫn bị.......... nguyên nhân : init của consumer mananger gọi self.get_all_consumers() luôn , tức là khi tạo là đăng lý luôn nên mới bị mù đường.
+bây h có vài cách : + 1 là cho đăng ký sau khi có lệnh consum
+                    + 2 là cho đẩy topic creater lên, cho gọi hàm create topic luôn rồi mới định 
+                    nghĩa consumer_manager!
+- gần hoàng tất, chỉnh lại số partition cho bằng số coin để tăng số lượng coin dc xử lý cùng lúc
+
 
 
 

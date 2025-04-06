@@ -1,4 +1,6 @@
 from confluent_kafka.admin import AdminClient, NewTopic
+from confluent_kafka import Producer
+
 import os
 from dotenv import load_dotenv
 
@@ -14,16 +16,26 @@ class TopicCreator:
         self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
 
     def create_topic(self):
-        try:
-            for stream_type in self.STREAM_TYPES:
-                topic_name = f"{self.BINANCE_TOPIC}_{stream_type}"
-                new_topic = NewTopic(
-                    topic_name, num_partitions=self.NUM_PARTITIONS, replication_factor=1
-                )
-                self.admin_client.create_topics([new_topic])
-                print(f"✅ Topic '{topic_name}' created successfully")
-        except Exception as e:
-            print(f"❌ Failed to create topic: {e}")
+        for stream_type in self.STREAM_TYPES:
+            topic_name = f"{self.BINANCE_TOPIC}_{stream_type}"
+            new_topic = NewTopic(
+                topic_name, num_partitions=self.NUM_PARTITIONS, replication_factor=1
+            )
+            # Wait for the topic creation to complete
+            futures = self.admin_client.create_topics([new_topic])
+            for topic, future in futures.items():
+                try:
+                    future.result()
+                    # self.send_dummy_message(topic_name)
+                    print(f"✅ Topic '{topic}' created successfully")
+                except Exception as e:
+                    print(f"❌ Failed to create topic '{topic}': {e}")
+
+    def send_dummy_message(self, topic_name):
+        p = Producer({"bootstrap.servers": self.BOOTSTRAP_SERVERS})
+        p.produce(topic_name, key="test", value="dummy")
+        p.flush()
+        print(f"✅ Dummy message sent to topic '{topic_name}'")
 
 
 if __name__ == "__main__":
