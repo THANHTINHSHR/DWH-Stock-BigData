@@ -111,8 +111,11 @@ stream là trade, vận nên có 10*1 = 10 consumer, gần như 1 consumer đả
 nhưng mà dữ liệu 1coin có đến vài nghìn, nếu consumer đang chạy trúng thằng phụ trách cái 
 vài nghìn đó thì các conssumer khác khong cập nhật đúng lúc trừ khi cái hiện tại kết thúc,
 dữ liệu coin mà bij mất như vậy thì thật thiếu sót
----> Dùng ThreadPoolExecutor
-
+---> Dùng ThreadPoolExecutor, nó thật tuyệt vời, đúng bản chất song song nhiều tiến trình như mình muons, vậy ới kéo dc các coin cùng lúc chứ
+- áp dụng luôn với producer đi :
++ asyncio  coi như là đa luồn có thứ tự, còn threadpood là đa luồng song song,producer vì xài 
+websocket nên chỉ dùng dc asyncio , consumer vì dùng kafka nên dùng dc threadpool ( kiến thức đa luồn mới)
++ WebSocket ko hoạt động tốt tỏng môi trường threadpood  ên tốt nhất là ko chạm vào !
 
 
 
