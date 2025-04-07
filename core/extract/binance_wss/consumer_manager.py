@@ -3,6 +3,9 @@ from core.extract.binance_wss.consumer_factory import ConsumerFactory
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 from confluent_kafka.serialization import SerializationContext, MessageField
 from core.extract.binance_wss.topic_creator import TopicCreator
+from concurrent.futures import ThreadPoolExecutor
+import threading
+
 
 from core.extract.binance_wss.schema_avro.schema_registry_connector import (
     SchemaRegistryConnector,
@@ -31,6 +34,8 @@ class ConsumerManager:
         self.registry = SchemaRegistryConnector.get_instance()
         self.deserializers = {}
         self.deserialize()
+        # theading
+        self.stop_event = threading.Event()
 
     def get_all_consumers(self):
         """Get all consumers"""
@@ -41,12 +46,11 @@ class ConsumerManager:
                 )
         return self.consumers
 
-    async def fetch_stream(self, stream_type, consumer, symbol):
+    def fetch_stream(self, stream_type, consumer, symbol):
         try:
-            while True:
+            while not self.stop_event.is_set():
                 msg = consumer.poll(timeout=1.0)
                 if msg is None:
-                    await asyncio.sleep(0.1)
                     continue
                 if msg.error():
                     raise KafkaException(msg.error())
@@ -57,12 +61,10 @@ class ConsumerManager:
                     # Get coin symbol from the message
                     key = f"{symbol}/{stream_type}/{msg.timestamp()[1]}.json"
                     self.upload_to_s3(data, key)
-
-        except KeyboardInterrupt:
-            print(f"⚠️ [{stream_type}] Stopping consumer...")
-
+                    print(f"✅ Uplpad to s3 Success: {key}")
         finally:
             consumer.close()
+            print(f"🛑 Consumer {symbol}-{stream_type} stopped")
 
     def deserialize(self):
         """Deserialize Avro data"""
@@ -90,15 +92,22 @@ class ConsumerManager:
         except Exception as e:
             print(f"❌ Failed to upload {key} to S3: {e}")
 
-    async def start_listen(self):
-        tasks = []
-        for key, consumer in self.consumers.items():
-            symbol, stream_type = key.split("_", 1)
-            tasks.append(self.fetch_stream(stream_type, consumer, symbol))
-        await asyncio.gather(*tasks)
+    def start_listen(self):
+        with ThreadPoolExecutor() as executor:
+            for key, consumer in self.consumers.items():
+                symbol, stream_type = key.split("_", 1)
+                executor.submit(self.fetch_stream, stream_type, consumer, symbol)
+
+            try:
+                while not self.stop_event.is_set():
+                    # Just wait a bit and loop
+                    threading.Event().wait(1)
+            except KeyboardInterrupt:
+                print("⚠️ Ctrl+C detected. Stopping all consumers...")
+                self.stop_event.set()
 
 
 if __name__ == "__main__":
     tc = TopicCreator()
     cm = ConsumerManager()
-    asyncio.run(cm.start_listen())
+    cm.start_listen()
