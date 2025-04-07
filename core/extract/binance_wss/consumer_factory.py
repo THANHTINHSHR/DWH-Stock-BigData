@@ -15,7 +15,7 @@ class ConsumerFactory:
         config = {
             "bootstrap.servers": self.BOOTSTRAP_SERVERS,
             "group.id": f"{symbol}_{stream_type}",
-            "auto.offset.reset": "earliest",  # Change to latest if needed
+            "auto.offset.reset": "latest",  # Change to latest if needed
         }
         consumer = Consumer(config)
         consumer.subscribe([f"{self.BINANCE_TOPIC}_{symbol}"])
