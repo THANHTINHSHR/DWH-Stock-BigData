@@ -115,8 +115,8 @@ dữ liệu coin mà bij mất như vậy thì thật thiếu sót
 - áp dụng luôn với producer đi :
 + asyncio  coi như là đa luồn có thứ tự, còn threadpood là đa luồng song song,producer vì xài 
 websocket nên chỉ dùng dc asyncio , consumer vì dùng kafka nên dùng dc threadpool ( kiến thức đa luồn mới)
-+ WebSocket ko hoạt động tốt tỏng môi trường threadpood  ên tốt nhất là ko chạm vào !
-
++ WebSocket ko hoạt động tốt trong môi trường threadpood  ên tốt nhất là ko chạm vào !
+dùng thread để đảm bảo chạy saong saong, nhưng vì producer có xài async nên đi vồng chút bằng dùng loop gọi hàm chạy
 
 
 
