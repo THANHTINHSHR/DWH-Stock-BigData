@@ -1,0 +1,12 @@
+CÓ MỘT SỰ HIỂU NHẦM TO LỚN.
+- Mình không thể tách quá trình ETL ra hoàn toàn ttrong cấu trúc realtime streaming như batch được.
+- Lúc trước, mình định làm dạng lấy kafka làm nguồn rồi gởi lên s3 , sau đó lấy xuống transform 
+tuy nhiên : + S3 không hỗ trợ streaming data (chỉ hỗ trợ batch), việc coi s3 là nơi chứa dữ liệu 
+            streaming là sai hoàn toàn, DỮ LIỆU PHẢI ĐƯỢC XỬ LÝ TRONG THỜI GIAN THƯC. 
+            + consumer mình viết kiểu vậy chính là biến reatime thành batch, consumer cần phải vừa
+            lấy dữ liệu, vừa chuyển đổi nó - đó là nơi spark hoạt động
+            + như nói ở trên thì coi như spark đóng vai trò là 1 consumer nhưng nó không hoạt 
+            động với confulent kafka, nếu muốn có schema registry thì pahir làm thủ công
+            mà schema cũng không cần thiết , bảo mật chi, mã hóa chi, nó chỉ là json thôi mà
+            --> làm 1 piplime mới , đặt tên là streaming đi.
+            
