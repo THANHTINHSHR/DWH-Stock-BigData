@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
+from pyspark import SparkConf
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
 load_dotenv()
 
 
@@ -21,7 +21,20 @@ class SparkSessionSingleton:
     @staticmethod
     def get_spark_session():
         """Returns the single instance of SparkSession"""
+
+        # If you prefer using packages instead of local jars:
+        # .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.5")
         if SparkSessionSingleton._instance is None:
+            log4j_path = os.path.abspath("log4j.properties")
+
+            # Create conf
+            conf = SparkConf()
+            # conf.set(
+            #    "spark.driver.extraJavaOptions",
+            # conf.set(
+            #   "spark.executor.extraJavaOptions",
+            #    f"-Dlog4j.configuration=file:{log4j_path}",
+            # )
             # Create an instance of the class to access environment variables
             instance = SparkSessionSingleton()
             # Create SparkSession with configurations for S3 access
@@ -38,11 +51,23 @@ class SparkSessionSingleton:
                 .config(
                     "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
                 )
+                # Replace local jars with Maven package
+                .config(
+                    "spark.jars.packages",
+                    ",".join(
+                        [
+                            "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.5",
+                            "org.apache.kafka:kafka-clients:3.5.1",
+                            "org.apache.spark:spark-token-provider-kafka-0-10_2.12:3.5.5",
+                        ]
+                    ),
+                )
                 .config("spark.hadoop.fs.s3a.connection.maximum", "100")
                 .config("spark.hadoop.fs.s3a.connection.timeout", "5000")
                 .config("spark.hadoop.fs.s3a.attempts.maximum", "3")
                 .config("spark.hadoop.fs.s3a.retry.limit", "3")
                 .config("spark.hadoop.fs.s3a.fast.upload", "true")
+                .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
                 .getOrCreate()
             )
         return SparkSessionSingleton._instance
