@@ -1,7 +1,13 @@
 from core.streaming.spark.spark_session_singleton import SparkSessionSingleton
 from core.extract.binance_wss.topic_creator import TopicCreator
+from pyspark.sql.types import *
+from pyspark.sql.functions import from_json, col
+from functools import reduce
 
-import os
+from pathlib import Path
+
+
+import os, json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,41 +20,185 @@ class SparkTransformer:
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
         self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
         self.spark = SparkSessionSingleton.get_spark_session()
-        self.streams = []
+        self.streams = {}
         # DEBUG - stream counter
         self.counter = 0
-        # Load Streams
-        self.get_df_streams()
+        # Schema
+        self.streams_schema = {}
+        self.load_all_schemas()
 
-    def read_kafka_topic(self, symbol, stream_type):
+    def avro_type_to_spark_type(self, avro_type):
+        """Map basic Avro types to PySpark types"""
+        if isinstance(avro_type, list):
+            avro_type = [t for t in avro_type if t != "null"][0]
+        if isinstance(avro_type, dict):
+            return self.avro_to_struct(avro_type)
+        mapping = {
+            "string": StringType(),
+            "int": IntegerType(),
+            "long": LongType(),
+            "float": FloatType(),
+            "double": DoubleType(),
+            "boolean": BooleanType(),
+        }
+        return mapping.get(avro_type, StringType())
+
+    def avro_to_struct(self, avro_schema):
+        """Convert Avro schema dict to PySpark StructType"""
+        fields = []
+        for field in avro_schema.get("fields", []):
+            name = field["name"]
+            dtype = self.avro_type_to_spark_type(field["type"])
+            fields.append(StructField(name, dtype, True))
+        return StructType(fields)
+
+    def load_all_schemas(self):
+        """Load all .avro files into self.streams_schema"""
+
+        base_dir = Path(__file__).resolve().parent
+        parent_dir = base_dir.parent
+        schema_dir = parent_dir / "kafka" / "schema_avsc"
+
+        print("📁 Schema dir:", schema_dir)
+        print("📄 Files found:", list(schema_dir.glob("*.avsc")))
+        for avro_file in schema_dir.glob("*.avsc"):
+            print("🔍 Found file:", avro_file.name)
+            with open(avro_file, "r") as f:
+                schema = json.load(f)
+                struct = self.avro_to_struct(schema)
+                self.streams_schema[avro_file.stem] = struct
+        print(f"✅ Loaded schemas: {list(self.streams_schema.keys())}")
+        return self.streams_schema
+
+    def get_schema(self, schema_name):
+        return self.streams_schema[schema_name]
+
+    def show_df_stream(self, data: dict):
+        # df = df.selectExpr("cast(value as string)", "timestamp")
+        df = data["df"]
+        symbol = data["symbol"]
+        stream_type = data["stream_type"]
+        query = (
+            df.writeStream.format("console")
+            .outputMode("update")
+            .option("truncate", False)
+            .option("numRows", 10)
+            .start()
+        )
+        query.awaitTermination()
+
+    def read_stream(self, symbol, stream_type):
         df = (
             self.spark.readStream.format("kafka")
             .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
-            .option("startingOffsets", "latest")
+            .option("startingOffsets", "earliest")  # "latest if deploy
             .option("subscribe", f"{self.BINANCE_TOPIC}_{symbol}")
             .option("groupId", f"{stream_type}")
             .load()
         )
-        return df
 
-    def get_df_streams(self):
-        TOPCOIN = TopicCreator.TOPCOIN
-        for symbol in TOPCOIN:
-            for stream_type in self.STREAM_TYPES:
-                df = self.read_kafka_topic(symbol, stream_type)
-                self.streams.append(df)
-                # Debug
-                self.counter += 1
+        return {"df": df, "symbol": symbol, "stream_type": stream_type}
 
-    def show_df_streams(self):
-        print(f"✅ Number of streams created: {len(self.streams)}")
+    def build_filter_condition(self, df, schema):
+        conditions = []
+        for field in schema.fields:
+            name = field.name
+            dtype = field.dataType
 
-        self.streams[0].writeStream.outputMode("append").format(
-            "console"
-        ).start().awaitTermination()
+            # Base: Not null
+            cond = col(name).isNotNull()
+
+            # String: not empty
+            if isinstance(dtype, StringType):
+                cond = cond & (col(name) != "")
+
+            # Numeric: not NaN
+            elif isinstance(dtype, (FloatType, DoubleType)):
+                cond = cond & (~isnan(col(name)))
+
+            # Boolean: chỉ cần khác null
+            elif isinstance(dtype, BooleanType):
+                cond = cond  # đã đủ
+
+            conditions.append(cond)
+
+        return reduce(lambda a, b: a & b, conditions)
+
+    def transform_trade_stream(self, data: dict):
+        df = data["df"]
+        symbol = data["symbol"]
+        stream_type = data["stream_type"]
+        df.printSchema()
+        # Get value from df
+        df_value = df.select(
+            from_json(col("value").cast("string"), self.get_schema(stream_type)).alias(
+                "value_json"
+            ),
+        ).select("value_json.*")
+        df_value = df_value.select(
+            col("t").alias("trade_id"),
+            col("e").alias("event"),
+            col("s").alias("symbol"),
+            col("p").alias("price"),
+            col("q").alias("quantity"),
+            col("T").alias("trade_time"),
+            col("m").alias("is_market_maker"),
+        )
+        # Cleaning--> Transform--> Filter
+        # Cleaning: Cast
+        df_value = df_value.withColumn("trade_id", col("trade_id").cast(LongType()))
+        df_value = df_value.withColumn("event", col("event").cast(StringType()))
+        df_value = df_value.withColumn("symbol", col("symbol").cast(StringType()))
+        df_value = df_value.withColumn("price", col("price").cast(DoubleType()))
+        df_value = df_value.withColumn("quantity", col("quantity").cast(DoubleType()))
+        # Minisecond to second milliseconds
+        df_value = df_value.withColumn(
+            "trade_time", (col("trade_time") / 1000).cast(TimestampType())
+        )
+        df_value = df_value.withColumn(
+            "is_market_maker", col("is_market_maker").cast(BooleanType())
+        )
+        # Cleaning : Filter null, "",NaN
+        # same but use" AND ".join is better
+        # condition = col("trade_id").isNotNull() & col("trade_id").isNotEqual("") ...
+        condition = self.build_filter_condition(df_value, self.get_schema(stream_type))
+        # Transform
+        df_value = df_value.filter(condition)
+
+        # df_value = df.select("value", "timestamp")
+
+        return {"df": df_value, "symbol": symbol, "stream_type": stream_type}
+
+    def transform_stream_generic(self, data: dict):
+        df = data["df"]
+        symbol = data["symbol"]
+        stream_type = data["stream_type"]
+
+        match stream_type:
+            case "trade":
+                return self.transform_trade_stream(data)
+            case _:
+                return data
+        return data
+
+    def load_stream(self, data: dict):
+
+        self.show_df_stream(data)
+
+    def run_stream(self, symbol, stream_type):
+        dict = self.read_stream(symbol, stream_type)
+        dict = self.transform_stream_generic(dict)
+        print(f"📡 Subscribing to topic: {self.BINANCE_TOPIC}_{symbol}")
+
+        self.load_stream(dict)
 
 
 if __name__ == "__main__":
     tc = TopicCreator()
     st = SparkTransformer()
-    st.show_df_streams()
+
+    # st.show_test()
+    # schema = st.get_schema("trade")
+    # print(schema)
+
+    st.run_stream("btcusdt", "trade")

@@ -68,6 +68,7 @@ class SparkSessionSingleton:
                 .config("spark.hadoop.fs.s3a.retry.limit", "3")
                 .config("spark.hadoop.fs.s3a.fast.upload", "true")
                 .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
+                .config("spark.sql.caseSensitive", "true")
                 .getOrCreate()
             )
         return SparkSessionSingleton._instance
