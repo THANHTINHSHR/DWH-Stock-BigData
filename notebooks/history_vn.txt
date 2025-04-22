@@ -1,0 +1,124 @@
+cố gắn kích hoạt gcp billing ma không dc: 
+Action unsuccessful
+This action couldn’t be completed. [OR_BACR2_44].  CHÁN
+liên hệ google support luôn !
+ 12h để phản hồi. h chọn nguồn là bilance, cách thức là gg Pub/Sub hay Kafka đây. chơi gg hết đi
+ Um, cơ bản là éo hiểu gì về crypto  cả, pahir hiểu khái niệm chung đã mới lấy url dc. đòn bẩy,....
+ liên hệ ngân hàng và google đều không fix dc lỗi. nản
+ vì pub/sub không dc nên dùng kafka
+ tìm hiểu các khái nệm của nó: prosucter, customer, cluster, leader, partition.
+ kafka xong nhưng muốn 1 nơi làm datalake ban đầu muốn gcs nhưng mà bị cái billing nên chuyển qua AWS s3. 
+ email cho google và gọi ngân hàng mấy lần mà không giải quyết dc gì.
+ bị lỗi ambiguous reference phân biệt các trường in thường và in hoa. vì mình tra thấy spark nhận diện dc nên bỏ qua , ai ngờ nó cứ vậy hoài.
+ phải cấu hình lại spark mới dc.
+ uầy trời má, nhận ra là mình fix cứng schema luôn, mình stream hàng loạt các loại giao dịch mà
+ phải tách  và lọc giao dịch ra mới dc.
+ Làm việc với Streaming data hơi chú ý chút mới dc :
+ - async là cần thiết vì để nhanh thì phải chạy song song
+ - hạn chế tạo nhiều Object để tối ưu hiệu suất!
+ Về OOP, cái này cho ra vấn đề : MỖI JSON FILE THÌ 1 OBJECT ĐƯỢC TẠO ĐỂ XỬ LÝ?
+ - nếu 1 obejct cho mỗi file json thì cả tỉ object mất, vậy là dùng singeton rồi.
+ - nhưng nếu singeton thì viết như thế nào nếu mà stream_type thay đổi nhỉ, hiện tại mình viết sườn, và vẽ 1 lối duy nhất cho trade thôi
+ - cái này Registry? nếu muốn đăng ký cho 1 type mới?!?
+ - nếu dùng cả Registry và singeton thì gọi là gì nhỉ? Singleton Handler Registry? gọi là srr đi
+chỉnh cái cách đẩy lên và cách lấy xuống chút, cần phải gom nhóm và tách nhóm, lọc theo env
+rồi còn phải đảm bảo chạy song song đa luồng mới ổn chứ
+làm cả ngày mới nhận ra là mình đang làm Kafka Consumer Group một cách thủ công á.
+Kiểu đóng cửa nghiên cứu, tự hào phát minh ra cái bánh xe mà đem xài đi mới biết cộng đồng đã làm chiếc xe rồi
+Qua transform cũng có vòng lặp là để lấy dữ liệu thì cần schema, nhưng điều kiện viết 
+schema thì nằm trong data cần lấy, nếu mà cho mỗi bunker mỗi loại schema khác nhau thì sau này mở rộng thì phải chỉnh nhiều thức
+mà nếu muốn biết schema thì cần phải lấy từ đâu đó. giả sử trong khi producer gởi lên kafka đi, nó gởi luôn 1 luồn streaming về schema_type 
+vô 1 topic khác, kèm theo dữ liệu về topic/bunker sẽ dùng nó, sau đó ở phí transfrom mình nhận từ s3 thì cần đọc từ chổ này trước để xác định schema ( tất nhiên chổ lưu schema này là cấu trúc không cần spark pahir tự đoán)
+và khi lấy xuống thì dùng mẫu register như mình nói ở dòng 21.
+Tất nhiên, mọi thứ mình muốn là nếu có thay đổi thì thay đỏi chổ config (.env) á, đừng có thò thọc lung tung.
+UẦY MÁ, LẠI NỮA. cái vấn đề của mình mà mình định làm á, bên AWS có luôn tên là AWS Glue Schema, nhỏ hơn thì là Confluent Schema Registry.
+thật là hài hước, di tìm hiểu cách xài đã
+um, nó legacy rôi, chuyển sang AWS Glue Data Catalog
+aws_glue_schema_registry không nhận dù đã thấy nó trong venv/lib ?
+làm mình hạ python xuống , cài lại env,... nhưng vẫn chừa nó. kiểu khong hỗ trợ. 
+Hum, aws_glue không chạy trên local dc (không thể đối xử như thư viện độc lập nên không thể tải bằng pip)
+kiểucác pub/sub như Kafka cho free nếu chỉ gởi và nhân hoặc xác định schema trước trong code, 
+nhưng nếu muốn đăng ký schema thì trả phí hoặc dùng cái khác 
+um, vì hiện tại không xài dc thẻ nên dùng Free, bà con thông cảm tôi code cứng chút.
+-----------------SCHEMA_REGISTRY----------------------------------
+nhưng
+- nếu mình viết dạng truyền thêm schema vào mỗi khi producer gởi thì nó nặng thêm và dư thừa, 
+- nếu Dùng fastavro để đóng gói ddataa + schema thì lại nhẹ hơn nhưng lại mất đi cấu trúc vốn có ( chỉ còn byte)
+và sẽ vô nghĩa nếu lưu nó cho staging s3 để xem lại.
+- PHÁT HIỆN RA bản kafa đầy đủ hơn, bao gồm cả kafa schema register đó là  Confluent Platform 
+cái này là bản nâng cấp của kafa, do nhóm phát triển kafka làm thêm, kafka với  Confluent Platform  giống như spark với databrick :D
+tải và thay thế thôi
+- Confluent Platform. 
+- Mất cả ngày rưỡi để tìm ra lỗi kết nối giữ schema register và kafka dò thấy ui hiện, chạy trên ui dc nhưng code không dc
+túm cái háng lại là thiêu config :       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9093  
+kiểu là register lưu schema vào bonker của  kafka á, lúc trc ko làm việc với bonker kafka nên ko biết.
+- producer cần biết id schema để gởi theo mess, nhưng nó chỉ biết name, nếu muốn dò id thì phải hỏi register NỮA
+kiểu là phải hỏi API Schema Registry hay đại loại vậy, vậy có quá dư k, nếu đã biết thì cần gì hỏi, hỏi khi không biets thôi chứ?
+---------------------AvroProducer -- IMPROVE----------
+- vấn đề là hiện tại AvroProducer cần mess, key, data, schema_id. Nó sẽ mã hóa data theo schema ( nó biết schema là gì, nó chỉ lấy schema để đăng ký)
+mục tiêu của mình là khiến nó hông cần biết schema là gì, như là việc đăng ký sử dụng dịch vụ và đăng ký bán dịch vujcungf lúc vậy, 
+nếu chưa có ai bán thì ta bán, nếu có bán rồi thì ta mua về xài (id), giống như 
+shop giao hàng chi đơn vị vận chuyển thì méo cần biết đường đi như thế nào, chỉ cần đảm bảo tới đích.
+nhưng nó vẫn cần đóng gói gói hàng, việc đưa cho đơn vị vận chuyển đóng gói sẽ lâu hơn 
+là việc tự nó đóng gói cũng như không thể đưa cho schema register chỉ nhận register chứ khong nhận mess
+vậy thì giao cho 1 thằng đệ ( đối tượng mới) để chuyên đóng gói ( mã hóa), thằng đệ này sẽ biết cả id và schema cần thiết.
+và đó là cách SchemaRegistryConnector của tui ra đời :D , chỉ cần áp dụng singeton là nó sẽ là duy nhất và có thể quản lý schema trong và ngoài code python nữa!
+- cơ mà hiện tại ko đủ thời gian và tài liệu để xây dự cả 1 đối tựng mới gần giống AvroProducer dc, 
+nên xài tạm nó. 
+- DeprecationWarning: AvroProducer has been deprecated. Use AvroSerializer instead.
+- TRỜI MÁ, AvroSerializer  chả khác nào ý tưởng của mình cả, nó tách phần serializer ra khỏi avroprducer,
+tui lại phát minh ra cái bánh xe nữa hả trời.
+- mệt qué tui đi từ kafkaProducer -> avroprducer -> AvroSerializer  luôn. 
+um nếu xài avroserializer thì h khồn cần schemaregistryconnector nữa nhỉ, để xem đã
+- à không vẫn cần, schemaregistryconnector của mình hiện tại chỉ mới hỗ trợ đăng ký và lưu schema, tuy nhiên chưa phát huy hết sức mạnh chủa schemaregistry, 
+tách cả key và value của mess thành hai loại schema để dc tái sử dụng đó mới là sức mạnh
+------------------------DOCKER-----------
+thử kết nối schemaregister , kafka, ui lại với nhau mà khó quá, đảm bảo cổng trong ngòai,... :|
+khó kinh 3 ngày r. 
+Cuối cùng cũng cong, cơ bản là do hai file docker ko ở thư mục gốc nên nó tạo network bị sai, nên dù cổng mở nhưng tên tetwork bị sai nên ko vào / giao tiếp dc
+- Đăng ký Schema trong AvroSerializer hơi khác chút, schema dc đóng gói lại bằng lớp schema,
+sau đó đưa cho SchemaRegistryClient đi đăng ký
+- mất thời gian cho việc tìm ra lỗi [] của dữ liệu do mình comment sau đuôi biến trong .env nên nó đọc phần đuôi.
+---------------- Producer Factory----------
+- tùy loại stream mà sẽ sinh ra các product khác nhau -> Factory pattern
+- ok, producer cơ bản xong xong làm chạy nó tạo tự động 1 cái schema binance-value , không bueets đâu ra nữa
+nhưng mà nếu đổi binacnce thành 1 cía khác thì nó không tự taọ nó NỮA
+- consumer cũng xong, ban đầu quên biên dịch lại nên đọc không dc data :D 
+- thêm cái create topic để cấu hình topic khi push lên, như số lượng partition,....
+- h sao cái create topic nó báo tạo rồi nhưng ui ko có, phải dùng auto bên product ???
+- bây giờ có vấn dề là : create topic chỉ tạo khi producer gởi mess, mà consumer cần topic để đăng ký,
+nếu gởi mess rồi mới đk thì có bị mất dữ liệu ko, vì consumer nghe sau khi push nên có thể mất, 
+nếu nó nghe trước khi push thì éo biết nghe ở đâu (chưa đăng ý) !......
+- Giải quyết bằng gởi 1 cái mess khi Topic dc tạo luôn. nghe ổn phết
+- làm rồi nhưng vẫn bị.......... nguyên nhân : init của consumer mananger gọi self.get_all_consumers() luôn , tức là khi tạo là đăng lý luôn nên mới bị mù đường.
+bây h có vài cách : + 1 là cho đăng ký sau khi có lệnh consum
+                    + 2 là cho đẩy topic creater lên, cho gọi hàm create topic luôn rồi mới định 
+                    nghĩa consumer_manager!
+-------------------------------------------------------------------------------------------------
+- gần hoàng tất, chỉnh lại số partition cho bằng số coin để tăng số lượng coin dc xử lý cùng lúc
+- hum, hình như ít consumer hoạt động lắm thì phải, mình cho mỗi 1 consumer dc tạo ra tùy theo loại stream type
+nhưng mà 1 stream type lại có cả chục coin, có vẻ mình là tư bản cmmr, mới có 1 cái trade thôi mà ép 1 thằng chạy
+chạy xịt khói. nên thuê dựa theo số coin thì mới đúng
+PHẢI TỔ CHỨC LẠI:
+Product (Số lượng Producers) = Số lượng topcoin (ví dụ, 10 topcoins). Mỗi producer sẽ chịu trách nhiệm sản xuất dữ liệu cho một coin.
+Consumer (Số lượng Consumers) = Số lượng Partitions = Số lượng Stream Types * Số lượng Topcoins.
+- như vậy mới đảm bảo product đủ để consumer chạy .
+- đã chỉnh xong producer nhưng có vẻ vài đồng không có giao dịch diễn ra nhỉ, có đồng lên tới triệu mess có đồng chả có mess nào
+- Xử lý : mình không lọc theo usdt nên v, chỉ lấy các cặp mà binance cung cấp. thêm đk lọc USDT nào
+- vấn đề về đa tiến trình/chạy song song, đang dùng asyncio 
+- vấn đề là "group.id": f"{symbol}_{stream_type} , hiện tại tôi chạy top 10 coin và 1 loại 
+stream là trade, vận nên có 10*1 = 10 consumer, gần như 1 consumer đảm nhận 1 coin, 
+nhưng mà dữ liệu 1coin có đến vài nghìn, nếu consumer đang chạy trúng thằng phụ trách cái 
+vài nghìn đó thì các conssumer khác khong cập nhật đúng lúc trừ khi cái hiện tại kết thúc,
+dữ liệu coin mà bij mất như vậy thì thật thiếu sót
+---> Dùng ThreadPoolExecutor, nó thật tuyệt vời, đúng bản chất song song nhiều tiến trình như mình muons, vậy ới kéo dc các coin cùng lúc chứ
+- áp dụng luôn với producer đi :
++ asyncio  coi như là đa luồn có thứ tự, còn threadpood là đa luồng song song,producer vì xài 
+websocket nên chỉ dùng dc asyncio , consumer vì dùng kafka nên dùng dc threadpool ( kiến thức đa luồn mới)
++ WebSocket ko hoạt động tốt trong môi trường threadpood  ên tốt nhất là ko chạm vào !
+dùng thread để đảm bảo chạy saong saong, nhưng vì producer có xài async nên đi vồng chút bằng dùng loop gọi hàm chạy
+
+
+
+
+

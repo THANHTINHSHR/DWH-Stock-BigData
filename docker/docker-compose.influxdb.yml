@@ -1,0 +1,36 @@
+version: '3'
+services:
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    environment:
+      INFLUXDB_DB: mydb
+      INFLUXDB_HTTP_AUTH_ENABLED: "true" # Enable authentication
+      INFLUXDB_ADMIN_USER: admin
+      INFLUXDB_ADMIN_PASSWORD: adminpassword
+      INFLUXDB_USER: user
+      INFLUXDB_USER_PASSWORD: userpassword
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: adminpassword # Admin password for Grafana
+    ports:
+      - "3000:3000"  # Grafana UI
+    depends_on:
+      - influxdb
+    restart: unless-stopped
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  influxdb_data:
+    driver: local
+  grafana_data:
+    driver: local

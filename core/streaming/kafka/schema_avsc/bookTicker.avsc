@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "BookTicker",
+  "fields": [
+    { "name": "u", "type": "long" },
+    { "name": "s", "type": "string" },
+    { "name": "b", "type": "string" },
+    { "name": "B", "type": "string" },
+    { "name": "a", "type": "string" },
+    { "name": "A", "type": "string" }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "Ticker24hr",
+  "fields": [
+    { "name": "e", "type": "string" },
+    { "name": "E", "type": "long" },
+    { "name": "s", "type": "string" },
+    { "name": "p", "type": "string" },
+    { "name": "P", "type": "string" },
+    { "name": "w", "type": "string" },
+    { "name": "x", "type": "string" },
+    { "name": "c", "type": "string" },
+    { "name": "Q", "type": "string" },
+    { "name": "b", "type": "string" },
+    { "name": "B", "type": "string" },
+    { "name": "a", "type": "string" },
+    { "name": "A", "type": "string" },
+    { "name": "o", "type": "string" },
+    { "name": "h", "type": "string" },
+    { "name": "l", "type": "string" },
+    { "name": "v", "type": "string" },
+    { "name": "q", "type": "string" },
+    { "name": "O", "type": "long" },
+    { "name": "C", "type": "long" },
+    { "name": "F", "type": "long" },
+    { "name": "L", "type": "long" },
+    { "name": "n", "type": "int" }
+  ]
+}

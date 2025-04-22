@@ -1,0 +1,7 @@
+----------------GIỚI HẠN PHẦN CỨNG---------
+- Mình cho chạy 1 pipeline lẻ thì ok, nhưng nếu chạy 3 pipe song song thì máy hình như ko kham nổi, 
+    CPU 100%, đây là giới han của mình rồi, máy đơ luôn 2 nhan 4 lõi :D thì chỉ dc vậy,
+    thử giảm xuống 2 luồng xem
+--------- superset-athena-============
+- tìm ra sự kacs biệt giữa beare token, api token và crsf , chán thật sự
+- chỉnh lại yml, dockerfile để tắt crsf.

@@ -1,0 +1,2 @@
+stream,event_type,event_time,symbol,trade_id,price,quantity,trade_time,is_buyer_maker,ignore_flag
+btcfdusd@trade,trade,1742998507703,BTCFDUSD,1417139936,87146.51000000,0.00017000,1742998507702,false,true
