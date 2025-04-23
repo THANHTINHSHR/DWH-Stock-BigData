@@ -19,20 +19,41 @@ class SupersetCreator:
             self.logger = logging.getLogger(self.__class__.__name__)
             self.logger.info("✅ SupersetCreator initialized")
             self.SUPERSET_URL = os.getenv("SUPERSET_URL")
-            self.SUPERSET_SECRET_KEY = os.getenv("SUPERSET_SECRET_KEY")
+            self.SUPERSET_USERNAME = os.getenv("SUPERSET_USERNAME")
+            self.SUPERSET_PASSWORD = os.getenv("SUPERSET_PASSWORD")
 
             self.session = requests.Session()
-            self.session.headers.update(
-                {
-                    "Authorization": f"Bearer {self.SUPERSET_SECRET_KEY}",
-                    "Content-Type": "application/json",
-                }
-            )
 
             self.db_trade = DBTrade(self.SUPERSET_URL, self.session)
 
+    def login(self):
+        login_url = f"{self.SUPERSET_URL}/api/v1/security/login"
+        login_payload = {
+            "username": self.SUPERSET_USERNAME,
+            "password": self.SUPERSET_PASSWORD,
+            "provider": "db",
+            "refresh": True,
+        }
+
+        login_response = self.session.post(login_url, json=login_payload)
+
+        if login_response.status_code == 200:
+            login_data = login_response.json()
+            access_token = login_data.get("access_token")
+
+            if access_token:
+                self.logger.info("✅ Login Success")
+                return access_token
+            else:
+                self.logger.error("❌ Failed to retrieve access token")
+                return None
+        else:
+            self.logger.error(f"❌ Login failed: {login_response.text}")
+            return None
+
     def create_dashboards(self):
-        self.db_trade.run()
+        access_token = self.login()
+        self.db_trade.run(access_token)
 
 
 if __name__ == "__main__":
@@ -40,4 +61,5 @@ if __name__ == "__main__":
         level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
     )
     superset_creator = SupersetCreator()
+
     superset_creator.create_dashboards()

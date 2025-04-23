@@ -16,14 +16,18 @@ class DBTrade:
         self.session = session
         self.title = "trade"  # table name in Superset
 
-    def get_datasource_id(self):
+    def get_datasource_id(self, access_token):
         url = f"{self.SUPERSET_URL}/api/v1/dataset/"
         params = {
             "q": json.dumps(
                 {"filters": [{"col": "table_name", "opr": "eq", "value": self.title}]}
             )
         }
-        res = self.session.get(url, params=params)
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+        res = self.session.get(url, params=params, headers=headers)
         if res.status_code == 200:
             result = res.json()
             if result["count"] > 0:
@@ -38,12 +42,12 @@ class DBTrade:
             self.logger.error(f"❌ Failed to fetch datasource_id: {res.text}")
         return None
 
-    def create_chart(self):
+    def create_chart(self, access_token):
         url = f"{self.SUPERSET_URL}/api/v1/chart/"
         payload = {
-            "slice_name": "Trade Overview by Symbol",
+            "slice_name": "Trade Volume by Symbol",
             "viz_type": "bar",
-            "datasource_id": self.get_datasource_id(),
+            "datasource_id": self.get_datasource_id(access_token),
             "datasource_type": "table",
             "params": json.dumps(
                 {
@@ -53,75 +57,94 @@ class DBTrade:
                             "column": {"column_name": "quantity"},
                             "aggregate": "SUM",
                             "label": "Total Volume",
-                        },
-                        {
-                            "expressionType": "SIMPLE",
-                            "column": {"column_name": "trade_id"},
-                            "aggregate": "COUNT",
-                            "label": "Trade Count",
-                        },
-                        {
-                            "expressionType": "SIMPLE",
-                            "column": {"column_name": "price"},
-                            "aggregate": "AVG",
-                            "label": "Avg Price",
-                        },
+                        }
                     ],
                     "groupby": ["symbol"],
-                    "time_range": "Last 7 days",
-                    "legend_position": "top",
+                    "row_limit": 100,  # Giới hạn dữ liệu
+                    "time_range": "No filter",
+                    "show_legend": True,
                     "color_scheme": "bnbColors",
+                    "order_desc": True,
+                    "adhoc_filters": [],
                 }
             ),
         }
-        res = self.session.post(url, json=payload)
+
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+
+        res = self.session.post(url, json=payload, headers=headers)
         if res.status_code == 201:
             self.logger.info("✅ Chart created")
             return res.json()["id"]
         self.logger.error(f"❌ Failed to create chart: {res.text}")
         return None
 
-    def link_chart_to_dashboard(self, chart_id, dashboard_id):
-        position_json = {
-            "DASHBOARD_VERSION_KEY": "v2",
-            "ROOT_ID": {"type": "ROOT", "id": "ROOT_ID", "children": ["GRID_ID"]},
-            "GRID_ID": {
-                "type": "GRID",
-                "id": "GRID_ID",
-                "children": ["ROW_ID"],
-                "parents": ["ROOT_ID"],
-            },
-            "ROW_ID": {
-                "type": "ROW",
-                "id": "ROW_ID",
-                "children": ["CHART-1"],
-                "parents": ["ROOT_ID", "GRID_ID"],
-                "meta": {"background": "TRANSPARENT"},
-            },
-            "CHART-1": {
-                "type": "CHART",
-                "id": "CHART-1",
-                "children": [],
-                "parents": ["ROOT_ID", "GRID_ID", "ROW_ID"],
-                "meta": {
-                    "chartId": chart_id,
-                    "uuid": str(uuid.uuid4()),
-                    "width": 4,
-                    "height": 4,
-                    "sliceName": "Trade Overview by Symbol",
-                },
-            },
-        }
+    def link_chart_to_dashboard(
+        self, chart_id: int, dashboard_id: int, access_token: str
+    ):
+        self.logger.info(
+            f"📌 Chart id {chart_id} try to link to dashboard id {dashboard_id}"
+        )
 
         url = f"{self.SUPERSET_URL}/api/v1/dashboard/{dashboard_id}"
-        payload = {"position_json": json.dumps(position_json)}
-        res = self.session.put(url, json=payload)
-        if res.status_code == 200:
-            self.logger.info("✅ Chart linked to dashboard")
-        else:
-            self.logger.error(f"❌ Failed to link chart: {res.text}")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
 
-    def create_dashboard(self):
+        # Lấy thông tin dashboard hiện tại
+        res = self.session.get(url, headers=headers)
+        if res.status_code != 200:
+            self.logger.error(f"❌ Failed to fetch dashboard: {res.text}")
+            return
+
+        dashboard = res.json()["result"]
+        position_json = json.loads(dashboard["position_json"])
+        max_y = max(
+            [
+                v.get("meta", {}).get("chartId", 0)
+                for v in position_json.values()
+                if v["type"] == "CHART"
+            ],
+            default=0,
+        )
+
+        # Tạo node mới cho chart
+        chart_key = f"CHART-{chart_id}"
+        position_json[chart_key] = {
+            "type": "CHART",
+            "id": chart_key,
+            "meta": {
+                "chartId": chart_id,
+                "width": 4,
+                "height": 4,
+            },
+            "children": [],
+        }
+
+        # Gắn vào container GRID_ID
+        for key, value in position_json.items():
+            if value.get("type") == "GRID":
+                value.setdefault("children", []).append(chart_key)
+                break
+
+        # Gửi update
+        payload = {
+            "dashboard_title": dashboard["dashboard_title"],
+            "position_json": json.dumps(position_json),
+        }
+
+        res = self.session.put(url, json=payload, headers=headers)
+        if res.status_code == 200:
+            self.logger.info(f"✅ Chart {chart_id} linked to Dashboard {dashboard_id}")
+        else:
+            self.logger.error(f"❌ Error when linking chart: {res.text}")
+
+    def create_dashboard(self, access_token):
+
         url = f"{self.SUPERSET_URL}/api/v1/dashboard/"
         payload = {
             "dashboard_title": self.title,
@@ -129,8 +152,12 @@ class DBTrade:
             "published": True,
             "position_json": "{}",
         }
-        res = self.session.post(url, json=payload)
-        self.logger.info(f"✅ dashboard status code {res.status_code}")
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json",
+        }
+        res = self.session.post(url, json=payload, headers=headers)
+        self.logger.info(f"✅ dashboard status code :{res.status_code}")
         if res.status_code == 201:
             self.logger.info(f"✅ Created dashboard {self.title}")
             dashboard_id = res.json().get("id")
@@ -144,13 +171,13 @@ class DBTrade:
             self.logger.error(f"❌ Failed to create dashboard: {res.text}")
         return None
 
-    def run(self):
-        dashboard_id = self.create_dashboard()
+    def run(self, access_token):
+        dashboard_id = self.create_dashboard(access_token)
         if not dashboard_id:
             return
 
-        chart_id = self.create_chart()
+        chart_id = self.create_chart(access_token)
         if not chart_id:
             return
 
-        self.link_chart_to_dashboard(chart_id, dashboard_id)
+        self.link_chart_to_dashboard(chart_id, dashboard_id, access_token)
