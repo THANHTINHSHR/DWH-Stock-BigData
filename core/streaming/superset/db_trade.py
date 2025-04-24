@@ -1,9 +1,6 @@
 from dotenv import load_dotenv
-import os
-import requests
 import json
 import logging
-import uuid
 
 load_dotenv()
 
@@ -42,30 +39,40 @@ class DBTrade:
             self.logger.error(f"❌ Failed to fetch datasource_id: {res.text}")
         return None
 
-    def create_chart(self, access_token):
-        url = f"{self.SUPERSET_URL}/api/v1/chart/"
+    def create_combined_pie_chart(self, access_token):
+        datasource_id = self.get_datasource_id(access_token)
+
         payload = {
-            "slice_name": "Trade Volume by Symbol",
-            "viz_type": "bar",
-            "datasource_id": self.get_datasource_id(access_token),
+            "slice_name": "Tổng GTGD theo Symbol + is_market_maker",
+            "viz_type": "pie",
+            "datasource_id": datasource_id,
             "datasource_type": "table",
             "params": json.dumps(
                 {
-                    "metrics": [
+                    "adhoc_filters": [],
+                    "color_scheme": "bnbColors",
+                    "groupby": [
                         {
-                            "expressionType": "SIMPLE",
-                            "column": {"column_name": "quantity"},
-                            "aggregate": "SUM",
-                            "label": "Total Volume",
+                            "expressionType": "SQL",
+                            "sqlExpression": "CONCAT(symbol, '-', CAST(is_market_maker AS VARCHAR))",
+                            "label": "symbol_maker",
                         }
                     ],
-                    "groupby": ["symbol"],
-                    "row_limit": 100,  # Giới hạn dữ liệu
+                    "granularity_sqla": "trade_time",
+                    "time_grain_sqla": "P1D",
                     "time_range": "No filter",
+                    "metric": {
+                        "expressionType": "SQL",
+                        "sqlExpression": "SUM(price * quantity)",
+                        "label": "Tổng GTGD",
+                        "optionName": "metric_1",
+                    },
+                    "row_limit": 10000,
+                    "number_format": "SMART_NUMBER",
+                    "show_labels": True,
                     "show_legend": True,
-                    "color_scheme": "bnbColors",
-                    "order_desc": True,
-                    "adhoc_filters": [],
+                    "donut": False,
+                    "viz_type": "pie",
                 }
             ),
         }
@@ -75,109 +82,71 @@ class DBTrade:
             "Content-Type": "application/json",
         }
 
-        res = self.session.post(url, json=payload, headers=headers)
-        if res.status_code == 201:
-            self.logger.info("✅ Chart created")
-            return res.json()["id"]
-        self.logger.error(f"❌ Failed to create chart: {res.text}")
-        return None
-
-    def link_chart_to_dashboard(
-        self, chart_id: int, dashboard_id: int, access_token: str
-    ):
-        self.logger.info(
-            f"📌 Chart id {chart_id} try to link to dashboard id {dashboard_id}"
+        res = self.session.post(
+            f"{self.SUPERSET_URL}/api/v1/chart/", json=payload, headers=headers
         )
 
-        url = f"{self.SUPERSET_URL}/api/v1/dashboard/{dashboard_id}"
+        if res.status_code == 201:
+            chart_id = res.json().get("id")
+            print(f"✅ Chart created. ID: {chart_id}")
+            return chart_id
+        else:
+            print(f"❌ Error {res.status_code}: {res.text}")
+            return None
+
+    def create_price_timeseries_chart(self, access_token):
+        datasource_id = self.get_datasource_id(access_token)  # ID bảng 'trade'
+
+        payload = {
+            "slice_name": "Price Over Time per Symbol",
+            "viz_type": "line",
+            "datasource_id": datasource_id,
+            "datasource_type": "table",
+            "params": json.dumps(
+                {
+                    "metrics": [
+                        {
+                            "expressionType": "SIMPLE",
+                            "column": {"column_name": "price"},
+                            "aggregate": "AVG",
+                            "label": "Average Price",
+                        }
+                    ],
+                    "groupby": ["symbol"],  # một đường mỗi symbol
+                    "granularity_sqla": "trade_time",  # cột thời gian
+                    "time_range": "Last 1 days",  # có thể chỉnh theo ý bạn
+                    "viz_type": "line",
+                    "is_timeseries": True,
+                    "order_desc": False,
+                    "adhoc_filters": [],
+                    "row_limit": 10000,
+                }
+            ),
+        }
+
         headers = {
             "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json",
         }
 
-        # Lấy thông tin dashboard hiện tại
-        res = self.session.get(url, headers=headers)
-        if res.status_code != 200:
-            self.logger.error(f"❌ Failed to fetch dashboard: {res.text}")
-            return
-
-        dashboard = res.json()["result"]
-        position_json = json.loads(dashboard["position_json"])
-        max_y = max(
-            [
-                v.get("meta", {}).get("chartId", 0)
-                for v in position_json.values()
-                if v["type"] == "CHART"
-            ],
-            default=0,
+        res = self.session.post(
+            f"{self.SUPERSET_URL}/api/v1/chart/", json=payload, headers=headers
         )
 
-        # Tạo node mới cho chart
-        chart_key = f"CHART-{chart_id}"
-        position_json[chart_key] = {
-            "type": "CHART",
-            "id": chart_key,
-            "meta": {
-                "chartId": chart_id,
-                "width": 4,
-                "height": 4,
-            },
-            "children": [],
-        }
-
-        # Gắn vào container GRID_ID
-        for key, value in position_json.items():
-            if value.get("type") == "GRID":
-                value.setdefault("children", []).append(chart_key)
-                break
-
-        # Gửi update
-        payload = {
-            "dashboard_title": dashboard["dashboard_title"],
-            "position_json": json.dumps(position_json),
-        }
-
-        res = self.session.put(url, json=payload, headers=headers)
-        if res.status_code == 200:
-            self.logger.info(f"✅ Chart {chart_id} linked to Dashboard {dashboard_id}")
-        else:
-            self.logger.error(f"❌ Error when linking chart: {res.text}")
-
-    def create_dashboard(self, access_token):
-
-        url = f"{self.SUPERSET_URL}/api/v1/dashboard/"
-        payload = {
-            "dashboard_title": self.title,
-            "json_metadata": "{}",
-            "published": True,
-            "position_json": "{}",
-        }
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json",
-        }
-        res = self.session.post(url, json=payload, headers=headers)
-        self.logger.info(f"✅ dashboard status code :{res.status_code}")
         if res.status_code == 201:
-            self.logger.info(f"✅ Created dashboard {self.title}")
-            dashboard_id = res.json().get("id")
-            if dashboard_id:
-                self.logger.info(f"✅ Dashboard ID: {dashboard_id}")
-                return dashboard_id
-            else:
-                self.logger.error("❌ No dashboard ID returned.")
+            chart_id = res.json().get("id")
+            print(f"✅ Chart created. ID: {chart_id}")
+            return chart_id
         else:
-            print(res.text)
-            self.logger.error(f"❌ Failed to create dashboard: {res.text}")
-        return None
+            print(f"❌ Error {res.status_code}: {res.text}")
+            return None
 
     def run(self, access_token):
-        dashboard_id = self.create_dashboard(access_token)
-        if not dashboard_id:
-            return
+        self.logger.info(f"✅ datasource id {self.get_datasource_id(access_token)}")
+        self.create_price_timeseries_chart(access_token)
+        self.create_combined_pie_chart(access_token)
 
-        chart_id = self.create_chart(access_token)
-        if not chart_id:
-            return
 
-        self.link_chart_to_dashboard(chart_id, dashboard_id, access_token)
+# self.create_price_distribution_box_chart(access_token)
+# self.create_total_volume_bar_chart(access_token)
+# self.create_trade_count_pie_chart(access_token)
