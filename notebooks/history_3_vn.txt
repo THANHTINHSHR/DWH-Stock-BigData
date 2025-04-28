@@ -5,3 +5,15 @@
 --------- superset-athena-============
 - tìm ra sự kacs biệt giữa beare token, api token và crsf , chán thật sự
 - chỉnh lại yml, dockerfile để tắt crsf.
+- 422 :dashboard: {"msg":"Not enough segments"} nữa chớ -> cần ít nhất 1 chart để tạo dashboard
+- LOAD KHÔNG NỔI, THẬT SUWJLAF LAOD KO NỔI, CHỈ CÓ 1 LUỒNG STREAMING TRADE mà 99% rồi.
+    CPU ko đủ để render chart nữa khổ thân.
+- tạo riêng lẻ thì ok nhưng gắn chart vào dashboar lại không dc, lúc thì with, lúc thì xoay mãi
+    lúc thì lỗi value, lỗi Background,.............. cả vài chục trường mà bảo điền hết ai chịu nổi
+    thôi dẹp, chắc mình sẽ tạo chart bên ngoài rồi kéo vô chứ tạo rồi gắn chay thì quá khó r. Thông cảm
+- Superset chỉ hỗ trợ cập nhật toàn bộ dashboard, chứ không có API riêng để thêm từng biểu đồ.
+thật thì dù thêm vào thành công thì ui vẫn xoay vòng 
+- API lỗi, có cái ko hỗ trợ nữa. phải cần tìm hiểu thêm
+
+
+

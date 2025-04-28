@@ -1,3 +1,4 @@
+from core.streaming.athena.athena_ticker import AthenaTicker
 from dotenv import load_dotenv
 import os, boto3, time
 
@@ -26,6 +27,9 @@ class AthenaCreator:
             aws_access_key_id=self.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
             region_name=self.AWS_DEFAULT_REGION,
+        )
+        self.athena_ticker = AthenaTicker(
+            self.athena_client, self.S3_STAGING_DIR, self.BUCKET_NAME, self.ATHENA_DB
         )
 
     def get_client(self):
@@ -82,41 +86,6 @@ class AthenaCreator:
         else:
             print("❌ Failed to create table")
 
-    def create_ticker_table(self):
-        query = f"""
-        CREATE EXTERNAL TABLE IF NOT EXISTS ticker (
-            event STRING,
-            event_time TIMESTAMP,
-            symbol STRING,
-            price_change DOUBLE,
-            price_change_percent DOUBLE,
-            weighted_avg_price DOUBLE,
-            prev_close_price DOUBLE,
-            last_price DOUBLE,
-            last_qty DOUBLE,
-            best_bid_price DOUBLE,
-            best_bid_qty DOUBLE,
-            best_ask_price DOUBLE,
-            best_ask_qty DOUBLE,
-            open_price DOUBLE,
-            high_price DOUBLE,
-            low_price DOUBLE,
-            base_volume DOUBLE,
-            quote_volume DOUBLE,
-            open_time TIMESTAMP,
-            close_time TIMESTAMP,
-            first_trade_id BIGINT,
-            last_trade_id BIGINT,
-            trade_count BIGINT
-        )
-        STORED AS PARQUET
-        LOCATION 's3://{self.BUCKET_NAME}/ticker/'
-        """
-        if self.run_query(query, database=self.ATHENA_DB):
-            print("✅ Ticker table created successfully")
-        else:
-            print("❌ Failed to create ticker table")
-
     def create_bookticker_table(self):
         query = f"""
         CREATE EXTERNAL TABLE IF NOT EXISTS bookTicker (
@@ -138,9 +107,9 @@ class AthenaCreator:
 
     def run_athena(self):
         self.create_database()
-        self.create_trades_table()
-        self.create_ticker_table()
-        self.create_bookticker_table()
+        # self.create_trades_table()
+        self.athena_ticker.run()
+        # self.create_bookticker_table()
 
 
 if __name__ == "__main__":
