@@ -191,12 +191,10 @@ class SupersetCreator:
 
     def run(self):
         # login
-
         access_token = self.login()
-        self.logger.info(f"📌Access token: {access_token}")
         # create datasets
         dataset_ids = self.create_datasets(access_token)
-        # self.db_trade.run(access_token, dataset_ids[self.db_trade.title])
+        self.db_trade.run(access_token, dataset_ids)
         self.db_ticker.run(access_token, dataset_ids)
 
 

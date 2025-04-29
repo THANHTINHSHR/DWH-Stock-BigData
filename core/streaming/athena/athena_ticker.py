@@ -32,7 +32,7 @@ class AthenaTicker:
                 break
             time.sleep(1)
 
-        print(f"📌Query status : {status}")
+        self.logger.info(f"📌Query status : {status}")
         return status == "SUCCEEDED"
 
     def create_ticker_table(self):

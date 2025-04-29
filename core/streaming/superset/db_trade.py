@@ -16,7 +16,7 @@ class DBTrade:
         datasource_id = dataset_id
 
         payload = {
-            "slice_name": "Tổng GTGD theo Symbol + is_market_maker",
+            "slice_name": "Total Trade Value by Symbol + Is Market Maker",
             "viz_type": "pie",
             "datasource_id": datasource_id,
             "datasource_type": "table",
@@ -238,9 +238,13 @@ class DBTrade:
             )
             return None
 
-    def run(self, access_token, dataset_id):
-        chart_1 = self.create_price_timeseries_chart(access_token, dataset_id)
-        chart_2 = self.create_combined_pie_chart(access_token, dataset_id)
+    def run(self, access_token, dataset_ids):
+        chart_1 = self.create_price_timeseries_chart(
+            access_token, dataset_ids.get(self.title)
+        )
+        chart_2 = self.create_combined_pie_chart(
+            access_token, dataset_ids.get(self.title)
+        )
         # db_id = self.create_trade_dashboard(access_token)
         # self.link_chart_to_dashboard(access_token, db_id, chart_1)
         # self.link_chart_to_dashboard(access_token, db_id, chart_2)

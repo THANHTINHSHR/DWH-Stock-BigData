@@ -1,3 +1,4 @@
+from core.streaming.athena.athena_trade import AthenaTrade
 from core.streaming.athena.athena_ticker import AthenaTicker
 from dotenv import load_dotenv
 import os, boto3, time
@@ -27,6 +28,9 @@ class AthenaCreator:
             aws_access_key_id=self.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=self.AWS_SECRET_ACCESS_KEY,
             region_name=self.AWS_DEFAULT_REGION,
+        )
+        self.athena_trade = AthenaTrade(
+            self.athena_client, self.S3_STAGING_DIR, self.BUCKET_NAME, self.ATHENA_DB
         )
         self.athena_ticker = AthenaTicker(
             self.athena_client, self.S3_STAGING_DIR, self.BUCKET_NAME, self.ATHENA_DB
@@ -107,7 +111,7 @@ class AthenaCreator:
 
     def run_athena(self):
         self.create_database()
-        # self.create_trades_table()
+        self.athena_trade.run()
         self.athena_ticker.run()
         # self.create_bookticker_table()
 
