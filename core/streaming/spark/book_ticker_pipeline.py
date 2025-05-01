@@ -5,6 +5,7 @@ from pyspark.sql.functions import from_json, col
 from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
 import time
 from dotenv import load_dotenv
+from pyspark.sql.functions import current_timestamp
 
 load_dotenv()
 
@@ -62,6 +63,11 @@ class BookTickerPipeline(PipelineBase):
         )
 
         df_value = df_value.filter(self.filter_condition)
+        # Add column timestamp for df_value
+        df_value = df_value.withColumn(
+            "event_time", current_timestamp()
+        )  # <-- Sửa ở đây
+
         return {"df": df_value, "symbol": symbol}
 
     def to_line_protocol(self, row: Row):

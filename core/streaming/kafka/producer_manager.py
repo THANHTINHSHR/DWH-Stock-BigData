@@ -63,6 +63,7 @@ class ProducerManager:
                     print(f"📡 Establish wss streaming")
                     while True:
                         message = await ws.recv()
+                        print(f"✅ message: {message}")
                         product = self.get_producer(symbol=symbol)
                         # Sending message to Kafka
                         self.send_message(

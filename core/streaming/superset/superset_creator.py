@@ -1,5 +1,6 @@
 from core.streaming.superset.db_trade import DBTrade
 from core.streaming.superset.db_ticker import DBTicker
+from core.streaming.superset.db_bookticker import DBBookTicker
 
 from dotenv import load_dotenv
 import os, requests, logging, json
@@ -29,6 +30,7 @@ class SupersetCreator:
 
             self.db_trade = DBTrade(self.SUPERSET_URL, self.session)
             self.db_ticker = DBTicker(self.SUPERSET_URL, self.session)
+            self.db_bookticker = DBBookTicker(self.SUPERSET_URL, self.session)
 
     def login(self):
         login_url = f"{self.SUPERSET_URL}/api/v1/security/login"
@@ -194,8 +196,9 @@ class SupersetCreator:
         access_token = self.login()
         # create datasets
         dataset_ids = self.create_datasets(access_token)
-        self.db_trade.run(access_token, dataset_ids)
-        self.db_ticker.run(access_token, dataset_ids)
+        # self.db_trade.run(access_token, dataset_ids)
+        # self.db_ticker.run(access_token, dataset_ids)
+        self.db_bookticker.run(access_token, dataset_ids)
 
 
 if __name__ == "__main__":
