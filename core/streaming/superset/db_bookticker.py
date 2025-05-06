@@ -110,6 +110,4 @@ class DBBookTicker:
     def run(self, access_token, dataset_ids):
 
         book_ticker_dataset_id = dataset_ids.get("bookTicker")
-        chart_id = self.create_spread_timeseries_chart(
-            access_token, book_ticker_dataset_id
-        )
+        self.create_spread_timeseries_chart(access_token, book_ticker_dataset_id)

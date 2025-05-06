@@ -211,8 +211,6 @@ class DBTicker:
     def run(self, access_token, dataset_ids):
 
         heatmap_dataset_id = dataset_ids.get("heatmap_ticker")
-        heatmap_result = self.create_heatmap_chart(access_token, heatmap_dataset_id)
+        self.create_heatmap_chart(access_token, heatmap_dataset_id)
         scatter_plot_ticker_dataset_id = dataset_ids.get("scatter_plot_ticker")
-        scatter_plot_result = self.create_scatter_plot_chart(
-            access_token, scatter_plot_ticker_dataset_id
-        )
+        self.create_scatter_plot_chart(access_token, scatter_plot_ticker_dataset_id)

@@ -14,6 +14,8 @@
 - Superset chỉ hỗ trợ cập nhật toàn bộ dashboard, chứ không có API riêng để thêm từng biểu đồ.
 thật thì dù thêm vào thành công thì ui vẫn xoay vòng 
 - API lỗi, có cái ko hỗ trợ nữa. phải cần tìm hiểu thêm
+- cố gắn mấy ngày thay đổi json, api, ... nhưng api cho ra kq ok nhưng ui vẫn lỗi -> superset backend xử lý lỗi - > bỏ đê
+
 
 
 

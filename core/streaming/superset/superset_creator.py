@@ -162,42 +162,13 @@ class SupersetCreator:
             self.logger.error(f"❌ Error creating Chart: {res.text}")
             return None
 
-    def add_chart_to_dashboard(self, access_token, dashboard_id, chart_id):
-        """Gắn Chart vào Dashboard"""
-        url = f"{self.SUPERSET_URL}/api/v1/dashboard/{dashboard_id}"
-        headers = {
-            "Authorization": f"Bearer {access_token}",
-            "Content-Type": "application/json",
-        }
-
-        dashboard_data = self.session.get(url, headers=headers).json().get("result", {})
-        positions = dashboard_data.get("position_json", {})
-        slices = dashboard_data.get("charts", [])
-
-        # Add chart ID
-        slices.append(chart_id)
-
-        payload = {
-            "positions": json.dumps(positions),
-            "charts": slices,
-        }
-
-        res = self.session.put(url, json=payload, headers=headers)
-
-        if res.status_code == 200:
-            self.logger.info(f"✅ Chart {chart_id} added to Dashboard {dashboard_id}")
-            return True
-        else:
-            self.logger.error(f"❌ Error adding Chart to Dashboard: {res.text}")
-            return False
-
     def run(self):
         # login
         access_token = self.login()
         # create datasets
         dataset_ids = self.create_datasets(access_token)
-        # self.db_trade.run(access_token, dataset_ids)
-        # self.db_ticker.run(access_token, dataset_ids)
+        self.db_trade.run(access_token, dataset_ids)
+        self.db_ticker.run(access_token, dataset_ids)
         self.db_bookticker.run(access_token, dataset_ids)
 
 
