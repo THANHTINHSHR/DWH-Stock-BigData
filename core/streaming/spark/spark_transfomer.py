@@ -1,13 +1,24 @@
 from core.streaming.spark.spark_session_singleton import SparkSessionSingleton
 from core.extract.binance_wss.topic_creator import TopicCreator
-from pyspark.sql.types import *
-from pyspark.sql.functions import from_json, col
+from pyspark.sql.types import (
+    StructType,
+    StructField,
+    StringType,
+    IntegerType,
+    LongType,
+    FloatType,
+    DoubleType,
+    BooleanType,
+    TimestampType,
+    Row,
+)
+from pyspark.sql.functions import from_json, col, isnan
 from functools import reduce
 
 from pathlib import Path
 
 
-import os, json
+import os, json, logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -28,6 +39,7 @@ class SparkTransformer:
         self.load_all_schemas()
         # Condition
         self.filter_conditions = {}
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def avro_type_to_spark_type(self, avro_type):
         """Map basic Avro types to PySpark types"""
@@ -61,15 +73,15 @@ class SparkTransformer:
         parent_dir = base_dir.parent
         schema_dir = parent_dir / "kafka" / "schema_avsc"
 
-        print("📁 Schema dir:", schema_dir)
-        print("📄 Files found:", list(schema_dir.glob("*.avsc")))
+        self.logger.info(f"📁 Schema dir: {schema_dir}")
+        self.logger.info(f"📄 Files found: {list(schema_dir.glob('*.avsc'))}")
         for avro_file in schema_dir.glob("*.avsc"):
-            print("🔍 Found file:", avro_file.name)
+            self.logger.info(f"🔍 Loading schema file: {avro_file.name}")
             with open(avro_file, "r") as f:
                 schema = json.load(f)
                 struct = self.avro_to_struct(schema)
                 self.streams_schema[avro_file.stem] = struct
-        print(f"✅ Loaded schemas: {list(self.streams_schema.keys())}")
+        self.logger.info(f"✅ Loaded schemas: {list(self.streams_schema.keys())}")
         return self.streams_schema
 
     def get_schema(self, schema_name):
@@ -102,34 +114,35 @@ class SparkTransformer:
         return {"df": df, "symbol": symbol, "stream_type": stream_type}
 
     def get_filter_condition(self, df, stream_type):
-        if self.filter_conditions.get(stream_type) is not None:
-            conditions = []
-            schema = self.get_schema(stream_type)
-            for field in schema.fields:
-                name = field.name
-                dtype = field.dataType
+        # if self.filter_conditions.get(stream_type) is not None: # Logic cache có thể xem xét lại
+        #     return self.filter_conditions[stream_type]
 
-                # Base: Not null
-                cond = col(name).isNotNull()
+        conditions = []
+        schema = self.get_schema(stream_type)
+        for field in schema.fields:
+            name = field.name
+            dtype = field.dataType
 
-                # String: not empty
-                if isinstance(dtype, StringType):
-                    cond = cond & (col(name) != "")
+            # Base: Not null
+            cond = col(name).isNotNull()
 
-                # Numeric: not NaN
-                elif isinstance(dtype, (FloatType, DoubleType)):
-                    cond = cond & (~isnan(col(name)))
+            # String: not empty
+            if isinstance(dtype, StringType):
+                cond = cond & (col(name) != "")
 
-                # Boolean: is boolean
-                elif isinstance(dtype, BooleanType):
-                    cond = cond
+            # Numeric: not NaN
+            elif isinstance(dtype, (FloatType, DoubleType)):
+                cond = cond & (~isnan(col(name)))
 
-                conditions.append(cond)
+            # Boolean: is boolean (isNotNull is usually sufficient)
+            elif isinstance(dtype, BooleanType):
+                pass  # cond = cond (no additional check needed beyond isNotNull)
 
-                self.filter_conditions[stream_type] = reduce(
-                    lambda a, b: a & b, conditions
-                )
-                return self.filter_conditions[stream_type]
+            conditions.append(cond)
+
+        final_condition = reduce(lambda a, b: a & b, conditions) if conditions else None
+        # self.filter_conditions[stream_type] = final_condition # Cache if needed
+        return final_condition
 
     def transform_stream_generic(self, data: dict):
         df = data["df"]
@@ -140,18 +153,21 @@ class SparkTransformer:
             case "trade":
                 return self.transform_trade_stream(data)
             case _:
-                return data
+                self.logger.warning(
+                    f"No specific transformation for stream_type: {stream_type}. Returning raw data."
+                )
         return data
 
-    def to_line_protocol(self, row: Row):
-        """To influDB line protocol format
-        ex: trade_data,symbol=BTC price=72000,volume=10 1712830200000000000"""
-        measurement = row["symbol"]
-        tags = row["event"]
-        cols_to_keep = [col(c) for c in df.columns if c != skip_col]
-
-        fields = row["price"]
-        timestamp = (row("trade_time").cast(DoubleType()) * 1000).cast("long")
+    # def to_line_protocol(self, row: Row):
+    #     """To influDB line protocol format
+    #     ex: trade_data,symbol=BTC price=72000,volume=10 1712830200000000000"""
+    #     # This method seems incomplete and uses undefined variables like 'df' and 'skip_col'
+    #     # measurement = row["symbol"]
+    #     # tags = row["event"]
+    #     # # cols_to_keep = [col(c) for c in df.columns if c != skip_col] # 'df' and 'skip_col' are not defined here
+    #     # fields = row["price"]
+    #     # timestamp = (row["trade_time"].cast(DoubleType()) * 1000).cast("long") # Access row elements with []
+    #     pass
 
     def load_stream(self, data: dict):
 
@@ -162,11 +178,12 @@ class SparkTransformer:
         df = data["df"]
         symbol = data["symbol"]
         stream_type = data["stream_type"]
-        df.printSchema()
+        # df.printSchema() # Consider logging schema
         # Get value from df
         df_value = df.select(
             from_json(
-                col("value").cast("string"), self.get_filter_condition(stream_type)
+                col("value").cast("string"),
+                self.get_schema(stream_type),  # Use get_schema here
             ).alias("value_json"),
         ).select("value_json.*")
         df_value = df_value.select(
@@ -193,17 +210,19 @@ class SparkTransformer:
             "is_market_maker", col("is_market_maker").cast(BooleanType())
         )
         # Cleaning : Filter null, "",NaN
-        condition = self.build_filter_condition(df_value, self.get_schema(stream_type))
+        condition = self.get_filter_condition(
+            df_value, stream_type
+        )  # Get the filter condition
         # Transform
-        df_value = df_value.filter(condition)
+        if condition:
+            df_value = df_value.filter(condition)
         # df_value = df.select("value", "timestamp")
-
-    return {"df": df_value, "symbol": symbol, "stream_type": stream_type}
+        return {"df": df_value, "symbol": symbol, "stream_type": stream_type}
 
     def run_stream(self, symbol, stream_type):
         dict = self.read_stream(symbol, stream_type)
         dict = self.transform_stream_generic(dict)
-        print(f"📡 Subscribing to topic: {self.BINANCE_TOPIC}_{symbol}")
+        self.logger.info(f"📡 Subscribing to topic: {self.BINANCE_TOPIC}_{symbol}")
 
         self.load_stream(dict)
 
@@ -214,6 +233,6 @@ if __name__ == "__main__":
 
     # st.show_test()
     # schema = st.get_schema("trade")
-    # print(schema)
+    # st.logger.info(schema)
 
     st.run_stream("btcusdt", "trade")

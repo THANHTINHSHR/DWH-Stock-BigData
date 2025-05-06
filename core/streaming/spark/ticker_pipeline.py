@@ -3,7 +3,7 @@ from core.streaming.kafka.topic_creator import TopicCreator
 from pyspark.sql.types import *
 from pyspark.sql.functions import from_json, col
 from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
-import time
+import time, logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +18,7 @@ class TickerPipeline(PipelineBase):
         self.schema = super().get_schema(self.type)
         self.filter_condition = self.get_filter_condition(self.type)
         self.influxDB = InfluxDBConnector.get_instance()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def read_stream(self, symbol):
         subscribe_topic = f"{self.BINANCE_TOPIC}_{symbol}"
@@ -35,7 +36,7 @@ class TickerPipeline(PipelineBase):
     def transform_stream(self, data: dict):
         df = data["df"]
         symbol = data["symbol"]
-        df.printSchema()
+        # df.printSchema() # Consider logging schema if needed, e.g., self.logger.info(f"Schema for {symbol}: {df.schema.json()}")
 
         df_value = df.select(
             from_json(col("value").cast("string"), self.schema).alias("value_json"),
@@ -164,7 +165,7 @@ class TickerPipeline(PipelineBase):
         return f"{measurement},{tag_set} {field_set} {timestamp}"
 
     def load_to_InfluxDB(self, df):
-        print(f"✅ Sending data to influxDB: {self.type}")
+        self.logger.info(f"✅ Sending data to influxDB: {self.type}")
         for row in df.toLocalIterator():
             self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
 
@@ -172,20 +173,28 @@ class TickerPipeline(PipelineBase):
         try:
             df.write.mode("append").format("parquet").option(
                 "compression", "snappy"
-            ).save(f"s3a://{self.BUCKET_NAME}/{self.type}/{int(time.time())}/")
-            print(f"✅ Success send data to S3: {self.type}")
+            ).save(
+                f"s3a://{self.BUCKET_NAME}/{self.type}/{symbol}/{int(time.time())}/"
+            )  # Added symbol to path
+            self.logger.info(
+                f"✅ Success send data to S3: {self.type} for symbol {symbol}"
+            )
         except Exception as e:
-            print(f"❌Fail to write to S3: {e}")
+            self.logger.error(
+                f"❌Fail to write to S3 for {self.type} symbol {symbol}: {e}"
+            )
 
     def run_streams(self):
-        print("✅ topcoin stream length: ", len(TopicCreator.TOPCOIN))
+        self.logger.info(
+            f"✅ Starting {self.type} streams for {len(TopicCreator.TOPCOIN)} symbols."
+        )
         queries = []
         for symbol in TopicCreator.TOPCOIN:
-            print(f"✅ Topcoin : {symbol}")
+            self.logger.info(f"✅ Setting up stream for {self.type}: {symbol}")
             raw_data = self.read_stream(symbol)
-            raw_df = raw_data["df"]
-            print("✅ Raw data: schema ")
-            raw_df.printSchema()
+            # raw_df = raw_data["df"]
+            # self.logger.info(f"✅ Raw data schema for {symbol}:")
+            # raw_df.printSchema() # Logging schema can be verbose, enable if needed
 
             transformed_data = self.transform_stream(raw_data)
             # self.show_df_stream(transformed_data)
@@ -210,5 +219,5 @@ class TickerPipeline(PipelineBase):
 if __name__ == "__main__":
     ticker_pipeline = TickerPipeline()
     tc = TopicCreator()
-    print(f"✅ Type: {ticker_pipeline.type}")
+    # No need to print type here, it's logged during stream setup
     ticker_pipeline.run_streams()

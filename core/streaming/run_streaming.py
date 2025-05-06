@@ -2,6 +2,7 @@ from core.streaming.kafka.producer_manager import ProducerManager
 from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
 from core.streaming.grafana.grafana_creator import GrafanaCreator
 from core.streaming.athena.athena_creator import AthenaCreator
+from core.streaming.superset.superset_creator import SupersetCreator
 from core.streaming.kafka.topic_creator import TopicCreator
 from core.streaming.spark.trade_pipeline import TradePipeline
 from core.streaming.spark.ticker_pipeline import TickerPipeline
@@ -23,6 +24,7 @@ class RunStreaming:
         self.influxDB = InfluxDBConnector()
         self.grafana = GrafanaCreator()
         self.athena = AthenaCreator()
+        self.superset = SupersetCreator()
         self.trade_pipeline = TradePipeline()
         self.ticker_pipeline = TickerPipeline()
         self.book_ticker_pipeline = BookTickerPipeline()
@@ -43,6 +45,9 @@ class RunStreaming:
 
         # Create Athena DB and tables
         self.athena.run_athena()
+
+        # Create Superset Dataset and chart
+        self.superset.run_superset()
 
         # Run producer + pipelines concurrently
         with ThreadPoolExecutor(max_workers=4) as executor:

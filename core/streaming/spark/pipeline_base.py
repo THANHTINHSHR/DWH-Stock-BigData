@@ -5,7 +5,7 @@ from functools import reduce
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-import os, json
+import os, json, logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -24,6 +24,7 @@ class PipelineBase(ABC):
 
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
+        self.logger = logging.getLogger(self.__class__.__name__)  # Add logger here
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
@@ -95,8 +96,8 @@ class PipelineBase(ABC):
         parent_dir = base_dir.parent
         schema_dir = parent_dir / "kafka" / "schema_avsc"
 
-        print("📁 Schema dir:", schema_dir)
-        print("📁 Schema name:", schema_name)
+        self.logger.info(f"📁 Schema dir: {schema_dir}")
+        self.logger.info(f"📁 Loading schema: {schema_name}")
         avro_file = schema_dir / f"{schema_name}.avsc"
         with open(avro_file, "r") as f:
             schema = json.load(f)

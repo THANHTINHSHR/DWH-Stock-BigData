@@ -3,7 +3,7 @@ from core.streaming.kafka.topic_creator import TopicCreator
 from pyspark.sql.types import *
 from pyspark.sql.functions import from_json, col
 from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
-import time
+import time, logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,6 +18,7 @@ class TradePipeline(PipelineBase):
         self.schema = super().get_schema(self.type)
         self.filter_condition = self.get_filter_condition(self.type)
         self.influxDB = InfluxDBConnector.get_instance()
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def read_stream(self, symbol):
         subscribe_topic = f"{self.BINANCE_TOPIC}_{symbol}"
@@ -100,7 +101,7 @@ class TradePipeline(PipelineBase):
         return f"{measurement},{tag_set} {field_set} {timestamp}"
 
     def load_to_InfluxDB(self, df):
-        print(f"✅ Sending data to influxDB: {self.type}")
+        self.logger.info(f"✅ Sending data to influxDB: {self.type}")
         for row in df.toLocalIterator():
             self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
 
@@ -109,18 +110,18 @@ class TradePipeline(PipelineBase):
             df.write.mode("append").format("parquet").option(
                 "compression", "snappy"
             ).save(f"s3a://{self.BUCKET_NAME}/{self.type}/{int(time.time())}/")
-            print(f"✅ Success send data to S3: {self.type}")
+            self.logger.info(f"✅ Success send data to S3: {self.type}")
         except Exception as e:
-            print(f"❌Fail to write to S3: {e}")
+            self.logger.error(f"❌Fail to write to S3: {e}")
 
     def run_streams(self):
-        print("✅ topcoin stream length: ", len(TopicCreator.TOPCOIN))
+        self.logger.info("✅ topcoin stream length: ", len(TopicCreator.TOPCOIN))
         queries = []
         for symbol in TopicCreator.TOPCOIN:
-            print(f"✅ Topcoin : {symbol}")
+            self.logger.info(f"✅ Topcoin : {symbol}")
             raw_data = self.read_stream(symbol)
             raw_df = raw_data["df"]
-            print("✅ Raw data: schema ")
+            self.logger.info("✅ Raw data: schema ")
             raw_df.printSchema()
 
             transformed_data = self.transform_stream(raw_data)
@@ -147,6 +148,4 @@ class TradePipeline(PipelineBase):
 if __name__ == "__main__":
     trade_pipeline = TradePipeline()
     tc = TopicCreator()
-    print(f"✅ Type: {trade_pipeline.type}")
-
     trade_pipeline.run_streams()
