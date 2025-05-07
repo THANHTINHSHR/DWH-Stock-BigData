@@ -162,7 +162,7 @@ class SupersetCreator:
             self.logger.error(f"❌ Error creating Chart: {res.text}")
             return None
 
-    def run(self):
+    def run_superset(self):
         # login
         access_token = self.login()
         # create datasets
@@ -178,4 +178,4 @@ if __name__ == "__main__":
     )
     superset_creator = SupersetCreator()
 
-    superset_creator.run()
+    superset_creator.run_superset()
