@@ -91,45 +91,23 @@ class AthenaTicker:
             self.logger.error("❌ Failed to create View")
 
     def create_scatter_plot_ticker_view(self):
-        query = """CREATE OR REPLACE VIEW "scatter_plot_ticker" AS 
-            WITH
-            LatestRecord AS (
-            SELECT
-                symbol
-            , event_time
-            , price_change_percent
-            , last_price
-            FROM
-                (
-                SELECT
-                    *
-                , ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY event_time DESC) rn
-                FROM
-                    binance.ticker
-                WHERE (event_time >= date_add('day', -1, current_timestamp))
-            ) 
-            WHERE (rn = 1)
-            ) 
-            , Volume24h AS (
-            SELECT
-                symbol
-            , SUM(quote_volume) total_quote_volume_24h
-            , SUM(trade_count) total_trade_count_24h
-            FROM
-                binance.ticker
-            WHERE (event_time >= date_add('day', -1, current_timestamp))
-            GROUP BY symbol
-            ) 
-            SELECT
-            lr.symbol
-            , lr.event_time
-            , lr.price_change_percent
-            , lr.last_price
-            , COALESCE(v24.total_quote_volume_24h, 0) total_quote_volume_24h
-            , COALESCE(v24.total_trade_count_24h, 0) total_trade_count_24h
-            FROM
-            (LatestRecord lr
-            LEFT JOIN Volume24h v24 ON (lr.symbol = v24.symbol))"""
+        query = """CREATE OR REPLACE VIEW scatter_plot_ticker AS 
+WITH RankedTicker AS (
+    SELECT
+        *,
+        ROW_NUMBER() OVER (PARTITION BY symbol ORDER BY event_time DESC) as rn
+    FROM binance.ticker 
+)
+SELECT
+    event_time,
+    symbol,
+    price_change_percent, 
+    quote_volume,        
+    trade_count,         
+    last_price
+FROM RankedTicker
+WHERE rn = 1;
+"""
         if self.run_query(query, self.athena_db):
             self.logger.info("✅ View created successfully")
         else:

@@ -1,5 +1,6 @@
 from core.streaming.athena.athena_trade import AthenaTrade
 from core.streaming.athena.athena_ticker import AthenaTicker
+from core.streaming.athena.athena_bockticker import AthenaBookTicker
 from dotenv import load_dotenv
 import os, boto3, time
 
@@ -34,6 +35,9 @@ class AthenaCreator:
         )
         self.athena_ticker = AthenaTicker(
             self.athena_client, self.S3_STAGING_DIR, self.BUCKET_NAME, self.ATHENA_DB
+        )
+        self.athena_bookticker = AthenaBookTicker(
+            self.athena_client, self.s3_staging_dir, self.BUCKET_NAME, self.ATHENA_DB
         )
 
     def get_client(self):
@@ -113,7 +117,7 @@ class AthenaCreator:
         self.create_database()
         self.athena_trade.run()
         self.athena_ticker.run()
-        # self.create_bookticker_table()
+        # self.athena_bookticker.run()
 
 
 if __name__ == "__main__":
