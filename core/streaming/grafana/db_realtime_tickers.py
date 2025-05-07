@@ -9,8 +9,8 @@ class DBRealtimeTickers:
                 "refresh": "10s",
                 "panels": [
                     self.create_price_timeseries_panel(),
-                    self.create_trade_stat_panel(),
-                    self.create_volume_barchart_panel(),
+                    # self.create_trade_stat_panel(),
+                    # self.create_volume_barchart_panel(),
                 ],
             },
             "overwrite": True,
