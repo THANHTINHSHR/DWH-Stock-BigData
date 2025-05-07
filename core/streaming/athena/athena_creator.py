@@ -37,7 +37,7 @@ class AthenaCreator:
             self.athena_client, self.S3_STAGING_DIR, self.BUCKET_NAME, self.ATHENA_DB
         )
         self.athena_bookticker = AthenaBookTicker(
-            self.athena_client, self.s3_staging_dir, self.BUCKET_NAME, self.ATHENA_DB
+            self.athena_client, self.S3_STAGING_DIR, self.BUCKET_NAME, self.ATHENA_DB
         )
 
     def get_client(self):
