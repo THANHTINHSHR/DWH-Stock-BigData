@@ -9,10 +9,15 @@ COPY requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    procps \
+    openjdk-17-jdk-headless \
+    && apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the .env file (optional, if you want it baked into the image,
-# otherwise use env_file or environment in docker-compose.yml)
-# COPY .env .
+# Set JAVA_HOME environment variable
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
 # Copy the rest of the application code (specifically the 'core' directory)
 COPY ./core ./core
