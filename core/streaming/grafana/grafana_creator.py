@@ -24,12 +24,12 @@ class GrafanaCreator:
             self.GRAFANA_DB_URL = os.getenv("GRAFANA_DB_URL")
             self.INFLUX_ORG = os.getenv("INFLUXDB_ORG")
             self.INFLUXDB_TOKEN = os.getenv("INFLUXDB_TOKEN")
+            self.logger = logging.getLogger(self.__class__.__name__)
 
             self.connect_data_source()
             self.db_realtime_trades = DBRealtimeTrades()
             self.db_realtime_tickers = DBRealtimeTickers()
             self.db_realtime_bookticker = DBRealtimeBookTicker()
-            self.logger = logging.getLogger(self.__class__.__name__)
 
     def connect_data_source(self):
         headers = {
