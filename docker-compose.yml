@@ -84,8 +84,8 @@ services:
 
   superset:
     build:
-      context: . # Thay đổi context về thư mục gốc của dự án
-      dockerfile: docker/Dockerfile.superset # Đường dẫn đến Dockerfile từ context mới
+      context: . 
+      dockerfile: docker/Dockerfile.superset 
     image: athena_superset
     container_name: superset
     ports:
