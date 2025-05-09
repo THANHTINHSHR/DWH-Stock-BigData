@@ -4,6 +4,7 @@ from core.streaming.grafana.db_realtime_bookticker import DBRealtimeBookTicker
 import requests
 from dotenv import load_dotenv
 import os
+import logging
 
 load_dotenv()
 
@@ -28,6 +29,7 @@ class GrafanaCreator:
             self.db_realtime_trades = DBRealtimeTrades()
             self.db_realtime_tickers = DBRealtimeTickers()
             self.db_realtime_bookticker = DBRealtimeBookTicker()
+            self.logger = logging.getLogger(self.__class__.__name__)
 
     def connect_data_source(self):
         headers = {
@@ -52,14 +54,16 @@ class GrafanaCreator:
             "secureJsonData": {"token": self.INFLUXDB_TOKEN},
         }
 
-        print(f"📌 Grafana try to connect datasource")
+        self.logger.info(f"📌 Grafana try to connect datasource")
         res = requests.post(
             f"{self.GRAFANA_URL}/api/datasources", headers=headers, json=data
         )
         if res.status_code != 200:
-            print(f"❌ Failed to connect datasource: {res.status_code} - {res.text}")
+            self.logger.error(
+                f"❌ Failed to connect datasource: {res.status_code} - {res.text}"
+            )
         else:
-            print(f"✅ Connected datasource")
+            self.logger.info(f"✅ Connected datasource")
 
     def create_dashboard(self, dashboard_data):
         headers = {
@@ -67,7 +71,7 @@ class GrafanaCreator:
             "Authorization": f"Bearer {self.GRAFANA_KEY}",
         }
 
-        print("📌 Grafana try to create dashboard")
+        self.logger.info("📌 Grafana try to create dashboard")
         res = requests.post(
             f"{self.GRAFANA_URL}/api/dashboards/db",
             headers=headers,
@@ -75,9 +79,11 @@ class GrafanaCreator:
         )
 
         if res.status_code != 200:
-            print(f"❌ Failed to create dashboard: {res.status_code} - {res.text}")
+            self.logger.error(
+                f"❌ Failed to create dashboard: {res.status_code} - {res.text}"
+            )
         else:
-            print("✅ Created dashboard successfully")
+            self.logger.info("✅ Created dashboard successfully")
 
     def run_grafana(self):
         self.create_dashboard(self.db_realtime_trades.dashboard)
