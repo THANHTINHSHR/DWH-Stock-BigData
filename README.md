@@ -49,7 +49,7 @@ The core data flow encompasses:
 
 ## System Architecture
 Below is a high-level overview of the system architecture:
-![System Architecture](images/System_Architecture.PNG)  // Remember to rename the image file
+![System Architecture](images/System_Architecture.PNG)
 ## Technologies Used
 
 **Core & Orchestration:**
@@ -74,7 +74,7 @@ Below is a high-level overview of the system architecture:
 ### Prerequisites
 
 Before you begin, ensure you have the following installed:
-
+- Git LFS (Large File Storage)
 - Git
 - Docker (latest version recommended)
 - Docker Compose (latest version recommended)
@@ -83,10 +83,11 @@ Before you begin, ensure you have the following installed:
 
 ### Setup Steps
 
-1.  **Clone the repository:**
+1.  **Clone the repository and ensure LFS files are downloaded:**
     ```bash
-    git clone https://github.com/THANHTINHSHR/DWH-Stock-BigData.git 
+    git clone https://github.com/THANHTINHSHR/DWH-Stock-BigData.git
     cd DWH-Stock-BigData
+    git lfs pull
     ```
 
 2.  **Configure environment variables:**
