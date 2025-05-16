@@ -1,0 +1,11 @@
+# Ignore Python bytecode & cache
+__pycache__/
+# Ignore environment files
+.env
+# Ignore virtual environment
+venv/
+
+.qodo
+core/tests
+vscode/
+.vscode/extensions.json

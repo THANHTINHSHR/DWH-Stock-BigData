@@ -1,0 +1,23 @@
+services:
+  dwh_stock_service:
+    container_name: dwh_stock_service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dwh_stock_service 
+    volumes:
+      - ./core:/DWH-STOCK/core
+      - ./jars:/opt/spark/jars
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    environment:
+      - PYTHONPATH=/app
+    restart: unless-stopped
+    networks:
+      - kafka_network
+
+networks:
+  kafka_network:
+    driver: bridge

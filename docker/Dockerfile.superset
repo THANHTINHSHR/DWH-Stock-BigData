@@ -1,0 +1,15 @@
+FROM apache/superset:latest
+
+USER root
+
+RUN pip install --no-cache-dir --disable-pip-version-check --no-deps --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org PyAthena Pillow flask-cors
+RUN pip install PyAthena[SQLAlchemy]
+RUN pip install psycopg2-binary
+
+
+USER superset
+WORKDIR /app
+
+COPY ./core/streaming/superset/config.py /app/superset_config.py
+ENV SUPERSET_CONFIG_PATH=/app/superset_config.py
+
