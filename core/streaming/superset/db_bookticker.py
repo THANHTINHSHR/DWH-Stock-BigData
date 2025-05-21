@@ -120,7 +120,7 @@ class DBBookTicker:
                 )
                 return None
         else:
-            self.logger.warning(f"⚠️ Chart ready exists : {chart_id}")
+            self.logger.warning(f"⚠️ Chart ready exists")
 
     def run(self, access_token, dataset_ids):
 

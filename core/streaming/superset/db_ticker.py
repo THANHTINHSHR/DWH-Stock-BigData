@@ -122,7 +122,7 @@ class DBTicker:
                 )
                 return None
         else:
-            self.logger.warning(f"⚠️ Chart ready exists : {chart_id}")
+            self.logger.warning(f"⚠️ Chart ready exists")
 
     def create_scatter_plot_chart(self, access_token: str, dataset_id: int):
         """Creates a Scatter Plot based on the provided JSON params."""
@@ -234,7 +234,7 @@ class DBTicker:
                 )
                 return None
         else:
-            self.logger.warning(f"⚠️ Chart ready exists : {chart_id}")
+            self.logger.warning(f"⚠️ Chart ready exists ")
 
     def run(self, access_token, dataset_ids):
 

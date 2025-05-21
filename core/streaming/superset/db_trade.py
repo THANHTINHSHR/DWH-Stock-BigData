@@ -137,7 +137,7 @@ class DBTrade:
                 self.logger.error(f"❌ Error {res.status_code}: {res.text}")
                 return None
         else:
-            self.logger.warning(f"⚠️ Chart ready exists : {chart_id}")
+            self.logger.warning(f"⚠️ Chart ready exists")
 
     def get_dashboard_position_json(self, access_token, dashboard_id):
         headers = {"Authorization": f"Bearer {access_token}"}
