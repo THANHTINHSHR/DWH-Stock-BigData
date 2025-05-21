@@ -94,7 +94,7 @@ Before you begin, ensure you have the following installed:
     Create a `.env` file in the project root (you can copy `.env.example` if provided in the repository) and populate it with your specific configuration values.
     Pay close attention to API keys, tokens, and AWS credentials. Some keys (like for InfluxDB and Grafana) will be obtained in the next step.
     For `SUPERSET_SECRET_KEY`, generate a strong random string (e.g., using `openssl rand -base64 32`) and add it to your `.env` file now.
-    ![env example](images/env_example.PNG)
+    ![env example](images/env.PNG)
 
 
 3.  **Initial Service Startup & Key Generation:**
@@ -140,7 +140,7 @@ Ticker Dashboard :
 ![grafana ticker](images/grafana_ticker.PNG)
 
 BookTicker Dashboard : 
-![grafana bookticker](images/grafana_bookticker.png)
+![grafana bookticker](images/grafana_bookticker.PNG)
 
 You can view real-time data visualizations through these Grafana dashboards. For analysis of historical or aggregated data stored in S3 (via Athena), you can create and view charts in Superset.
 
