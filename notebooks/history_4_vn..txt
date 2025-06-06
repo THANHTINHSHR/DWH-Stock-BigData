@@ -1,0 +1,6 @@
+----------------  latest và earliest -----------------
+- sau 1 thời gian bận thì mình thêm tính năng mới nhưng mà thấy quên chỉnh latest nên chỉnh lại nhưng thấy mức CPU tăng đột biến
+- cơ bản là do latest lấy cái mới nhất tốn nhiều bộ nhớ heap nhất để xử lý dữ liệu lên tục gây quá tải
+- earliest thì lấy từ kafka pool nên tốn ram chứ ko tốn cpu nhiều
+
+

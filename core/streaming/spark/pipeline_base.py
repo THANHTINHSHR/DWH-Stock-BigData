@@ -54,6 +54,10 @@ class PipelineBase(ABC):
             .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
             .config("spark.sql.caseSensitive", "true")
             .config("spark.sql.adaptive.enabled", "false")
+            # spark configurations memory and cores
+            .config("max.poll.records", "50")
+            .config("trigger", "ProcessingTime(10 seconds)")
+            .config("spark.sql.shuffle.partitions", "300")
             .getOrCreate()
         )
         return spark

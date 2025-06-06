@@ -24,7 +24,7 @@ class BookTickerPipeline(PipelineBase):
         df = (
             self.spark.readStream.format("kafka")
             .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
-            .option("startingOffsets", "earliest")
+            .option("startingOffsets", "latest")
             .option("subscribe", f"{self.BINANCE_TOPIC}_{self.type}")
             .option("groupId", f"{symbol}")
             .load()

@@ -2,6 +2,8 @@
 __pycache__/
 # Ignore environment files
 .env
+.env_local
+.env_host
 # Ignore virtual environment
 venv/
 
