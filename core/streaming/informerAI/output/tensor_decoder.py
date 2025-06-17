@@ -27,6 +27,9 @@ from Informer2020.exp.exp_informer import Informer
 
 class TensorDecoder():
     def __init__(self, tensor_encoder: TensorEncoder):
+        """
+        A Decoder need to know what is encoder
+        """
         self.tensor_encoder = tensor_encoder
         self.spark_loader = tensor_encoder.spark_loader
 
@@ -39,16 +42,7 @@ class TensorDecoder():
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def tensor_to_raw_sparkDF(self, tensor: torch.Tensor, symbol: str) -> DataFrame:
-        data = tensor.reshape(-1, tensor.size(-1)).numpy()
-        pdf = pd.DataFrame(data, columns=self.target_columns)
-
-        base_time = self.symbol_last_event_time[symbol]
-        freq = timedelta(seconds=1)
-        pdf["event_time"] = [base_time + freq *
-                             (i + 1) for i in range(len(pdf))]
-
-        return self.spark.createDataFrame(pdf).withColumn("event_time",
-                                                          F.col("event_time").cast(TimestampType()))
+        pass
 
     def write_to_s3(self, df: DataFrame, symbol: str):
         self.spark_loader.write_csv(df, symbol)
