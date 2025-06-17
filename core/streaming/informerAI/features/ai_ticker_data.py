@@ -118,10 +118,25 @@ class AITickerData(DataProcessor):
         symbols = df.select("symbol").distinct(
         ).rdd.flatMap(lambda x: x).collect()
 
+        original_df = df
+
         for col_name in feature_cols:
+            # 🔹 Save -Min,Max before normalization
+            for symbol in symbols:
+                row = original_df.filter(col("symbol") == symbol).agg(
+                    spark_min(col(col_name)).alias("min_val"),
+                    spark_max(col(col_name)).alias("max_val")
+                ).first()
+
+                if symbol not in self.symbol_min_max:
+                    self.symbol_min_max[symbol] = {}
+
+                self.symbol_min_max[symbol][col_name] = (
+                    row["min_val"], row["max_val"])
+
+            # Normalization
             min_col = f"{col_name}_min"
             max_col = f"{col_name}_max"
-
             df = df.withColumn(min_col, spark_min(
                 col(col_name)).over(symbol_window))
             df = df.withColumn(max_col, spark_max(
@@ -137,19 +152,6 @@ class AITickerData(DataProcessor):
             )
 
             df = df.drop(min_col, max_col)
-            # Save Min,Max
-            for symbol in symbols:
-                row = df.filter(df.symbol == symbol).agg(
-                    spark_min(col_name).alias("min_val"),
-                    spark_max(col_name).alias("max_val")
-                ).first()
-
-                if symbol not in self.symbol_min_max:
-                    self.symbol_min_max[symbol] = {}
-
-                self.symbol_min_max[symbol][col_name] = (
-                    row["min_val"], row["max_val"])
-
             # Return 16 column : (12+0)
             """
             self.normalization_cols = [
@@ -223,4 +225,4 @@ if __name__ == "__main__":
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
     ai_ticker_processor = AITickerData()
-    ai_ticker_processor.run_test()
+    ai_ticker_processor.run()
