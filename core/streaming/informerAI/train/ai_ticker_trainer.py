@@ -31,7 +31,7 @@ class AITickerTrainer(Trainer):
         # self.data_processor.run(self.type)
         # Data test
         # Run data processor to load symbol dict to data_processor
-        self.data_processor.run_test()
+        self.data_processor.run()
         self.symbol_dict = self.data_processor.symbol_dict
         # Load symbol dict to methol trainAll ( ressult will)
         self.trainAll()

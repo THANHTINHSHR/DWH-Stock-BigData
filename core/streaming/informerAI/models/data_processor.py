@@ -44,17 +44,9 @@ class DataProcessor(ABC):
         # Logging configuration
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def run_test(self):
-        # df = self.spark_loader.read_csv("1day598dir.csv")
-        df = self.spark_loader.read_csv("1day1000dir.csv")
-
-        symbol_dict = self.process_train(df)
-        self.symbol_dict = symbol_dict
-        return symbol_dict
-
-    def run(self, stream_type: str):
+    def run(self):
         df = self.get_raw_data(
-            stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
+            self.type)
         symbol_dict = self.process_train(df)
         self.symbol_dict = symbol_dict
         return symbol_dict
