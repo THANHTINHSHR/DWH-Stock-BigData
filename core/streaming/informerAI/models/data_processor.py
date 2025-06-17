@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 from core.streaming.informerAI.models.spark_loader import SparkLoader  # type: ignore
 import numpy as np
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset,DataLoader
 import torch
 
 # autopep8: on
@@ -59,8 +59,11 @@ class DataProcessor(ABC):
         self.symbol_dict = symbol_dict
         return symbol_dict
 
-    def get_raw_data(self, stream_type, n_day_ago, max_directories) -> DataFrame:
-        return self.spark_loader.read_s3(stream_type, n_day_ago, max_directories)
+    def get_raw_data(self, stream_type: str
+                     ) -> DataFrame:
+
+        # return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
+        return self.spark_loader.read_csv("1day598dir.csv")
 
     def process_train(self, df: DataFrame):
         """
@@ -90,16 +93,15 @@ class DataProcessor(ABC):
         df = self.feature_selection(df)
         df = self.timeHanding(df)
         df = self.normalization(df)
-        self.splitBySymbolAndClean(df)
-        for symbol, df_symbol in self.symbol_dict.items():
-            df_train, df_val, df_test = self.splitBatching(df_symbol)
-            self.symbol_dict[symbol] = {
-                "train": df_train,
-                "val": df_val,
-                "test": df_test
-            }
-        return self.convert_dict_spark_data_to_dict_tensor_data(
-            symbol_dict=self.symbol_dict)
+        result = {}
+        # ex: [btcusdt:dataframe1,.....]
+        symbol_dict = self.splitBySymbolAndClean(df)
+        for symbol, df_symbol in symbol_dict.items():
+            tensor_ds = self.convert_sparkDF_to_tensorDS(
+                df_symbol, self.feature_cols, self.time_cols)
+            self.symbol_dict[symbol] = tensor_ds
+            result[symbol] = tensor_ds
+        return result
 
     @abstractmethod
     def feature_selection(self, df: DataFrame) -> DataFrame:

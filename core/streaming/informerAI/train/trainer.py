@@ -9,6 +9,7 @@ import logging, os, sys  # type: ignore
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, "../../../../Informer2020"))
 if project_root not in sys.path:
@@ -218,12 +219,15 @@ class Trainer(ABC):
     def predict(self, test_loader: DataLoader, model_path=None):
         if model_path:
             self.model.load_state_dict(torch.load(
-                os.path.join(self.save_path, model_path), map_location=self.device))
+                os.path.join(self.save_path, f"{model_path}_best_model.pth"), map_location=self.device))
             self.model.eval()
-            print(f"📂 Loaded model from: {model_path}")
+            self.logger.info(f"📂 Loaded model from: {model_path}")
 
         all_preds = []
         self.model.eval()
+
+        for item in test_loader:
+            self.logger.info(f"🔵 Type {item} for {item} in batch")
 
         with torch.no_grad():
             for x_enc, x_mark_enc, x_dec, x_mark_dec, y in test_loader:
