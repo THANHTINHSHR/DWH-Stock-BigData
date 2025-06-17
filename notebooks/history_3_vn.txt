@@ -1,0 +1,35 @@
+----------------GIỚI HẠN PHẦN CỨNG---------
+- Mình cho chạy 1 pipeline lẻ thì ok, nhưng nếu chạy 3 pipe song song thì máy hình như ko kham nổi, 
+    CPU 100%, đây là giới han của mình rồi, máy đơ luôn 2 nhan 4 lõi :D thì chỉ dc vậy,
+    thử giảm xuống 2 luồng xem
+--------- superset-athena-============
+- tìm ra sự kacs biệt giữa beare token, api token và crsf , chán thật sự
+- chỉnh lại yml, dockerfile để tắt crsf.
+- 422 :dashboard: {"msg":"Not enough segments"} nữa chớ -> cần ít nhất 1 chart để tạo dashboard
+- LOAD KHÔNG NỔI, THẬT SUWJLAF LAOD KO NỔI, CHỈ CÓ 1 LUỒNG STREAMING TRADE mà 99% rồi.
+    CPU ko đủ để render chart nữa khổ thân.
+- tạo riêng lẻ thì ok nhưng gắn chart vào dashboar lại không dc, lúc thì with, lúc thì xoay mãi
+    lúc thì lỗi value, lỗi Background,.............. cả vài chục trường mà bảo điền hết ai chịu nổi
+    thôi dẹp, chắc mình sẽ tạo chart bên ngoài rồi kéo vô chứ tạo rồi gắn chay thì quá khó r. Thông cảm
+- Superset chỉ hỗ trợ cập nhật toàn bộ dashboard, chứ không có API riêng để thêm từng biểu đồ.
+thật thì dù thêm vào thành công thì ui vẫn xoay vòng 
+- API lỗi, có cái ko hỗ trợ nữa. phải cần tìm hiểu thêm
+- cố gắn mấy ngày thay đổi json, api, ... nhưng api cho ra kq ok nhưng ui vẫn lỗi -> superset backend xử lý lỗi - > bỏ đê
+------------- Hoàn thiện và đóng gói ------------
+cơ bản là xong nhưng mà chuyển từ local sang docker nó khác nhiều lắm nào là địa chỉ, netwwork, biến, jar,...
+- học thêm cách bake Spark JARs
+- conflict giữa các thư viện vì các yêu cầu khác nhau, chuyển đổi giữa local và docker hub khác nhiều lắm
+ + nào là quyết định base là python rồi cài java -spark -pyspark hay là base là python rồi cài java-spark-pyspark
+ + Nào là lựa chọn image Apache/spark-py làm gốc hay không, 
+ + nào là việc tải xuongs các jars, các depen quá lâu gây lỗi TSL 
+ + Nào là xung đột giữa các phiên bản, bản python mainhf chạy trên máy có thể có các gói không khớp trên pypi, maven
+- Vấn đề xử lý trùng lặp khi tạo chart, dashboard khi chương trình lỗi cần tạo lại
+- xử lý vấn đề thứ tự chạy
+- Xử lý kết nối với athena, không thể dùng postgresql+psycopg2 dc vì nó không cho phép, cần phải kết nối qua API
+- xử lý việc tách yml file thành phần service và project.
+- xử lý Dashboards của grafana tạo dc nhưng cần phải vào ui -> edit -> refresh mới hoạt động ???
+    + do grafana chưa load xong thôi, đi chợ về nó hiện
+
+
+
+

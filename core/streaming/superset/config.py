@@ -1,0 +1,2 @@
+WTF_CSRF_ENABLED = False
+ENABLE_CORS = True

@@ -1,0 +1,57 @@
+CÓ MỘT SỰ HIỂU NHẦM TO LỚN.
+- Mình không thể tách quá trình ETL ra hoàn toàn ttrong cấu trúc realtime streaming như batch được.
+- Lúc trước, mình định làm dạng lấy kafka làm nguồn rồi gởi lên s3 , sau đó lấy xuống transform 
+tuy nhiên : + S3 không hỗ trợ streaming data (chỉ hỗ trợ batch), việc coi s3 là nơi chứa dữ liệu 
+            streaming là sai hoàn toàn, DỮ LIỆU PHẢI ĐƯỢC XỬ LÝ TRONG THỜI GIAN THƯC. 
+            + consumer mình viết kiểu vậy chính là biến reatime thành batch, consumer cần phải vừa
+            lấy dữ liệu, vừa chuyển đổi nó - đó là nơi spark hoạt động
+            + như nói ở trên thì coi như spark đóng vai trò là 1 consumer nhưng nó không hoạt 
+            động với confulent kafka, nếu muốn có schema registry thì pahir làm thủ công
+            mà schema cũng không cần thiết , bảo mật chi, mã hóa chi, nó chỉ là json thôi mà
+            --> làm 1 piplime mới , đặt tên là streaming đi.
+
+- Spark Structured Streaming làm việc với 1 DataFrame đại diện cho luồng dữ liệu (stream).
+- Tuyệt đối không áp dụng tư duy Batch vào Streaming 
+- nhiều group.id + nhiều stream riêng biệt = xử lý song song = nhanh hơn rõ rệt sơ với việc gom chung
+- Spark Transform : luồng cơ bản đã xong, nhưng Batch 0 luôn luôn chậm nhỉ ? hay do máy mình quá yếu?
+- Tiếp tục vẫn là loại bỏ suy nghĩ batch trong streaming. batch thì ta mới dùng DWH, 
+    streaming vẫn có thể xài nhưng với crypto real-time thì dữ liệu tới liên tục vài chục/vài nghìn
+    dữ liệu nên nếu dùng DWH thì tốn kém và không hiệu quả ( crypto không cần nhớ lịch sử nhiều) 
+    DWN dùng để lưu trũ, phân tích, dự đoán, còn muốn show thì dùng cái khác :
+    + GRAFANA : dùng để show real time data
+    + DWH(S3) -> SUPERSET : Dễ truy vấn với SQL, tạo biểu đồ phân tích, dashboard lịch sử.
+    + DWH(s3) -> Power BI : siêu tiện dụng, trực quan
+- Túm cái háng lại ta có :
+    + Luồng 1 :WebSocket (Binance)
+                    ↓
+                Kafka (Producer)
+                    ↓
+                Spark Structured Streaming (Consumer + Transform)
+                    ↓
+                InfluxDB (Sink – lưu time series data)
+                    ↓
+                Grafana (Visualize dữ liệu từ InfluxDB)
+- Lâu nay mình luôn cố gắn xây dựn 1 pipline chung cho tất cả các stream nhưng có vẻ không ổn, 
+    dữ liệu của chúng quá khác biệt, buộc phải tách ra, cái nao chung thì bỏ lớp xài chung
+- Spark sesion ha xài chung hay riêng ?
+    + chung vì máy mình quá yếu để chạy nhiều sesion cùng Lúc
+    + riêng vì đã tách pipline thì nên tách session nếu không khó debug.
+    -> Thôi thì tách riêng và làm từng pipline - phải bỏ session r
+------------------------------------------- Influx--------------
+- InfluxDB : lưu trữ dữ thời gian thực để cung cấp cho grafana, nhưng mà bản influx 2 cần truy vấn bằng Flux chứ ko phải SQL
+nó là cách sql mới hơn chuyên cho realtime flux, muốn chuyển sang v1 thì phức tạp hơn
+nhưng bắc buộc , thô thì nhờ AI convvert sang v1
+- muốn tạo dashboar tự động thì n=hơi mệt chút, phải xử lý đủ yêu cầu  API.
+- h phải có thêm kiến thức về bieur đồ để chnj và bố trí cho hợp lý
+-----------------------------------------S3------------
+Luồng thứ 2
+
+WebSocket (Binance)
+        ↓
+    Kafka (Producer)
+        ↓
+    Spark Structured Streaming (Consumer + Transform)
+        ↓
+    S3 (lưu dạng Parquet/CSV)
+        ↓
+   Superset  (Kết nối S3 để phân tích dữ liệu)

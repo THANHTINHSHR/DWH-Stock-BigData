@@ -1,0 +1,4 @@
+databases:
+  - database_name: ${ATHENA_DB}
+    expose_in_sqllab: true
+    sqlalchemy_uri: "awsathena+rest://${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}@athena.${AWS_DEFAULT_REGION}.amazonaws.com/${ATHENA_DB}?s3_staging_dir=${S3_STAGING_DIR}"

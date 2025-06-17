@@ -1,0 +1,11 @@
+-----------Chuẩn bị đầu vào cho AI-----------
+- chuyển đổi đầu vào cho Ai, từ s3 sang, nhưng muốn nhìn thấy nó các xử thí nneen xài csv lưu trung gian xem nhưng lại 
+ bị lỗi, phải dùng parquet, nhưng như vậy thì không thấy nội dung df thay đổi nữa. coi như mù chút
+ - đầu vào xong, làm 1 lúc rồi cho đầu ra encode nhưng vướn chổ mình chọn cái chuẩn hóa sai rồi, không biết thoogn tin sao àm giải mã.
+ - Làm lại, làm nhhuw này thì đầu ra biết coin nào là coin nào ?, cần cachs tieps caanu kahcs như chia dữ liệu đầu vào ra.
+ - Y trong tensor đầu vào bi thay đổi co cơ chế bên trong nn.modelm ...........chán quá, bỏ batch
+ - lỗi tui dc chưa, do tui truyền ko đúng thứ tự nên bị hiểu nhẩm khi lấy giá trị khi thực hiện evaluate trong train.
+ - -------------------- Luồng module----------
+ đầu tiên là 1 cái trigger để tạo các file bộ não pth., sau khi tạo xong mới dùng các file đó huấn luyện mô hình
+ vì mình thiết kế mô hình của mình huấn luyện đồng thời có trình tự nhiều symbol nên có hơi kahcs với các truyền vào và xài lại method.
+ 

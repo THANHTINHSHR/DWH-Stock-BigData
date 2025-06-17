@@ -1,0 +1,25 @@
+----------------  latest và earliest -----------------
+- sau 1 thời gian bận thì mình thêm tính năng mới nhưng mà thấy quên chỉnh latest nên chỉnh lại nhưng thấy mức CPU tăng đột biến
+- cơ bản là do latest lấy cái mới nhất tốn nhiều bộ nhớ heap nhất để xử lý dữ liệu lên tục gây quá tải
+- earliest thì lấy từ kafka pool nên tốn ram chứ ko tốn cpu nhiều
+------------HADOOP----
+- Trời má, cần lấy file parquet s3 xuống nên cần hadoop, mình nghĩ pyspark ban đầu ko có nên tải riêng, ban đầu quất 3.3.6 thì xung đột, hạ xuongs 3.3.5 như trc thì vẫn v,
+    mò một lúc thì mới biết là xung đột do pyspark lúc xây dựng project là 3.5.5, khi làm lại thì nó có bản 4.0.0
+    mình làm thì nó báo java cũ mới nhận ra ( đang xài java 11)
+    sau đó revert lại xài bản 3.5.5 nhưng vẫn xung đột , không đọc dc parquet
+    mò tiếp thì mới biết pyspark của pip vẫn có hadoop nhỏ ở trong và với pyspark 3.5.5 thì hadoop nó chứa là 3.3.4
+    ( viết test mới ra).
+- Nói chung là rất là phức tạp và lòng vòng For, cái này ràng buộc cái kia, cái này có 1 chút cái kia, nhưng lại cần cái khcs cao hơn, 
+    cái này ghi đè cái kia,... điểm hình là lỗi For input string: "60s" mà chả biết đâu ra
+- có 1 cái vi diệu nữa là  ví dụ spark tải từ pip là 4.0.0 nhưng nếu add jarr cả bản 3.5.5 vào thì spark sẽ build theo cái hợp nhất , nhưng nếu ko có add jarr thì vẫn 4.0.0
+- nhưng winutils hiện tại chưa có bản na8of hơn 3.0.... thôi thì chuyển sang thành xài pip đi
+----------------Lỗi Exception while deleting Spark temp dir------------
+cơ bản là mỗi lần chạy nó tạo temp riêng , xong rồi xóa để cái khác chạy nhưng mà h nó ko xóa dc
+- đầu tiên mình gnhix là do xung đột phiên bản nên chỉnh cho spark hợp hết, gỡ spark trên pip, xìa spark trên win,
+    dùng findspark đê load spark vào code python, sau đó lại tải bản spark 3.5.6 có hadoop 
+    (bản được apache đưa ra cho tải) để chạy, ... làm từng bước, sau đó còn chạy winutils đặt quyền 
+    cho các thưc mục temp, vân vân và mây mây nhưng kết quả là mưa mưa!
+    bế tắc, t nghĩ có phải do win ko, vì thấy nhiều diễn đàn bảo cũng gặp cái này nhwung mà không thể khắc phục,
+    để tìm ra thì t build vào docker thì phát hiện lỗi này không xảy ra, nó chạy dc, nó xóa dc NÊN :
+     --- ĐÂY LÀ LỖI THẾ KỶ CMNR, T BÓ TAY=----
+     NHWUNG T KHÔNG THỂ CHUỂN SANG LINUX LÀM, CÒN ÍT THỜI GIAN LẮM, ĐÀNH LÀM TỚI ĐÂU BUILD DOCKER TOWUIS ĐÓ VẬY

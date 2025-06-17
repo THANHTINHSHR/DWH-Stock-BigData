@@ -1,0 +1,17 @@
+# Ignore Python bytecode & cache
+__pycache__/
+# Ignore environment files
+.env
+.env_local
+.env_host
+spark-temp/
+# Ignore virtual environment
+venv/
+core/streaming/informerAI/files
+.qodo
+core/tests
+.vscode/
+.vscode/extensions.json
+jars
+tar
+Informer2020/
