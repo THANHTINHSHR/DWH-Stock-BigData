@@ -63,7 +63,7 @@ class DataProcessor(ABC):
     def get_current_data(self, stream_type: str
                          ) -> DataFrame:
         """
-        Get current data is like read s3 bút only get MAX_DIRECTORIES/100 Directories
+        Get current data is like read s3 but only get MAX_DIRECTORIES/100 Directories
         """
         n_current_dir = self.MAX_DIRECTORIES // 100
         if n_current_dir == 0:
@@ -71,6 +71,7 @@ class DataProcessor(ABC):
 
         # Real
         return self.spark_loader.read_s3(stream_type, 1, n_current_dir)
+        # return self.spark_loader.read_csv("1day598t.csv")
 
     def process_train(self, df: DataFrame):
         """

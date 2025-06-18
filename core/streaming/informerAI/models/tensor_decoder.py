@@ -45,8 +45,6 @@ class TensorDecoder():
         """
         Convert prediction tensor to Spark DataFrame with decoded features and reconstructed event_time.
         """
-        self.logger.info(
-            f"⏳📌  Time decode : {symbol} is {symbol_last_event_time[symbol]}")
         # Ensure shape is 2D: (N * T, D)
         np_array = tensor.cpu().numpy().reshape(-1, len(feature_cols + time_cols))
         pdf = pd.DataFrame(np_array, columns=feature_cols + time_cols)
@@ -68,8 +66,6 @@ class TensorDecoder():
 
         # Create Spark DataFrame
         df = self.spark.createDataFrame(pdf)
-        self.spark_loader.write_csv(df, f"{symbol}_decoded_")
-
         return df
 
     def decode_time_cols(self, last_time_str: str, length: int) -> list:
@@ -84,10 +80,8 @@ class TensorDecoder():
         """
         Reverse min-max normalization for each feature using symbol's min-max tuple.
         """
-        self.logger.info("🔍 Decoding with min-max dict:")
         for col in feature_df.columns:
             col_min, col_max = minmax_dict[col]
-            print(f"  {col}: min={col_min}, max={col_max}")
             feature_df[col] = feature_df[col] * (col_max - col_min) + col_min
 
         return feature_df

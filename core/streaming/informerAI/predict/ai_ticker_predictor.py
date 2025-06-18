@@ -16,6 +16,7 @@ import logging
 class AITickerPredictor(Predictor):
     def __init__(self, trainer, tensor_decoder):
         super().__init__("ticker", trainer, tensor_decoder)
+        self.logger = logging.getLogger(self.__class__.__name__)
 
 
 if __name__ == "__main__":

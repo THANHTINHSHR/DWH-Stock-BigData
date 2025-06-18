@@ -49,9 +49,6 @@ class Predictor(ABC):
         self.n_days_ago = self.data_processor.N_DAYS_AGO
         self.max_dir = self.data_processor.MAX_DIRECTORIES
 
-        # Models path
-        self.save_path = "./core/streaming/informerAI/files/models/"
-
         # Loggin
         self.logger = logging.getLogger(self.__class__.__name__)\
 
@@ -73,34 +70,44 @@ class Predictor(ABC):
         for symbol, torch_in in torch_dict.items():
             spark_df_dict[symbol] = self.torch_to_sparkDF(
                 torch_in, symbol)
-
+        self.upload_to_s3(spark_df_dict)
         return spark_df_dict
 
     def get_current_data(self) -> DataFrame:
+        self.logger.info(
+            f"⏳Processing get current data with type: {self.type} ...")
         return self.data_processor.get_current_data(self.type)
 
     def raw_DF_to_tensorDS(self, df: DataFrame) -> dict:
+        self.logger.info(
+            f"⏳⏳Processing convert raw data to tensor with type: {self.type} ...")
 
         dict_tensor_ds = self.tensor_encoder.raw_DF_to_tensorDS(df)
         return dict_tensor_ds
 
     def tensorDS_to_data_loader(self, tensor_ds: TensorDataset):
+        self.logger.info(
+            f"⏳Processing convert tensor dataset to dataloader with type: {self.type} ...")
         return self.tensor_encoder.get_data_loader_from_tensor_ds(
             tensor_ds)
 
     def predict(self, data_loader: DataLoader, symbol):
-        self.logger.info(f"⏳📌⏳📌  min.max decode : {symbol}")
-        for key, (min_val, max_val) in self.symbol_min_max[symbol].items():
-            self.logger.info(f"    {key}: min={min_val}, max={max_val}")
+        self.logger.info(
+            f"⏳Processing predict data with type: {self.type} ...")
         return self.trainer.predict(data_loader, model_path=symbol)
 
     def torch_to_sparkDF(self, torch: Tensor, symbol: str):
+        self.logger.info(
+            f"⏳Processing transfrom torch to spark dataframe data with type: {self.type} ...")
         return self.tensor_decoder.tensor_to_raw_sparkDF(torch, symbol, self.data_processor.feature_cols, self.data_processor.time_cols, self.symbol_last_event_time, self.symbol_min_max)
 
     def upload_to_s3(self, spark_df_dict: dict):
+        self.logger.info(
+
+            f"⏳Processing Upload predicted data to s3 with type: {self.type} ...")
         # Join Dataframe
         df = reduce(
             lambda df1, df2: df1.unionByName(df2, allowMissingColumns=True),
             spark_df_dict.values()
         )
-        self.spark_loader.upload_predict_data(self.data_processor.type, df)
+        self.spark_loader.upload_predict_data(self.type, df)

@@ -109,9 +109,10 @@ class SparkLoader:
             ) and int(file.getPath().getName()) <= start_time]
 
             df = self.spark.read.parquet(*directories[:max_directories])
-            self.write_csv(df, f"{stream_type}_{len(directories)}dir_data.csv")
+            df.coalesce(1).write.mode("overwrite").parquet(
+                f"{stream_type}_{len(directories)}dir_data.csv")
 
-            print(
+            self.logger.info(
                 f"📂 Found {len(directories)} directories created before {days_ago} days ago, get limit {max_directories}:")
             return df
 
@@ -149,6 +150,17 @@ class SparkLoader:
         # df.write.mode("overwrite").parquet(relative_path)
         df.coalesce(1).write.mode("overwrite").parquet(relative_path)
         self.logger.info(f"✅ DataFrame has been written to {relative_path}.")
+
+    def upload_predict_data(self, type: str, df: DataFrame):
+        """Uplaod data predict to s3"""
+        # {self.BUCKET_NAME}/
+        try:
+            relative_path = f"prediction_data/{type}_predict"
+            df.write.mode("overwrite").parquet(f"/{relative_path}")
+            self.logger.info(
+                f"✅ Successfully uploaded prediction data to: {relative_path}.")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to upload prediction data: {e}")
 
 
 if __name__ == "__main__":
