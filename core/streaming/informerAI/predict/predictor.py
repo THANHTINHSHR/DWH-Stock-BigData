@@ -87,6 +87,9 @@ class Predictor(ABC):
             tensor_ds)
 
     def predict(self, data_loader: DataLoader, symbol):
+        self.logger.info(f"⏳📌⏳📌  min.max decode : {symbol}")
+        for key, (min_val, max_val) in self.symbol_min_max[symbol].items():
+            self.logger.info(f"    {key}: min={min_val}, max={max_val}")
         return self.trainer.predict(data_loader, model_path=symbol)
 
     def torch_to_sparkDF(self, torch: Tensor, symbol: str):

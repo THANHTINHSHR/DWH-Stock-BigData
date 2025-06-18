@@ -226,9 +226,6 @@ class Trainer(ABC):
         all_preds = []
         self.model.eval()
 
-        for item in test_loader:
-            self.logger.info(f"🔵 Type {item} for {item} in batch")
-
         with torch.no_grad():
             for x_enc, x_mark_enc, x_dec, x_mark_dec, y in test_loader:
                 x_enc = x_enc.to(self.device).float()

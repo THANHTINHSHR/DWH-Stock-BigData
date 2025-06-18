@@ -45,6 +45,8 @@ class TensorDecoder():
         """
         Convert prediction tensor to Spark DataFrame with decoded features and reconstructed event_time.
         """
+        self.logger.info(
+            f"⏳📌  Time decode : {symbol} is {symbol_last_event_time[symbol]}")
         # Ensure shape is 2D: (N * T, D)
         np_array = tensor.cpu().numpy().reshape(-1, len(feature_cols + time_cols))
         pdf = pd.DataFrame(np_array, columns=feature_cols + time_cols)
@@ -54,11 +56,7 @@ class TensorDecoder():
 
         # Decode time columns into event_time
         pdf["event_time"] = self.decode_time_cols(
-            pdf[time_cols],
-            symbol_last_event_time[symbol],
-            len(pdf)
-        )
-
+            symbol_last_event_time[symbol], len(pdf))
         # Decode normalized features
         pdf[feature_cols] = self.decode_feature_cols(
             pdf[feature_cols],
@@ -74,19 +72,22 @@ class TensorDecoder():
 
         return df
 
-    def decode_time_cols(self, time_df: pd.DataFrame, last_time_str: str, length: int) -> list:
+    def decode_time_cols(self, last_time_str: str, length: int) -> list:
         """
-        Generate event_time list counting backward from last_time (1 second each step).
+        Generate event_time list counting forward from last_time (1 second each step).
         """
         last_time = pd.to_datetime(last_time_str)
-        delta = pd.to_timedelta(range(length)[::-1], unit="s")
-        return (last_time - delta).astype(str).tolist()
+        delta = pd.to_timedelta(range(1, length + 1), unit="s")
+        return (last_time + delta).strftime("%Y-%m-%d %H:%M:%S.%f").tolist()
 
     def decode_feature_cols(self, feature_df: pd.DataFrame, minmax_dict: dict) -> pd.DataFrame:
         """
-        Reverse min-max normalization for each feature using symbol's min-max values.
+        Reverse min-max normalization for each feature using symbol's min-max tuple.
         """
+        self.logger.info("🔍 Decoding with min-max dict:")
         for col in feature_df.columns:
             col_min, col_max = minmax_dict[col]
+            print(f"  {col}: min={col_min}, max={col_max}")
             feature_df[col] = feature_df[col] * (col_max - col_min) + col_min
+
         return feature_df

@@ -53,9 +53,12 @@ class DataProcessor(ABC):
 
     def get_raw_data(self, stream_type: str
                      ) -> DataFrame:
-
+        # Real
         # return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
-        return self.spark_loader.read_csv("1day598dir.csv")
+        # Local
+        # return self.spark_loader.read_csv("1day598dir.csv")
+        # host
+        return self.spark_loader.read_csv("1day598t.csv")
 
     def process_train(self, df: DataFrame):
         """
