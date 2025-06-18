@@ -29,7 +29,7 @@ class SparkLoader:
 
         # Define the base directory for output files
         self.output_target_base_dir = self.project_root_dir / \
-            "streaming" / "informerAI" / "files"
+            "core"/"streaming" / "informerAI" / "files"
         print(f"Project root directory: {self.project_root_dir}")
         # Spark configuration
         self.spark = self.get_spark(self.AI_APP_NAME)
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     # df = data_loader.read_csv("s3data.csv")
     # df.show(5, truncate=False)
 
-    df = data_loader.read_s3("ticker", 1, 1)
+    df = data_loader.read_s3("ticker", 1, 2)
     df.coalesce(1).write.mode("overwrite").csv(
         "/one1", header=True)
     data_loader.logger.info(f"✅ DataFrame has been written to big csv.")
