@@ -55,7 +55,7 @@ class Predictor(ABC):
         self.logger = logging.getLogger(self.__class__.__name__)\
 
 
-    def run(self):
+    def run(self) -> dict[str, DataFrame]:
         df = self.get_current_data()
         tensor_ds_dict = self.raw_DF_to_tensorDS(df)
         data_loader_dict = {}
@@ -68,11 +68,12 @@ class Predictor(ABC):
         for symbol, data_loader_in in data_loader_dict.items():
             torch_dict[symbol] = self.predict(data_loader_in, symbol)
         # Tensor -> Spark DF
+        spark_df_dict = {}
         for symbol, torch_in in torch_dict.items():
-            self.tensor_dict[symbol] = self.torch_to_sparkDF(
+            spark_df_dict[symbol] = self.torch_to_sparkDF(
                 torch_in, symbol)
 
-        return data_loader_dict
+        return spark_df_dict
 
     def get_current_data(self) -> DataFrame:
         return self.data_processor.get_current_data(self.type)
