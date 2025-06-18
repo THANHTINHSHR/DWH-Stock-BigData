@@ -9,6 +9,7 @@ from core.streaming.informerAI.models.tensor_decoder import TensorDecoder  # typ
 from abc import ABC, abstractmethod
 import logging, os, sys  # type: ignore
 from torch import Tensor
+from functools import reduce
 
 from torch.utils.data import DataLoader, TensorDataset
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -95,3 +96,11 @@ class Predictor(ABC):
 
     def torch_to_sparkDF(self, torch: Tensor, symbol: str):
         return self.tensor_decoder.tensor_to_raw_sparkDF(torch, symbol, self.data_processor.feature_cols, self.data_processor.time_cols, self.symbol_last_event_time, self.symbol_min_max)
+
+    def upload_to_s3(self, spark_df_dict: dict):
+        # Join Dataframe
+        df = reduce(
+            lambda df1, df2: df1.unionByName(df2, allowMissingColumns=True),
+            spark_df_dict.values()
+        )
+        self.spark_loader.upload_predict_data(self.data_processor.type, df)
