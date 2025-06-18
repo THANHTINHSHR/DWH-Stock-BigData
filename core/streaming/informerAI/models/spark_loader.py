@@ -155,7 +155,7 @@ class SparkLoader:
         """Uplaod data predict to s3"""
         # {self.BUCKET_NAME}/
         try:
-            relative_path = f"prediction_data/{type}_predict"
+            relative_path = f"{type}_predict"
             df.write.mode("overwrite").parquet(f"/{relative_path}")
             self.logger.info(
                 f"✅ Successfully uploaded prediction data to: {relative_path}.")
