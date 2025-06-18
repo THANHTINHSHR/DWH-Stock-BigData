@@ -4,8 +4,8 @@ findspark.init()
 from pyspark.sql import DataFrame  # type: ignore
 
 from core.streaming.informerAI.train.trainer import Trainer   # type: ignore
-from core.streaming.informerAI.input.tensor_encoder import TensorEncoder  # type: ignore
-from core.streaming.informerAI.output.tensor_decoder import TensorDecoder  # type: ignore
+from core.streaming.informerAI.models.tensor_encoder import TensorEncoder  # type: ignore
+from core.streaming.informerAI.models.tensor_decoder import TensorDecoder  # type: ignore
 from abc import ABC, abstractmethod
 import logging, os, sys  # type: ignore
 from torch import Tensor

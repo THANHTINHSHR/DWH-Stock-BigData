@@ -3,9 +3,9 @@
 import findspark  # type: ignore
 findspark.init()
 from core.streaming.informerAI.train.trainer import Trainer
-from core.streaming.informerAI.output.tensor_decoder import TensorDecoder
-from core.streaming.informerAI.input.tensor_encoder import TensorEncoder
-from core.streaming.informerAI.features.ai_ticker_data import AITickerData  # type: ignore
+from core.streaming.informerAI.models.tensor_decoder import TensorDecoder
+from core.streaming.informerAI.models.tensor_encoder import TensorEncoder
+from core.streaming.informerAI.models.ai_ticker_data import AITickerData  # type: ignore
 from core.streaming.informerAI.predict.predictor import Predictor  # type: ignore
 import logging
 

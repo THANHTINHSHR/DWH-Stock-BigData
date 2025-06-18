@@ -3,7 +3,7 @@ import findspark  # type: ignore
 findspark.init()
 from core.streaming.informerAI.models.data_processor import DataProcessor  # type: ignore
 from core.streaming.informerAI.models.spark_loader import SparkLoader  # type: ignore
-from core.streaming.informerAI.input.tensor_encoder import TensorEncoder  # type: ignore
+from core.streaming.informerAI.models.tensor_encoder import TensorEncoder  # type: ignore
 from abc import ABC, abstractmethod
 from argparse import Namespace  # type: ignore
 import logging, os, sys  # type: ignore
