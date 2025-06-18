@@ -21,7 +21,7 @@ class DataProcessor(ABC):
         self.spark_loader = SparkLoader()
         self.BATCH_SIZE = int(os.getenv("BATCH_SIZE", 1024))
         self.N_DAYS_AGO = int(os.getenv("N_DAYS_AGO", 1))
-        self.MAX_DIRECTORIES = int(os.getenv("MAX_DIRECTORIES", 10))
+        self.MAX_DIRECTORIES = int(os.getenv("MAX_DIRECTORIES", 200))
         self.SEQUENCE_LENGTH = int(os.getenv("SEQUENCE_LENGTH", 18000))  # 5h
         self.PREDICTION_LENGTH = int(
             os.getenv("PREDICTION_LENGTH", 3600))  # 1h
@@ -59,6 +59,18 @@ class DataProcessor(ABC):
         # return self.spark_loader.read_csv("1day598dir.csv")
         # host
         return self.spark_loader.read_csv("1day598t.csv")
+
+    def get_current_data(self, stream_type: str
+                         ) -> DataFrame:
+        """
+        Get current data is like read s3 bút only get MAX_DIRECTORIES/100 Directories
+        """
+        n_current_dir = self.MAX_DIRECTORIES // 100
+        if n_current_dir == 0:
+            n_current_dir = 1
+
+        # Real
+        return self.spark_loader.read_s3(stream_type, 1, n_current_dir)
 
     def process_train(self, df: DataFrame):
         """

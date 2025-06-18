@@ -25,7 +25,8 @@ class SparkLoader:
         )
         # Project path setup
         script_file_path = Path(__file__).resolve()
-        self.project_root_dir = script_file_path.parent.parent.parent.parent
+        self.project_root_dir = script_file_path.parent.parent.parent.parent.parent
+
         # Define the base directory for output files
         self.output_target_base_dir = self.project_root_dir / \
             "streaming" / "informerAI" / "files"
@@ -57,7 +58,7 @@ class SparkLoader:
             .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY)
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
             # Points to the S3 bucket
-            # .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
             .config(
                 "spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com"
             )
@@ -162,9 +163,9 @@ if __name__ == "__main__":
     # df = data_loader.read_csv("s3data.csv")
     # df.show(5, truncate=False)
 
-    df = data_loader.read_s3("ticker", 1, 20)
+    df = data_loader.read_s3("ticker", 1, 1)
     df.coalesce(1).write.mode("overwrite").csv(
-        "/bigcsv", header=True)
+        "/one1", header=True)
     data_loader.logger.info(f"✅ DataFrame has been written to big csv.")
 
     data_loader.close_spark()

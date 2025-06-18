@@ -56,7 +56,7 @@ class Predictor(ABC):
 
 
     def run(self):
-        df = self.get_raw_data()
+        df = self.get_current_data()
         tensor_ds_dict = self.raw_DF_to_tensorDS(df)
         data_loader_dict = {}
         # TensorDataset to DataLoader
@@ -74,8 +74,8 @@ class Predictor(ABC):
 
         return data_loader_dict
 
-    def get_raw_data(self) -> DataFrame:
-        return self.data_processor.get_raw_data(self.type)
+    def get_current_data(self) -> DataFrame:
+        return self.data_processor.get_current_data(self.type)
 
     def raw_DF_to_tensorDS(self, df: DataFrame) -> dict:
 
