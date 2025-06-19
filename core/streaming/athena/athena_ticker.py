@@ -1,4 +1,5 @@
-import time, logging
+import time
+import logging
 
 
 class AthenaTicker:
@@ -10,7 +11,7 @@ class AthenaTicker:
         self.athena_db = athena_db
         self.tabke_name = "ticker"
 
-    def run_query(self, query: str, database: str = None) -> bool:
+    def run_query(self, query: str, database: str = None) -> bool:  # type: ignore
         params = {
             "QueryString": query,
             "ResultConfiguration": {
@@ -66,9 +67,9 @@ class AthenaTicker:
             LOCATION 's3://{self.s3_bucket_name}/ticker/'
             """
         if self.run_query(query, database=self.athena_db):
-            print("✅ Ticker table created successfully")
+            self.logger.info("✅ Ticker table created successfully")
         else:
-            print("❌ Failed to create ticker table")
+            self.logger.error("❌ Failed to create ticker table")
 
     def create_haeathmap_ticker_view(self):
         sql = """CREATE OR REPLACE VIEW heatmap_ticker AS

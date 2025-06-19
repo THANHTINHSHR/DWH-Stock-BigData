@@ -1,4 +1,5 @@
-import time, logging
+import time
+import logging
 
 
 class AthenaBookTicker:
@@ -10,7 +11,7 @@ class AthenaBookTicker:
         self.athena_db = athena_db
         self.tabke_name = "bookTicker"
 
-    def run_query(self, query: str, database: str = None) -> bool:
+    def run_query(self, query: str, database: str = None) -> bool:  # type: ignore
         params = {
             "QueryString": query,
             "ResultConfiguration": {

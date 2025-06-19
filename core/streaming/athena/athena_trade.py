@@ -1,4 +1,5 @@
-import time, logging
+import time
+import logging
 
 
 class AthenaTrade:
@@ -10,7 +11,7 @@ class AthenaTrade:
         self.athena_db = athena_db
         self.tabke_name = "trade"
 
-    def run_query(self, query: str, database: str = None) -> bool:
+    def run_query(self, query: str, database: str = None) -> bool:  # type: ignore
         params = {
             "QueryString": query,
             "ResultConfiguration": {
@@ -50,9 +51,9 @@ class AthenaTrade:
         LOCATION 's3://{self.s3_bucket_name}/trade/'
         """
         if self.run_query(query, database=self.athena_db):
-            print("✅ Table created successfully")
+            self.logger.info("✅ Table created successfully")
         else:
-            print("❌ Failed to create table")
+            self.logger.error("❌ Failed to create table")
 
     def run(self):
         self.create_trades_table()
