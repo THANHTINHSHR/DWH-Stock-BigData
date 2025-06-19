@@ -111,8 +111,9 @@ class SparkLoader:
             ) and int(file.getPath().getName()) <= start_time]
 
             df = self.spark.read.parquet(*directories[:max_directories])
+            # OPTION - SAVE CSV BIG FILE TO EASY USE (DONT NEED RUN COLLECTED DATA AGAIN)
             df.coalesce(1).write.mode("overwrite").parquet(
-                f"{stream_type}_{len(directories)}dir_data.csv")
+                f"s3a://{self.BUCKET_NAME}/Big_csv/{stream_type}_{max_directories}dir_data.csv")
 
             self.logger.info(
                 f"📂 Found {len(directories)} directories created before {days_ago} days ago, get limit {max_directories}:")
