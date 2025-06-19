@@ -1,8 +1,11 @@
 from confluent_kafka.admin import AdminClient, NewTopic
-
+from confluent_kafka.admin import KafkaException
+from confluent_kafka import KafkaError
 # from confluent_kafka import Producer # Unused import
-
-import os, requests, json, logging
+import os
+import requests
+import json
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,10 +18,12 @@ class TopicCreator:
     def __init__(self):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
-        self.admin_client = AdminClient({"bootstrap.servers": self.BOOTSTRAP_SERVERS})
+        self.admin_client = AdminClient(
+            {"bootstrap.servers": self.BOOTSTRAP_SERVERS})
         self.NUM_PARTITIONS = int(os.getenv("NUM_PARTITIONS", 1))
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
-        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+        self.STREAM_TYPES = os.getenv(
+            "STREAM_TYPES").split(",")  # type: ignore
         self.URL_TOP = os.getenv("URL_TOP")
         self.LIMIT = int(os.getenv("LIMIT", 10))
         # init value for TOPCOIN
@@ -26,7 +31,8 @@ class TopicCreator:
         if TopicCreator.TOPCOIN:  # Only create topics if TOPCOIN is populated
             self.create_topic()
         else:
-            self.logger.warning("TOPCOIN list is empty. Skipping topic creation.")
+            self.logger.warning(
+                "TOPCOIN list is empty. Skipping topic creation.")
 
     @classmethod
     def get_TOPCOIN(cls):
@@ -35,7 +41,7 @@ class TopicCreator:
 
     def get_top_coins(self):
         try:
-            response = requests.get(self.URL_TOP)
+            response = requests.get(self.URL_TOP)  # type: ignore
             response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
             data = response.json()
             # Filter the coins that end with "USDT"
@@ -52,12 +58,14 @@ class TopicCreator:
                 key=lambda x: float(x.get("quoteVolume", 0)),
                 reverse=True,
             )[: self.LIMIT]
-            TopicCreator.TOPCOIN = [coin["symbol"].lower() for coin in top_coins]
+            TopicCreator.TOPCOIN = [coin["symbol"].lower()
+                                    for coin in top_coins]
             self.logger.info(
                 f"Successfully fetched and updated TOPCOIN list: {TopicCreator.TOPCOIN}"
             )
         except requests.exceptions.RequestException as e:
-            self.logger.error(f"Failed to get top coins from {self.URL_TOP}: {e}")
+            self.logger.error(
+                f"Failed to get top coins from {self.URL_TOP}: {e}")
             TopicCreator.TOPCOIN = []  # Ensure TOPCOIN is empty on failure
         except json.JSONDecodeError as e:
             self.logger.error(
@@ -78,7 +86,8 @@ class TopicCreator:
         )
         for stream_type_item in self.STREAM_TYPES:
             topic_name = (
-                f"{self.BINANCE_TOPIC}_{stream_type_item}"  # ex : binance_btcusdt
+                # ex : binance_btcusdt
+                f"{self.BINANCE_TOPIC}_{stream_type_item}"
             )
             new_topic = NewTopic(
                 topic_name, num_partitions=num_partitions, replication_factor=1
@@ -88,10 +97,16 @@ class TopicCreator:
                 try:
                     future.result()
                     self.logger.info(
-                        f"✅ Topic '{topic}' created successfully or already exists."
-                    )
-                except Exception as e:
-                    self.logger.error(f"❌ Failed to create topic '{topic}': {e}")
+                        f"✅ Topic '{topic}' created successfully.")
+                except KafkaException as e:
+                    error = e.args[0]
+                    if isinstance(error, KafkaError) and error.code() == KafkaError.TOPIC_ALREADY_EXISTS:
+                        self.logger.warning(
+                            f"⚠️ Topic '{topic}' already exists.")
+                    else:
+                        self.logger.error(
+                            f"❌ Failed to create topic '{topic}': {error}")
+                        raise
 
 
 if __name__ == "__main__":
