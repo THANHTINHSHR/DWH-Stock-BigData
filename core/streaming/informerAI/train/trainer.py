@@ -2,8 +2,7 @@
 import findspark  # type: ignore
 findspark.init()
 from core.streaming.informerAI.models.data_processor import DataProcessor  # type: ignore
-from abc import ABC, abstractmethod
-from argparse import Namespace  # type: ignore
+from abc import ABC
 import logging, os, sys  # type: ignore
 
 import torch
@@ -175,7 +174,7 @@ class Trainer(ABC):
             self.model.load_state_dict(torch.load(
                 model_path, map_location=self.device))
             self.model.eval()
-            print(f"📂 Loaded model from: {model_path}")
+            self.logger.info(f"📂 Loaded model from: {model_path}")
 
         self.model.eval()
         total_loss = 0
@@ -188,8 +187,6 @@ class Trainer(ABC):
                     x_mark_enc = x_mark_enc.to(self.device).float()
                     x_mark_dec = x_mark_dec.to(self.device).float()
 
-                    dec_inp = torch.zeros_like(y_val).to(self.device)
-                    # output = self.model(x_enc, x_mark_enc, dec_inp, x_mark_dec)
                     output = self.model(x_enc, x_mark_enc, x_dec, x_mark_dec)
 
                     loss = self.criterion(output, y_val)
