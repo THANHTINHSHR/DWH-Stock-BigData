@@ -4,12 +4,13 @@ findspark.init()
 from pyspark.sql import DataFrame  # type: ignore
 
 from core.streaming.informerAI.train.trainer import Trainer   # type: ignore
-from core.streaming.informerAI.models.tensor_encoder import TensorEncoder  # type: ignore
 from core.streaming.informerAI.models.tensor_decoder import TensorDecoder  # type: ignore
-from abc import ABC, abstractmethod
+from core.streaming.informerAI.models.tensor_decoder import TensorDecoder  # type: ignore
+from abc import ABC
 import logging, os, sys  # type: ignore
 from torch import Tensor
 from functools import reduce
+from core.streaming.informerAI.outer.informer_outer import InformerOuter 
 
 from torch.utils.data import DataLoader, TensorDataset
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -49,9 +50,13 @@ class Predictor(ABC):
         self.n_days_ago = self.data_processor.N_DAYS_AGO
         self.max_dir = self.data_processor.MAX_DIRECTORIES
 
-        # Loggin
-        self.logger = logging.getLogger(self.__class__.__name__)\
+        # Outer
+        self.outer = InformerOuter()
+        # Run outer creator
+        self.outer.run_creator()
 
+        # Loggin
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def run(self) -> dict[str, DataFrame]:
         df = self.get_current_data()
@@ -70,7 +75,11 @@ class Predictor(ABC):
         for symbol, torch_in in torch_dict.items():
             spark_df_dict[symbol] = self.torch_to_sparkDF(
                 torch_in, symbol)
+        # Spark DF -> S3
         self.upload_to_s3(spark_df_dict)
+        # Spark DF -> InfluxDB
+        self.upload_to_InfluxDB(spark_df_dict)
+
         return spark_df_dict
 
     def get_current_data(self) -> DataFrame:
@@ -111,3 +120,13 @@ class Predictor(ABC):
             spark_df_dict.values()
         )
         self.spark_loader.upload_predict_data(self.type, df)
+
+    def upload_to_InfluxDB(self, spark_df_dict: dict):
+        self.logger.info(
+            f"⏳Processing Upload predicted data to InfluxDB with type: {self.type} ...")
+        # Join Dataframe
+        df = reduce(
+            lambda df1, df2: df1.unionByName(df2, allowMissingColumns=True),
+            spark_df_dict.values()
+        )
+        self.outer.send_predict_data(self.type, df)
