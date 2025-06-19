@@ -1,6 +1,11 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.types import *
-from pyspark.sql.functions import col, isnan
+# autopep8: off
+import findspark  # type: ignore
+findspark.init()
+from pyspark.sql import SparkSession # type: ignore
+from pyspark.sql.types import * # type: ignore
+from pyspark.sql.functions import col, isnan # type: ignore
+from pyspark.sql.types import StructType,StructField,StringType,IntegerType,LongType,FloatType,DoubleType,BooleanType,Row# type: ignore
+
 from functools import reduce
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -8,6 +13,7 @@ from pathlib import Path
 import os, json, logging, time
 from dotenv import load_dotenv
 import glob
+# autopep8:on
 
 load_dotenv()
 
@@ -25,7 +31,8 @@ class PipelineBase(ABC):
 
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
-        self.logger = logging.getLogger(self.__class__.__name__)  # Add logger here
+        self.logger = logging.getLogger(
+            self.__class__.__name__)  # Add logger here
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
@@ -163,7 +170,7 @@ class PipelineBase(ABC):
             df.write.mode("append").format("parquet").option(
                 "compression", "snappy"
             ).save(f"s3a://{self.BUCKET_NAME}/{type}/{int(time.time())}/")
-            self.logger.info(f"✅ Success send data to S3: {self.type}")
+            self.logger.info(f"✅ Success send data to S3: {type}")
         except Exception as e:
             self.logger.error(f"❌Fail to write to S3: {e}")
 

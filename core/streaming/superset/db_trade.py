@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import json
 import logging
-import time  # Import the time module
 import urllib.parse
 
 load_dotenv()
@@ -48,7 +47,8 @@ class DBTrade:
                     {
                         "adhoc_filters": [],  # Filters will be injected from dashboard
                         "color_scheme": "bnbColors",
-                        "groupby": ["is_market_maker"],  # Group only by is_market_maker
+                        # Group only by is_market_maker
+                        "groupby": ["is_market_maker"],
                         "granularity_sqla": "trade_time",
                         "time_grain_sqla": "P1D",
                         "time_range": "No filter",

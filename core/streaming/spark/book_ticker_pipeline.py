@@ -1,11 +1,15 @@
-from core.streaming.spark.pipeline_base import PipelineBase
+# autopep8: off
+import findspark  # type: ignore
+findspark.init()
+from pyspark.sql.types import * # type: ignore
+from pyspark.sql.functions import from_json, col    # type: ignore
+from pyspark.sql.functions import current_timestamp # type: ignore
+from core.streaming.spark.pipeline_base import PipelineBase 
 from core.streaming.kafka.topic_creator import TopicCreator
-from pyspark.sql.types import *
-from pyspark.sql.functions import from_json, col
 from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
 import time, logging
 from dotenv import load_dotenv
-from pyspark.sql.functions import current_timestamp
+# autopep8: on
 
 load_dotenv()
 
@@ -36,7 +40,8 @@ class BookTickerPipeline(PipelineBase):
         symbol = data["symbol"]
 
         df_value = df.select(
-            from_json(col("value").cast("string"), self.schema).alias("value_json")
+            from_json(col("value").cast("string"),
+                      self.schema).alias("value_json")
         ).select("value_json.*")
 
         df_value = df_value.select(
@@ -48,8 +53,10 @@ class BookTickerPipeline(PipelineBase):
             col("A").alias("best_ask_qty"),
         )
 
-        df_value = df_value.withColumn("symbol", col("symbol").cast(StringType()))
-        df_value = df_value.withColumn("update_id", col("update_id").cast(LongType()))
+        df_value = df_value.withColumn(
+            "symbol", col("symbol").cast(StringType()))
+        df_value = df_value.withColumn(
+            "update_id", col("update_id").cast(LongType()))
         df_value = df_value.withColumn(
             "best_bid_price", col("best_bid_price").cast(DoubleType())
         )

@@ -1,11 +1,17 @@
+
+# autopep8: off
+import findspark  # type: ignore
+findspark.init()
+from pyspark.sql.types import * # type: ignore
+from pyspark.sql.functions import from_json, col # type: ignore
+from pyspark.sql.types import StringType,LongType,DoubleType,TimestampType,Row,BooleanType # type: ignore
 from core.streaming.spark.pipeline_base import PipelineBase
 from core.streaming.kafka.topic_creator import TopicCreator
-from pyspark.sql.types import *
-from pyspark.sql.functions import from_json, col
+
 from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
 import logging
 from dotenv import load_dotenv
-
+# autopep8: on
 load_dotenv()
 
 
@@ -43,7 +49,8 @@ class TradePipeline(PipelineBase):
         df.printSchema()
         # Get value from df
         df_value = df.select(
-            from_json(col("value").cast("string"), self.schema).alias("value_json"),
+            from_json(col("value").cast("string"),
+                      self.schema).alias("value_json"),
         ).select("value_json.*")
         df_value = df_value.select(
             col("t").alias("trade_id"),
@@ -56,11 +63,16 @@ class TradePipeline(PipelineBase):
         )
         # Cleaning--> Transform--> Filter
         # Cleaning: Cast
-        df_value = df_value.withColumn("trade_id", col("trade_id").cast(LongType()))
-        df_value = df_value.withColumn("event", col("event").cast(StringType()))
-        df_value = df_value.withColumn("symbol", col("symbol").cast(StringType()))
-        df_value = df_value.withColumn("price", col("price").cast(DoubleType()))
-        df_value = df_value.withColumn("quantity", col("quantity").cast(DoubleType()))
+        df_value = df_value.withColumn(
+            "trade_id", col("trade_id").cast(LongType()))
+        df_value = df_value.withColumn(
+            "event", col("event").cast(StringType()))
+        df_value = df_value.withColumn(
+            "symbol", col("symbol").cast(StringType()))
+        df_value = df_value.withColumn(
+            "price", col("price").cast(DoubleType()))
+        df_value = df_value.withColumn(
+            "quantity", col("quantity").cast(DoubleType()))
         # Minisecond to second milliseconds
         df_value = df_value.withColumn(
             "trade_time", (col("trade_time") / 1000).cast(TimestampType())
@@ -111,7 +123,8 @@ class TradePipeline(PipelineBase):
 
     def run_streams(self):
         try:
-            self.logger.info(f"✅ topcoin stream length: {len(TopicCreator.TOPCOIN)}")
+            self.logger.info(
+                f"✅ topcoin stream length: {len(TopicCreator.TOPCOIN)}")
             queries = []
             for symbol in TopicCreator.TOPCOIN:
                 self.logger.info(f"✅ Topcoin : {symbol}")

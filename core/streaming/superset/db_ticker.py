@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 import json
 import logging
-import requests
 import urllib.parse
 
 load_dotenv()
@@ -88,7 +87,8 @@ class DBTicker:
                 "viz_type": "heatmap_v2",  # Viz type in main payload
                 "datasource_id": dataset_id,  # Dataset ID
                 "datasource_type": "table",  # Datasource type
-                "params": json.dumps(params_dict),  # Standardized JSON params string
+                # Standardized JSON params string
+                "params": json.dumps(params_dict),
             }
             try:
                 response = self.session.post(
@@ -135,9 +135,11 @@ class DBTicker:
                 "Accept": "application/json",
             }
             params_dict = {
-                "datasource": f"{dataset_id}__table",  # Inject correct dataset ID
+                # Inject correct dataset ID
+                "datasource": f"{dataset_id}__table",
                 "viz_type": "echarts_timeseries_scatter",  # From JSON
-                "x_axis": "price_change_percent",  # From JSON (Used as X-axis value)
+                # From JSON (Used as X-axis value)
+                "x_axis": "price_change_percent",
                 "time_grain_sqla": "P1D",  # From JSON
                 "x_axis_sort_asc": True,  # From JSON
                 "x_axis_sort_series": "name",  # From JSON
@@ -147,7 +149,8 @@ class DBTicker:
                         "expressionType": "SIMPLE",
                         "column": {
                             # Details about the column, ID might differ but name is key
-                            "column_name": "price_change_percent",  # !! From JSON - Y-axis is also price_change_percent !!
+                            # !! From JSON - Y-axis is also price_change_percent !!
+                            "column_name": "price_change_percent",
                             "type": "FLOAT",
                         },
                         "aggregate": "MAX",  # From JSON
@@ -241,4 +244,5 @@ class DBTicker:
         heatmap_dataset_id = dataset_ids.get("heatmap_ticker")
         self.create_heatmap_chart(access_token, heatmap_dataset_id)
         scatter_plot_ticker_dataset_id = dataset_ids.get("scatter_plot_ticker")
-        self.create_scatter_plot_chart(access_token, scatter_plot_ticker_dataset_id)
+        self.create_scatter_plot_chart(
+            access_token, scatter_plot_ticker_dataset_id)

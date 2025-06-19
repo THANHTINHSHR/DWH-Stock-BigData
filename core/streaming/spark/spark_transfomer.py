@@ -1,25 +1,15 @@
-from core.streaming.spark.spark_session_singleton import SparkSessionSingleton
-from core.extract.binance_wss.topic_creator import TopicCreator
-from pyspark.sql.types import (
-    StructType,
-    StructField,
-    StringType,
-    IntegerType,
-    LongType,
-    FloatType,
-    DoubleType,
-    BooleanType,
-    TimestampType,
-    Row,
-)
-from pyspark.sql.functions import from_json, col, isnan
+# autopep8: off
+import findspark  # type: ignore
+findspark.init()
+from core.streaming.spark.spark_session_singleton import SparkSessionSingleton  # type: ignore
+from core.extract.binance_wss.topic_creator import TopicCreator # type: ignore
+from pyspark.sql.types import StructType,StructField,StringType,IntegerType,LongType,FloatType,DoubleType,BooleanType,TimestampType,Row# type: ignore
+from pyspark.sql.functions import from_json, col, isnan # type: ignore
 from functools import reduce
-
 from pathlib import Path
-
-
 import os, json, logging
 from dotenv import load_dotenv
+# autopep8: off
 
 load_dotenv()
 
@@ -29,7 +19,7 @@ class SparkTransformer:
         self.BUCKET_NAME = os.getenv("BUCKET_NAME")
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
-        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",") # type: ignore
         self.spark = SparkSessionSingleton.get_spark_session()
         self.streams = {}
         # DEBUG - stream counter
