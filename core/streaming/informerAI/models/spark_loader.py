@@ -3,7 +3,7 @@ import findspark  # type: ignore
 findspark.init()
 from pyspark.sql.functions import col, to_date  # type: ignore
 from pyspark.sql import SparkSession, DataFrame  # type: ignore
-from pyspark.sql.types import TimestampType # type: ignore
+from pyspark.sql.types import TimestampType, LongType # type: ignore
 import datetime
 from datetime import datetime, timedelta
 import logging
@@ -159,6 +159,9 @@ class SparkLoader:
             relative_path = f"{type}_predict"
             df = df.withColumn("event_time", col(
                 "event_time").cast(TimestampType()))
+            df = df.withColumn("trade_count", col(
+                "trade_count").cast(LongType()))
+
             df.write.mode("overwrite").parquet(f"/{relative_path}")
             self.logger.info(
                 f"✅ Successfully uploaded prediction data to: {relative_path}.")
