@@ -59,9 +59,12 @@ class RunStreaming:
         # Run producer + Spark pipelines concurrently
         with ThreadPoolExecutor(max_workers=5) as executor:
             # Submit Kafka producer and Spark streaming pipelines to run in parallel.
-            producer_future = executor.submit(self.run_async_producer, self.producer)
-            trade_pipeline_future = executor.submit(self.trade_pipeline.run_streams)
-            ticker_pipeline_future = executor.submit(self.ticker_pipeline.run_streams)
+            producer_future = executor.submit(
+                self.run_async_producer, self.producer)
+            trade_pipeline_future = executor.submit(
+                self.trade_pipeline.run_streams)
+            ticker_pipeline_future = executor.submit(
+                self.ticker_pipeline.run_streams)
             book_ticker_pipeline_future = executor.submit(
                 self.book_ticker_pipeline.run_streams
             )
@@ -69,5 +72,10 @@ class RunStreaming:
 
 if __name__ == "__main__":
     # Entry point of the script.
-    run = RunStreaming()
-    run.run()
+    try:
+        run = RunStreaming()
+        run.run()
+    except Exception as e:
+        logging.error("❌ Lỗi trong Spark pipeline: %s", str(e))
+    finally:
+        logging.info("SUCCESS")

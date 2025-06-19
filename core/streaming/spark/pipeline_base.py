@@ -12,7 +12,6 @@ from pathlib import Path
 
 import os, json, logging, time
 from dotenv import load_dotenv
-import glob
 # autopep8:on
 
 load_dotenv()
@@ -20,7 +19,8 @@ load_dotenv()
 
 class PipelineBase(ABC):
 
-    def __init__(self):
+    def __init__(self, type):
+        self.type = type
         # Initialize environment variables
         self.BUCKET_NAME = os.getenv("BUCKET_NAME")
         self.AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
@@ -31,13 +31,21 @@ class PipelineBase(ABC):
 
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
+
+        script_file_path = Path(__file__).resolve()
+        self.project_root_dir = script_file_path.parent.parent.parent.parent
+
         self.logger = logging.getLogger(
             self.__class__.__name__)  # Add logger here
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
-        jar_files = glob.glob("/opt/spark/jars/*.jar")
-        jars = ",".join(jar_files)
+        jars_directory = self.project_root_dir / "jars"
+        jar_files_list = list(jars_directory.glob("*.jar"))
+        jars = ",".join([str(f) for f in jar_files_list])
+
+        # jar_files = glob.glob("/opt/spark/jars/*.jar")
+        # jars = ",".join(jar_files)
 
         spark = (
             SparkSession.builder.appName(f"{app_name}")
@@ -61,12 +69,15 @@ class PipelineBase(ABC):
             .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
             .config("spark.sql.caseSensitive", "true")
             .config("spark.sql.adaptive.enabled", "false")
+            .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
+
             # spark configurations memory and cores
             .config("max.poll.records", "50")
             .config("trigger", "ProcessingTime(10 seconds)")
             .config("spark.sql.shuffle.partitions", "300")
             .getOrCreate()
         )
+
         return spark
 
     def avro_type_to_spark_type(self, avro_type):
@@ -112,13 +123,12 @@ class PipelineBase(ABC):
     def show_df_stream(self, data: dict):
         # df = df.selectExpr("cast(value as string)", "timestamp")
         df = data["df"]
-        symbol = data["symbol"]
-        stream_type = data["stream_type"]
         query = (
             df.writeStream.format("console")
             .outputMode("update")
             .option("truncate", False)
             .option("numRows", 10)
+            .option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/{self.type}")
             .start()
         )
         query.awaitTermination()

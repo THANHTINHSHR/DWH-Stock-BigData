@@ -44,7 +44,7 @@ class SparkLoader:
     def get_spark(self, app_name: str) -> SparkSession:
         # Use the instance attribute for project_root_dir
         # jar_files_list = glob.glob("/opt/spark/jars/*.jar") when running in Docker
-        jars_directory = self.project_root_dir / "jars/ai"
+        jars_directory = self.project_root_dir / "jars"
         jar_files_list = list(jars_directory.glob("*.jar"))
         jars = ",".join([str(f) for f in jar_files_list])
         # log4j configuration

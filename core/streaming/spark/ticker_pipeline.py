@@ -18,8 +18,8 @@ load_dotenv()
 class TickerPipeline(PipelineBase):
 
     def __init__(self):
-        super().__init__()
         self.type = "ticker"
+        super().__init__(type=self.type)
         self.spark = super().get_spark_session("ticker_pipeline")
         self.schema = super().get_schema(self.type)
         self.filter_condition = self.get_filter_condition(self.type)

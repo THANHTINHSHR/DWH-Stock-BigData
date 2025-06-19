@@ -2,6 +2,7 @@
 import findspark  # type: ignore
 findspark.init()
 from pyspark.sql.types import * # type: ignore
+from pyspark.sql.types import StringType, LongType, DoubleType  # type: ignore
 from pyspark.sql.functions import from_json, col    # type: ignore
 from pyspark.sql.functions import current_timestamp # type: ignore
 from core.streaming.spark.pipeline_base import PipelineBase 
@@ -16,8 +17,8 @@ load_dotenv()
 
 class BookTickerPipeline(PipelineBase):
     def __init__(self):
-        super().__init__()
         self.type = "bookTicker"
+        super().__init__(type=self.type)
         self.spark = super().get_spark_session("bookticker_pipeline")
         self.schema = super().get_schema(self.type)
         self.filter_condition = self.get_filter_condition(self.type)
@@ -74,11 +75,11 @@ class BookTickerPipeline(PipelineBase):
         # Add column timestamp for df_value
         df_value = df_value.withColumn(
             "event_time", current_timestamp()
-        )  # <-- Sửa ở đây
+        )
 
         return {"df": df_value, "symbol": symbol}
 
-    def to_line_protocol(self, row: Row):
+    def to_line_protocol(self, row: Row):  # type: ignore
         measurement = self.type
         tag_set = f"symbol={row['symbol']}"
         field_set = (

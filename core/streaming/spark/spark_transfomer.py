@@ -87,6 +87,7 @@ class SparkTransformer:
             .outputMode("update")
             .option("truncate", False)
             .option("numRows", 10)
+            .option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints")
             .start()
         )
         query.awaitTermination()

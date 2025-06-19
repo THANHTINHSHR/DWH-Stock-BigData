@@ -18,8 +18,8 @@ load_dotenv()
 class TradePipeline(PipelineBase):
 
     def __init__(self):
-        super().__init__()
         self.type = "trade"
+        super().__init__(self.type)
         self.spark = super().get_spark_session("trade_pipeline")
         self.schema = super().get_schema(self.type)
         self.filter_condition = self.get_filter_condition(self.type)
@@ -46,7 +46,6 @@ class TradePipeline(PipelineBase):
     def transform_stream(self, data: dict):
         df = data["df"]
         symbol = data["symbol"]
-        df.printSchema()
         # Get value from df
         df_value = df.select(
             from_json(col("value").cast("string"),
@@ -87,18 +86,6 @@ class TradePipeline(PipelineBase):
         # df_value = df.select("value", "timestamp")
 
         return {"df": df_value, "symbol": symbol}
-
-    def show_df_stream(self, data: dict):
-        # df = df.selectExpr("cast(value as string)", "timestamp")
-        df = data["df"]
-        query = (
-            df.writeStream.format("console")
-            .outputMode("update")
-            .option("truncate", False)
-            .option("numRows", 10)
-            .start()
-        )
-        query.awaitTermination()
 
     def to_line_protocol(self, row: Row):
         """Convert to InfluxDB line protocol format

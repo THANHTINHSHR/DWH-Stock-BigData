@@ -3,7 +3,10 @@ from core.streaming.superset.db_ticker import DBTicker
 from core.streaming.superset.db_bookticker import DBBookTicker
 
 from dotenv import load_dotenv
-import os, requests, logging, json
+import os
+import requests
+import logging
+import json
 
 load_dotenv()
 
@@ -25,7 +28,7 @@ class SupersetCreator:
             self.SUPERSET_PASSWORD = os.getenv("SUPERSET_PASSWORD")
             self.S3_STAGING_DIR = os.getenv("S3_STAGING_DIR")
             self.ATHENA_DB = os.getenv("ATHENA_DB")
-            self.ROOT_DB = os.getenv("ROOT_DB").split(",")
+            self.ROOT_DB = os.getenv("ROOT_DB").split(",")  # type: ignore
             self.BUCKET_NAME = os.getenv("BUCKET_NAME")
             self.AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
             self.AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -92,10 +95,11 @@ class SupersetCreator:
                 if db["database_name"].strip().lower() == database_name.strip().lower():
                     return db["id"]
             self.logger.warning(
-                "⚠️ Name database incorrect:", [db["database_name"] for db in result]
+                "⚠️ Name database incorrect:", [
+                    db["database_name"] for db in result]
             )
         else:
-            self.logge.error(
+            self.logger.error(
                 f"❌ Request failed with status {res.status_code}: {res.text}"
             )
         return None
@@ -121,13 +125,16 @@ class SupersetCreator:
                     and ds.get("database", {}).get("id") == database_id
                 ):
                     dataset_id = ds["id"]
-                    self.logger.info(f"✅ Dataset already exists with ID: {dataset_id}")
+                    self.logger.info(
+                        f"✅ Dataset already exists with ID: {dataset_id}")
                     return dataset_id
         else:
-            self.logger.warning(f"⚠️ Failed to fetch dataset list: {check_res.text}")
+            self.logger.warning(
+                f"⚠️ Failed to fetch dataset list: {check_res.text}")
 
         # If not found, create a new dataset
-        payload = {"database": database_id, "schema": schema, "table_name": table_name}
+        payload = {"database": database_id,
+                   "schema": schema, "table_name": table_name}
         self.logger.info(f"✅ Payload : {json.dumps(payload)}")
 
         res = self.session.post(url, json=payload, headers=headers)
@@ -144,7 +151,8 @@ class SupersetCreator:
         dataset_ids = {}
         for type in self.ROOT_DB:
             dataset_ids[type] = self.create_dataset(access_token, type)
-        dataset_heathmap_id = self.create_dataset(access_token, "heatmap_ticker")
+        dataset_heathmap_id = self.create_dataset(
+            access_token, "heatmap_ticker")
         dataset_ids["heatmap_ticker"] = dataset_heathmap_id
         dataset_scatter_plot_id = self.create_dataset(
             access_token, "scatter_plot_ticker"
