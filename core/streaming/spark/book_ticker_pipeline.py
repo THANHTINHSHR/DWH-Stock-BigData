@@ -97,32 +97,6 @@ class BookTickerPipeline(PipelineBase):
         for row in df.toLocalIterator():
             self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
 
-    def run_streams(self):
-        self.logger.info(
-            f"✅ Starting {self.type} streams for {len(TopicCreator.TOPCOIN)} symbols."
-        )
-        queries = []
-        for symbol in TopicCreator.TOPCOIN:
-            self.logger.info(f"✅ Setting up stream for {self.type}: {symbol}")
-            raw_data = self.read_stream(symbol)
-            # Consider logging raw schema if needed
-            transformed_data = self.transform_stream(raw_data)
-            df_to_influx = transformed_data["df"].select("*")
-            df_to_s3 = transformed_data["df"].select("*")
-
-            query_influx = df_to_influx.writeStream.foreachBatch(
-                lambda df, epoch_id: self.load_to_InfluxDB(df)
-            ).start()
-
-            query_s3 = df_to_s3.writeStream.foreachBatch(
-                lambda df, epoch_id: self.load_to_S3(df, self.type)
-            ).start()
-
-            queries.append(query_s3)
-            queries.append(query_influx)
-        for query in queries:
-            query.awaitTermination()
-
 
 if __name__ == "__main__":
     book_ticker_pipeline = BookTickerPipeline()

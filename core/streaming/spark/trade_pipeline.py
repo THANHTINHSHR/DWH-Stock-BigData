@@ -108,38 +108,6 @@ class TradePipeline(PipelineBase):
         for row in df.toLocalIterator():
             self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
 
-    def run_streams(self):
-        try:
-            self.logger.info(
-                f"✅ topcoin stream length: {len(TopicCreator.TOPCOIN)}")
-            queries = []
-            for symbol in TopicCreator.TOPCOIN:
-                self.logger.info(f"✅ Topcoin : {symbol}")
-                raw_data = self.read_stream(symbol)
-                raw_df = raw_data["df"]
-
-                transformed_data = self.transform_stream(raw_data)
-                # self.show_df_stream(transformed_data)
-                df_to_influx = transformed_data["df"].select("*")
-                df_to_s3 = transformed_data["df"].select("*")
-                symbol = transformed_data["symbol"]
-                # To Influx
-                query_influx = df_to_influx.writeStream.foreachBatch(
-                    lambda df, epoch_id: self.load_to_InfluxDB(df)
-                ).start()
-                # To s3
-                query_s3 = df_to_s3.writeStream.foreachBatch(
-                    lambda df, epoch_id: self.load_to_S3(df, self.type)
-                ).start()
-                # queries.append(query_influx)
-                queries.append(query_s3)
-                queries.append(query_influx)
-
-            for query in queries:
-                query.awaitTermination()
-        except Exception as e:
-            self.logger.error(f"❌ Error in streaming process:{e}")
-
 
 if __name__ == "__main__":
     trade_pipeline = TradePipeline()

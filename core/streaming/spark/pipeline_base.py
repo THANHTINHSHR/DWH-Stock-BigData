@@ -1,6 +1,7 @@
 # autopep8: off
 import findspark  # type: ignore
 findspark.init()
+from core.streaming.kafka.topic_creator import TopicCreator
 from pyspark.sql import SparkSession # type: ignore
 from pyspark.sql.types import * # type: ignore
 from pyspark.sql.functions import col, isnan # type: ignore
@@ -57,6 +58,8 @@ class PipelineBase(ABC):
             .config(
                 "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
             )
+            # Points to the S3 bucket
+            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
             .config("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints")
             .config("spark.jars", jars)
             .config("spark.hadoop.fs.s3a.connection.maximum", "100")
@@ -184,6 +187,29 @@ class PipelineBase(ABC):
         except Exception as e:
             self.logger.error(f"❌Fail to write to S3: {e}")
 
-    @abstractmethod
     def run_streams(self):
-        pass
+        self.logger.info(
+            f"✅ Starting {self.type} streams for {len(TopicCreator.TOPCOIN)} symbols."
+        )
+        queries = []
+        for symbol in TopicCreator.TOPCOIN:
+            self.logger.info(f"✅ Setting up stream for {self.type}: {symbol}")
+            raw_data = self.read_stream(symbol)
+            # Consider logging raw schema if needed
+            transformed_data = self.transform_stream(raw_data)  # type: ignore
+            df_to_influx = transformed_data["df"].select("*")  # type: ignore
+            df_to_s3 = transformed_data["df"].select("*")  # type: ignore
+            query_influx = df_to_influx.writeStream \
+                .foreachBatch(lambda df, epoch_id: self.load_to_InfluxDB(df)) \
+                .option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/influx/{symbol}") \
+                .start()
+
+            query_s3 = df_to_s3.writeStream \
+                .foreachBatch(lambda df, epoch_id: self.load_to_S3(df, self.type)) \
+                .option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/s3/{symbol}") \
+                .start()
+
+            queries.append(query_s3)
+            queries.append(query_influx)
+        for query in queries:
+            query.awaitTermination()
