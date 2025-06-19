@@ -9,7 +9,7 @@ class AthenaTickerPredict:
         self.s3_staging = s3_staging
         self.s3_bucket_name = s3_bucket_name
         self.athena_db = athena_db
-        self.tabke_name = "ticker"
+        self.tabke_name = "Ticker_Predict"
 
     def run_query(self, query: str, database: str = None) -> bool:
         params = {
