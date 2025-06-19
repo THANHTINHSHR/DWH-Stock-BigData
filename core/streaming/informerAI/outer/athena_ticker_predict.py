@@ -48,6 +48,7 @@ class AthenaTickerPredict:
             )
             STORED AS PARQUET
             LOCATION 's3://{self.s3_bucket_name}/ticker_predict/'
+            
             """
         if self.run_query(query, database=self.athena_db):
             print("✅ ticker_predict table created successfully")
