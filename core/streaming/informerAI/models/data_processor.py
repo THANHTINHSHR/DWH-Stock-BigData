@@ -63,9 +63,9 @@ class DataProcessor(ABC):
     def get_current_data(self, stream_type: str
                          ) -> DataFrame:
         """
-        Get current data for predicting (1% of MAX_DIRECTORIES)
+        Get current data for predicting (10% of MAX_DIRECTORIES)
         """
-        n_current_dir = self.MAX_DIRECTORIES // 100
+        n_current_dir = self.MAX_DIRECTORIES // 10
         if n_current_dir == 0:
             n_current_dir = 1
 
