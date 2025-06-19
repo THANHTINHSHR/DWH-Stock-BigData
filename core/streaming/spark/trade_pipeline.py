@@ -27,7 +27,6 @@ class TradePipeline(PipelineBase):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def read_stream(self, symbol):
-        subscribe_topic = f"{self.BINANCE_TOPIC}_{symbol}"
         try:
             df = (
                 self.spark.readStream.format("kafka")

@@ -27,7 +27,6 @@ class TickerPipeline(PipelineBase):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     def read_stream(self, symbol):
-        subscribe_topic = f"{self.BINANCE_TOPIC}_{symbol}"
         df = (
             self.spark.readStream.format("kafka")
             .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
@@ -36,7 +35,6 @@ class TickerPipeline(PipelineBase):
             .option("groupId", f"{symbol}")
             .load()
         )
-
         return {"df": df, "symbol": symbol}
 
     def transform_stream(self, data: dict):
