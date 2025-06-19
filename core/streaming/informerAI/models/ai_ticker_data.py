@@ -20,7 +20,7 @@ import logging # Import the logging module
 class AITickerData(DataProcessor):
 
     def __init__(self):
-        self.type = "AITickerData"
+        self.type = "ticker"
         super().__init__(self.type)
         # Selected columns
         self.start_cols = ["event_time", "symbol", "last_price",
