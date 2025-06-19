@@ -2,7 +2,6 @@
 import findspark  # type: ignore
 findspark.init()
 from pyspark.sql import DataFrame  # type: ignore
-from datetime import datetime, timedelta
 import logging,os
 from dotenv import load_dotenv
 from abc import ABC, abstractmethod
@@ -53,17 +52,18 @@ class DataProcessor(ABC):
 
     def get_raw_data(self, stream_type: str
                      ) -> DataFrame:
-        # Real
-        # return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
+        """Get raw data for training"""
         # Local
         # return self.spark_loader.read_csv("1day598dir.csv")
         # host
-        return self.spark_loader.read_csv("1day598t.csv")
+        # return self.spark_loader.read_csv("1day598t.csv")
+        # Real
+        return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
 
     def get_current_data(self, stream_type: str
                          ) -> DataFrame:
         """
-        Get current data is like read s3 but only get MAX_DIRECTORIES/100 Directories
+        Get current data for predicting (1% of MAX_DIRECTORIES)
         """
         n_current_dir = self.MAX_DIRECTORIES // 100
         if n_current_dir == 0:
@@ -84,10 +84,7 @@ class DataProcessor(ABC):
         self.splitBySymbolAndClean(df)
         for symbol, df_symbol in self.symbol_dict.items():
             df_train, df_val, df_test = self.splitBatching(df_symbol)
-            # Save to csv to debug
-            self.spark_loader.write_csv(df_train, f"{symbol}_train.csv")
-            self.spark_loader.write_csv(df_val, f"{symbol}_val.csv")
-            self.spark_loader.write_csv(df_test, f"{symbol}_test.csv")
+
             self.symbol_dict[symbol] = {
                 "train": df_train,
                 "val": df_val,

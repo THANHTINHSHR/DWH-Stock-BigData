@@ -2,21 +2,13 @@
 import findspark  # type: ignore
 findspark.init()
 from core.streaming.informerAI.models.data_processor import DataProcessor  # type: ignore
-from core.streaming.informerAI.models.spark_loader import SparkLoader  # type: ignore
 import logging, os, sys  # type: ignore
-import pandas as pd
-import torch
-import torch.nn as nn
 from torch.utils.data import TensorDataset,DataLoader
-
 from pyspark.sql import DataFrame  # type: ignore
-
-
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, "../../../Informer2020"))
+project_root = os.path.abspath(os.path.join(current_dir, "../../../Informer2020")) # type: ignore
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
-from Informer2020.exp.exp_informer import Informer
 # autopep8: on
 
 

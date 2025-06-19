@@ -79,7 +79,9 @@ class InfluxDBConnectorPredict:
             rows = df.collect()
             points = []
 
-            for i, row in enumerate(rows):
+            self.logger.info(
+                f"📤📦  Sending total of {len(rows)} rows to bucket '{type}_predict'")
+            for row in rows:
                 point = Point(f"{type}") \
                     .tag("symbol", row.symbol) \
                     .field("last_price", float(row.last_price)) \
@@ -88,9 +90,6 @@ class InfluxDBConnectorPredict:
                     .field("trade_count", int(row.trade_count)) \
                     .time(row.event_time, WritePrecision.NS)
                 points.append(point)
-
-                self.logger.info(
-                    f"📤 Sending row {i + 1}: symbol={row.symbol}, last_price={row.last_price}, time={row.event_time}")
 
             # Write Data
             self.write_api = self.client.write_api(write_options=SYNCHRONOUS)

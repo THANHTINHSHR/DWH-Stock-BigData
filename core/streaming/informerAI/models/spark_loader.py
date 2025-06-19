@@ -60,6 +60,7 @@ class SparkLoader:
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
             # Points to the S3 bucket
             .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+
             .config(
                 "spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com"
             )
@@ -123,6 +124,7 @@ class SparkLoader:
             raise
 
     def read_csv(self, path):
+        """SUPPORT DEBUG AND TEST ONLY"""
         self.logger.info(
             f"✅output_target_base_dir: {self.output_target_base_dir}")
         relative_path = os.path.join(
@@ -130,13 +132,13 @@ class SparkLoader:
         return self.spark.read.csv(relative_path, header=True, inferSchema=True)
 
     def write_csv(self, df: DataFrame, path):
+        """SUPPORT DEBUG AND TEST ONLY"""
         self.logger.info(
             f"✅output_target_base_dir: {self.output_target_base_dir}")
 
         relative_path = os.path.join(
             self.output_target_base_dir, "csv", path)
 
-        # df.write.mode("overwrite").csv(relative_path, header=True)
         df.coalesce(1).write.mode("overwrite").csv(
             relative_path, header=True)
         self.logger.info(f"✅ DataFrame has been written to {relative_path}.")
@@ -167,23 +169,3 @@ class SparkLoader:
                 f"✅ Successfully uploaded prediction data to: {relative_path}.")
         except Exception as e:
             self.logger.error(f"❌ Failed to upload prediction data: {e}")
-
-
-if __name__ == "__main__":
-    data_loader = SparkLoader()
-    # Example usage
-
-    # df = data_loader.read_s3("ticker", 2, 10)
-
-    # Close the Spark session when done
-
-    # data_loader.write_csv(df, "example_output")
-    # df = data_loader.read_csv("s3data.csv")
-    # df.show(5, truncate=False)
-
-    df = data_loader.read_s3("ticker", 1, 2)
-    df.coalesce(1).write.mode("overwrite").csv(
-        "/one1", header=True)
-    data_loader.logger.info(f"✅ DataFrame has been written to big csv.")
-
-    data_loader.close_spark()

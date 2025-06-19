@@ -1,21 +1,12 @@
 # autopep8: off
 import findspark  # type: ignore
 findspark.init()
-from core.streaming.informerAI.models.data_processor import DataProcessor  # type: ignore
-from core.streaming.informerAI.models.spark_loader import SparkLoader  # type: ignore
+
 from core.streaming.informerAI.models.tensor_encoder import TensorEncoder  # type: ignore
-from abc import ABC, abstractmethod
-from argparse import Namespace  # type: ignore
 import logging, os, sys  # type: ignore
 import pandas as pd
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
-from pyspark.sql import Row, DataFrame  # type: ignore
-from datetime import timedelta
-from pyspark.sql.types import TimestampType # type: ignore
-from pyspark.sql.functions import col, sin, lit, when, dayofweek, date_format # type:ignore
-from pyspark.sql.functions import monotonically_increasing_id # type: ignore
+from pyspark.sql import DataFrame  # type: ignore
 import pandas as pd
 import numpy as np
 
