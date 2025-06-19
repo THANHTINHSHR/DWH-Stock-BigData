@@ -27,7 +27,7 @@ class SupersetCreatorPredict:
             self.SUPERSET_PASSWORD = os.getenv("SUPERSET_PASSWORD")
             self.S3_STAGING_DIR = os.getenv("S3_STAGING_DIR")
             self.ATHENA_DB = os.getenv("ATHENA_DB")
-            self.ROOT_DB = os.getenv("ROOT_DB").split(",")
+            self.ROOT_DB = os.getenv("ROOT_DB").split(",")  # type: ignore
             self.BUCKET_NAME = os.getenv("BUCKET_NAME")
             self.AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
             self.AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -162,12 +162,3 @@ class SupersetCreatorPredict:
         # create datasets
         dataset_ids = self.create_datasets(access_token)
         self.db_ticker_predict.run(access_token, dataset_ids)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(
-        level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
-    )
-    superset_creator_predict = SupersetCreatorPredict()
-
-    superset_creator_predict.run_superset()

@@ -11,7 +11,7 @@ class AthenaTickerPredict:
         self.athena_db = athena_db
         self.tabke_name = "Ticker_Predict"
 
-    def run_query(self, query: str, database: str = None) -> bool:
+    def run_query(self, query: str, database: str = None) -> bool:  # type: ignore
         params = {
             "QueryString": query,
             "ResultConfiguration": {
@@ -51,9 +51,9 @@ class AthenaTickerPredict:
             
             """
         if self.run_query(query, database=self.athena_db):
-            print("✅ ticker_predict table created successfully")
+            self.logger.info("✅ ticker_predict table created successfully")
         else:
-            print("❌ Failed to create ticker_predict table")
+            self.logger.error("❌ Failed to create ticker_predict table")
 
     def run(self):
         self.create_ticker_table()

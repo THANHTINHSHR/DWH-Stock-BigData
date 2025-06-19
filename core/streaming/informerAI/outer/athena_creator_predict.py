@@ -1,12 +1,10 @@
 
 from core.streaming.informerAI.outer.athena_ticker_predict import AthenaTickerPredict
-
-
-from dotenv import load_dotenv
 import os
 import boto3
 import time
 
+from dotenv import load_dotenv
 load_dotenv()
 
 
@@ -40,7 +38,7 @@ class AthenaCreatorPredict:
     def get_client(self):
         return self.athena_client
 
-    def run_query(self, query: str, database: str = None) -> bool:
+    def run_query(self, query: str, database: str = None) -> bool:  # type: ignore
         params = {
             "QueryString": query,
             "ResultConfiguration": {
@@ -72,7 +70,7 @@ class AthenaCreatorPredict:
         else:
             print("❌ Failed to create database")
 
-        if self.run_query(query, database=self.ATHENA_DB):
+        if self.run_query(query, database=self.ATHENA_DB):  # type: ignore
             print("✅ BookTicker table created successfully")
         else:
             print("❌ Failed to create bookTicker table")
@@ -81,8 +79,3 @@ class AthenaCreatorPredict:
         self.create_database()
         self.athena_ticker_predict.run()
         # self.athena_bookticker.run()
-
-
-if __name__ == "__main__":
-    athena = AthenaCreatorPredict()
-    athena.run_athena()

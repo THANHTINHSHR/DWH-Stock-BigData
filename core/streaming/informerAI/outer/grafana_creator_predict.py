@@ -1,10 +1,9 @@
 from core.streaming.informerAI.outer.grafana_ticker_predict import GrafanaTickerPredict
-
-from dotenv import load_dotenv
 import os
 import logging
 import requests
 
+from dotenv import load_dotenv
 load_dotenv()
 
 
@@ -115,8 +114,3 @@ class GrafanaCreatorPredict:
     def run_grafana(self):
         self.create_dashboard(self.db_ticker_predict.dashboard)
         pass
-
-
-if __name__ == "__main__":
-    grafana = GrafanaCreatorPredict()
-    grafana.run_grafana()

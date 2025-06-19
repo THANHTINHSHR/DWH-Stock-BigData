@@ -1,10 +1,7 @@
 # autopep8: off
 import findspark  # type: ignore
 findspark.init()
-from pyspark.sql.types import TimestampType, LongType # type: ignore
 from pyspark.sql.functions import col  # type: ignore
-
-from pyspark.sql.types import StructType, StructField, DoubleType, StringType # type: ignore
 from influxdb_client import InfluxDBClient, Point, WritePrecision  # type: ignore
 from influxdb_client.client.write_api import SYNCHRONOUS
 from datetime import datetime
@@ -32,9 +29,10 @@ class InfluxDBConnectorPredict:
             self.INFLUXDB_ORG = os.getenv("INFLUXDB_ORG")
             self.INFLUXDB_BUCKET = os.getenv("INFLUXDB_BUCKET")
             # env
-            self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+            self.STREAM_TYPES = os.getenv(
+                "STREAM_TYPES").split(",")  # type: ignore
             self.client = InfluxDBClient(
-                url=self.INFLUXDB_URL, token=self.INFLUXDB_TOKEN, org=self.INFLUXDB_ORG
+                url=self.INFLUXDB_URL, token=self.INFLUXDB_TOKEN, org=self.INFLUXDB_ORG  # type: ignore
             )
             self.write_api = self.client.write_api()
             self.delete_api = self.client.delete_api()
@@ -114,7 +112,3 @@ class InfluxDBConnectorPredict:
         except Exception as e:
             self.logger.error(
                 f"❌ Failed to clean old data from bucket '{type}_predict': {e}")
-
-
-if __name__ == "__main__":
-    pass
