@@ -41,10 +41,12 @@ class PipelineBase(ABC):
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
+        # Local environment
         # jars_directory = self.project_root_dir / "jars"
         # jar_files_list = list(jars_directory.glob("*.jar"))
         # jars = ",".join([str(f) for f in jar_files_list])
 
+        # Docker environment
         jar_files = glob.glob("/opt/spark/jars/*.jar")
         jars = ",".join(jar_files)
 
