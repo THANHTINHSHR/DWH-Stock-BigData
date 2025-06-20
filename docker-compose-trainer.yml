@@ -2,6 +2,8 @@ services:
   trainer:
     container_name: informerAI_trainer
     image: informer_ai
+    env_file:
+      - ./.env
     build:
       context: .
       dockerfile: docker/Dockerfile.informer
@@ -9,7 +11,6 @@ services:
     restart: no
     networks:
       - kafka_network 
-
 networks:
   kafka_network:
     driver: bridge

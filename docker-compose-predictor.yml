@@ -2,6 +2,8 @@ services:
   predictor:
     container_name: informerAI_predictor
     image: informer_ai
+    env_file:
+      - ./.env
     build:
       context: .
       dockerfile: docker/Dockerfile.informer

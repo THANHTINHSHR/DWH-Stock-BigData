@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.project
-    image: dwh_stock_bigdata 
+    image: dwh_stock_bigdata
     volumes:
       - ./core:/DWH-STOCK/core
       - ./jars:/opt/spark/jars
