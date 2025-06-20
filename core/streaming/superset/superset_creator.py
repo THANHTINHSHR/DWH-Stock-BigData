@@ -82,7 +82,7 @@ class SupersetCreator:
         if db_resp.status_code == 201:
             self.logger.info("✅ Athena database created successfully.")
         else:
-            self.logger.error("❌ Failed to create database: {db_resp.text}")
+            self.logger.error(f"❌ Failed to create database: {db_resp.text}")
 
     def get_database_id(self, access_token, database_name):
         url = f"{self.SUPERSET_URL}/api/v1/database/"
