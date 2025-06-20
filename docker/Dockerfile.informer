@@ -1,0 +1,32 @@
+FROM openjdk:11
+
+# Install pip
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    apt-get clean
+
+# Copy Spark tgz file first
+COPY ./tar/spark-3.5.6-bin-hadoop3.tgz /tmp/spark.tgz
+
+# Unzip spark .tgz into /opt
+RUN mkdir -p /opt/spark && tar -xzf /tmp/spark.tgz -C /opt/spark --strip-components=1
+
+# Set environment
+ENV SPARK_HOME=/opt/spark
+ENV PATH="$SPARK_HOME/bin:$PATH"
+ENV JAVA_HOME=/usr/local/openjdk-11
+ENV PYSPARK_PYTHON=python3
+
+# Install Python packages
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY ./core/streaming/informerAI ./core/streaming/informerAI
+
+# Copy Informer2020 source code
+COPY ./core/informer2020 ./core/informer2020
+
+# Copy .jar files
+COPY ./jar/*.jar ./jars/
