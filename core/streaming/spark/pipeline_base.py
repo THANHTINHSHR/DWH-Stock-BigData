@@ -62,7 +62,7 @@ class PipelineBase(ABC):
             )
             # Points to the S3 bucket
             .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
-            .config("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints")
+            .config("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/{self.type}")
             .config("spark.jars", jars)
             .config("spark.hadoop.fs.s3a.connection.maximum", "100")
             .config("spark.hadoop.fs.s3a.connection.timeout", "5000")
