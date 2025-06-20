@@ -5,9 +5,6 @@ services:
       context: .
       dockerfile: docker/Dockerfile.project
     image: dwh_stock_bigdata
-    volumes:
-      - ./core:/DWH-STOCK/core
-      - ./jars:/opt/spark/jars
     ports:
       - "8000:8000"
     env_file:
