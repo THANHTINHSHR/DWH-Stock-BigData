@@ -9,8 +9,9 @@ RUN apt-get update && \
 ENV JAVA_HOME=/usr/local/openjdk-11
 ENV PYSPARK_PYTHON=python3
 ENV HADOOP_HOME=/opt/hadoop
-ENV PATH="$HADOOP_HOME/bin:$PATH"
 ENV PYTHONPATH=/app
+ENV SPARK_HOME=/opt/spark-dist
+ENV PATH="$SPARK_HOME/bin:$PATH"
 
 # install python packages
 WORKDIR /app
@@ -19,7 +20,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Install PySpark
 COPY ./tar/spark-3.5.6-bin-hadoop3.tgz /tar/
-RUN mkdir -p /opt/spark && tar -xzf /tar/spark-3.5.6-bin-hadoop3.tgz -C /opt/spark --strip-components=1
+RUN mkdir -p /opt/spark-dist && tar -xzf /tar/spark-3.5.6-bin-hadoop3.tgz -C /opt/spark-dist --strip-components=1
+
+# Copy Jars
+COPY ./jars/*.jar /opt/spark/jars/
+
 
 # Copy source code
 COPY ./core ./core
