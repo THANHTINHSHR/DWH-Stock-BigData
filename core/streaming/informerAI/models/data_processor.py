@@ -55,16 +55,16 @@ class DataProcessor(ABC):
         """Get raw data for training"""
         # host
         # return self.spark_loader.read_csv("raw_1800dir.csv")
-        return self.spark_loader.read_csv("raw_180dir.csv")
+        # return self.spark_loader.read_csv("raw_180dir.csv")
         # Real
-        # return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
+        return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
 
     def get_current_data(self, stream_type: str
                          ) -> DataFrame:
         """
-        Get current data for predicting (10% of MAX_DIRECTORIES)
+        Get current data for predicting (20% of MAX_DIRECTORIES)
         """
-        n_current_dir = self.MAX_DIRECTORIES // 10
+        n_current_dir = self.MAX_DIRECTORIES // (10*2)
         if n_current_dir == 0:
             n_current_dir = 1
 
