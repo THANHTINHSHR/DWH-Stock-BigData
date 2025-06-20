@@ -59,9 +59,10 @@ class AITickerData(DataProcessor):
         'embed': 'timeF',
             'freq': 's'
         """
-        time_column = "event_time"
-
         self.logger.info(f"⏳ Processing time handing with {self.type}...")
+        self.logger.info(f"📌Before time handing len(df): {df.count()}")
+
+        time_column = "event_time"
 
         df = df.withColumn("year", date_format(
             col(time_column), "yyyy").cast("int"))
@@ -111,6 +112,7 @@ class AITickerData(DataProcessor):
 
     def normalization(self, df: DataFrame) -> DataFrame:
         self.logger.info(f"⏳ Processing normalization with {self.type}...")
+        self.logger.info(f"📌Before normalization len(df): {df.count()}")
 
         feature_cols = self.feature_cols
         symbol_window = Window.partitionBy("symbol")
@@ -168,6 +170,7 @@ class AITickerData(DataProcessor):
     def splitBySymbolAndClean(self, df: DataFrame) -> dict:
         self.logger.info(
             f"⏳ Processing sequence generation with {self.type}...")
+        self.logger.info(f"📌Before split and clean len(df): {df.count()}")
 
         symbols = df.select("symbol").distinct(
         ).rdd.flatMap(lambda x: x).collect()
@@ -184,6 +187,8 @@ class AITickerData(DataProcessor):
                 "event_time").drop("symbol", "event_time")
             for symbol in symbols
         }
+        for symbol, symbol_df in symbol_dict.items():
+            self.logger.info(f"✅📌Length of {symbol} : {symbol_df.count()}")
 
         self.symbol_dict = symbol_dict
         self.logger.info(
@@ -203,7 +208,7 @@ class AITickerData(DataProcessor):
     def splitBatching(self, df: DataFrame):
         self.logger.info(
             f"⏳ Splitting: Train {self.TRAIN_RATIO*100}%, Val {self.VAL_RATIO*100}%, Test {round((1 - self.TRAIN_RATIO - self.VAL_RATIO)*100)}%...")
-        self.logger.info(f"📌  len(df): {df.count()}")
+        self.logger.info(f"📌Before split batching  len(df): {df.count()}")
         # Define Ration
         total_count = df.count()
         train_count = int(total_count * self.TRAIN_RATIO)
@@ -211,11 +216,13 @@ class AITickerData(DataProcessor):
 
         # Pagination
         train_df = df.limit(train_count)
+        self.logger.info(f" TrainDF(df): {df.count()}")
+
         val_df = df.limit(train_count + val_count).subtract(train_df)
         test_df = df.subtract(train_df).subtract(val_df)
 
         self.logger.info(
-            f"✅ Done! Train: {train_df.count()} | Val: {val_df.count()} | Test: {test_df.count()}")
+            f"📌After split batching : ✅Train: {train_df.count()} | ✅Val: {val_df.count()} | ✅Test: {test_df.count()}")
 
         return train_df, val_df, test_df
 
