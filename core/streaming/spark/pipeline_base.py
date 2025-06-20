@@ -164,9 +164,16 @@ class PipelineBase(ABC):
 
         return reduce(lambda a, b: a & b, conditions)
 
-    @abstractmethod
     def read_stream(self, symbol):
-        pass
+        df = (
+            self.spark.readStream.format("kafka")
+            .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
+            .option("startingOffsets", "latest")
+            .option("subscribe", f"{self.BINANCE_TOPIC}_{self.type}")
+            .option("groupId", f"{symbol}")
+            .load()
+        )
+        return {"df": df, "symbol": symbol}
 
     @abstractmethod
     def transform_stream(self, data: dict):
