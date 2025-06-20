@@ -59,7 +59,7 @@ class SparkLoader:
             .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY)
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
             # Points to the S3 bucket
-            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+            # .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
 
             .config(
                 "spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com"
@@ -113,7 +113,7 @@ class SparkLoader:
             df = self.spark.read.parquet(*directories[:max_directories])
             # OPTION - SAVE CSV BIG FILE TO EASY USE (DONT NEED RUN COLLECTED DATA AGAIN)
             df.coalesce(1).write.mode("overwrite").csv(
-                f"s3a://{self.BUCKET_NAME}/Big_csv/{stream_type}_{max_directories}dir_data.csv")
+                f"s3a://{self.BUCKET_NAME}/Big_csv/{stream_type}_{max_directories}dir_data.csv", header=True)
 
             self.logger.info(
                 f"📂 Found {len(directories)} directories created before {days_ago} days ago, get limit {max_directories}:")

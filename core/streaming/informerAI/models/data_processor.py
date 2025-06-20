@@ -53,19 +53,18 @@ class DataProcessor(ABC):
     def get_raw_data(self, stream_type: str
                      ) -> DataFrame:
         """Get raw data for training"""
-        # Local
-        # return self.spark_loader.read_csv("1day598dir.csv")
         # host
-        # return self.spark_loader.read_csv("1day598t.csv")
+        # return self.spark_loader.read_csv("raw_1800dir.csv")
+        return self.spark_loader.read_csv("raw_180dir.csv")
         # Real
-        return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
+        # return self.spark_loader.read_s3(stream_type, self.N_DAYS_AGO, self.MAX_DIRECTORIES)
 
     def get_current_data(self, stream_type: str
                          ) -> DataFrame:
         """
-        Get current data for predicting (25% of MAX_DIRECTORIES)
+        Get current data for predicting (10% of MAX_DIRECTORIES)
         """
-        n_current_dir = self.MAX_DIRECTORIES // 25
+        n_current_dir = self.MAX_DIRECTORIES // 10
         if n_current_dir == 0:
             n_current_dir = 1
 
@@ -149,12 +148,23 @@ class DataProcessor(ABC):
 
         num_features = feature_data.shape[1]
         data_len = len(feature_data)
+        samples = data_len - seq_len - pred_len + 1
+        self.logger.info(
+            f"📊 Available samples: {samples} | 📦 Total data points: {data_len}")
+        self.logger.info(
+            f"📈 Required per sample: seq_len({seq_len}) + pred_len({pred_len}) = {seq_len + pred_len}")
+
+        if samples < 100 and samples > 0:
+            self.logger.info(
+                f"🟡 🟡 Samples are low : {samples}, 0 < samples  < 100  ")
 
         if data_len < seq_len + pred_len:
-            self.logger.warning(
-                f"🟡 Not enough data: {data_len} (required ≥ {seq_len + pred_len})"
+            error_message = (
+                f"❌ ❌ ❌  Not enough data to create sequences for symbol.❌ ❌ ❌  "
+                "\n"
+                f"Available data length: {data_len}, Required: {seq_len + pred_len} (sequence_length + prediction_length)."
             )
-            return TensorDataset(torch.empty(0), torch.empty(0), torch.empty(0), torch.empty(0), torch.empty(0))
+            raise ValueError(error_message)
 
         x, x_mark_enc, x_dec, x_mark_dec, y = [], [], [], [], []
 

@@ -169,7 +169,7 @@ class AITickerData(DataProcessor):
 
     def splitBySymbolAndClean(self, df: DataFrame) -> dict:
         self.logger.info(
-            f"⏳ Processing sequence generation with {self.type}...")
+            f"⏳ Processing split data frame by symbol and clean dataframe with {self.type}...")
         self.logger.info(f"📌Before split and clean len(df): {df.count()}")
 
         symbols = df.select("symbol").distinct(
