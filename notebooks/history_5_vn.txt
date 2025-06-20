@@ -27,3 +27,8 @@ Nói chung là vì modul trc đã làm r nên h làm rất dễ!.
 
 với tốc độ thu thập dữ liệu mỗi 1dir chứa dữ liệu 10-20s 
 thì cần đâu đó khảng hơn 10000 dir nên mình cho chạy nguyên ngày luôn
+- Cập nhật thông số thực tế chút :
++ mỗi dir chứa nhiều dòn dữ liệu nhưng dạng miliseecon nên cần tách theo giây, 600 dir mới trích dc thời gian 1 giời
++ Tức 600dir có dc 1800s, mà cần lấy 10% của 1800 tức 180 làm test, mà phần test phải>=(seq+pre)
++ mà seq=3pre -> 180>=4pre - > pre = 45 -> seq= 135, mà test coi như bằng số dữ liệu đầu vào nên = 180=60 dir = 10% dir
+--> huấn luyện 1800 dir thì dự đoán dc với seq=135,pre=45 hay nói cách khác test=in=train/10.
