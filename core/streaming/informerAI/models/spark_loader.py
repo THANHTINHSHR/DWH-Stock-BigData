@@ -44,7 +44,9 @@ class SparkLoader:
 
     def get_spark(self, app_name: str) -> SparkSession:
         # Use the instance attribute for project_root_dir
-        # jar_files_list = glob.glob("/opt/spark/jars/*.jar") when running in Docker
+        #  When running in Docker
+        # jar_files_list = glob.glob("/opt/spark/jars/*.jar")
+        # else :jars_directory = Path("/opt/spark/jars")
         jars_directory = self.project_root_dir / "jars"
         jar_files_list = list(jars_directory.glob("*.jar"))
         jars = ",".join([str(f) for f in jar_files_list])
@@ -60,7 +62,7 @@ class SparkLoader:
             .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY)
             .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
             # Points to the S3 bucket
-            # .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
 
             .config(
                 "spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com"

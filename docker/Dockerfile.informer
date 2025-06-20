@@ -11,6 +11,10 @@ COPY ./tar/spark-3.5.6-bin-hadoop3.tgz /tmp/spark.tgz
 # Unzip spark .tgz into /opt
 RUN mkdir -p /opt/spark && tar -xzf /tmp/spark.tgz -C /opt/spark --strip-components=1
 
+# Install torch
+COPY ./wheels/torch-2.0.1+cpu-*.whl /tmp/
+RUN pip install /tmp/torch-2.0.1+cpu-*.whl && rm /tmp/torch-2.0.1+cpu-*.whl
+
 # Set environment
 ENV SPARK_HOME=/opt/spark
 ENV PATH="$SPARK_HOME/bin:$PATH"
@@ -30,4 +34,4 @@ COPY ./core/streaming/informerAI ./core/streaming/informerAI
 COPY ./Informer2020 ./Informer2020
 
 # Copy .jar files
-COPY ./jar/*.jar ./jars/
+COPY ./jars/*.jar ./jars/
