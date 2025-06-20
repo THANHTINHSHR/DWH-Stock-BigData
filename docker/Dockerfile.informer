@@ -16,6 +16,7 @@ ENV SPARK_HOME=/opt/spark
 ENV PATH="$SPARK_HOME/bin:$PATH"
 ENV JAVA_HOME=/usr/local/openjdk-11
 ENV PYSPARK_PYTHON=python3
+ENV PYTHONPATH=/app
 
 # Install Python packages
 WORKDIR /app
@@ -26,7 +27,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./core/streaming/informerAI ./core/streaming/informerAI
 
 # Copy Informer2020 source code
-COPY ./core/informer2020 ./core/informer2020
+COPY ./Informer2020 ./Informer2020
 
 # Copy .jar files
 COPY ./jar/*.jar ./jars/

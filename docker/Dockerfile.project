@@ -10,6 +10,7 @@ ENV JAVA_HOME=/usr/local/openjdk-11
 ENV PYSPARK_PYTHON=python3
 ENV HADOOP_HOME=/opt/hadoop
 ENV PATH="$HADOOP_HOME/bin:$PATH"
+ENV PYTHONPATH=/app
 
 
 # install python packages
