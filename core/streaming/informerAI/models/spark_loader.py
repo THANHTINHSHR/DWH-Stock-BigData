@@ -164,6 +164,8 @@ class SparkLoader:
         """Uplaod data predict to s3"""
         # {self.BUCKET_NAME}/
         try:
+            self.delete_s3_predict_data(type)  # Delete old data
+
             relative_path = f"{type}_predict"
             df = df.withColumn("event_time", col(
                 "event_time").cast(TimestampType()))
@@ -176,3 +178,21 @@ class SparkLoader:
                 f"✅ Successfully uploaded prediction data to s3: {relative_path}.")
         except Exception as e:
             self.logger.error(f"❌ Failed to upload prediction data: {e}")
+
+    def delete_s3_predict_data(self, type: str):
+        """Delete data predict from s3"""
+        try:
+            relative_path = f"{type}_predict"
+
+            hadoop_conf = self.spark._jsc.hadoopConfiguration()
+            fs = self.spark._jvm.org.apache.hadoop.fs.FileSystem.get(
+                hadoop_conf)
+
+            path = self.spark._jvm.org.apache.hadoop.fs.Path(
+                f"s3a://{self.BUCKET_NAME}/{relative_path}")
+            fs.delete(path, True)
+
+            self.logger.info(
+                f"✅ Successfully deleted prediction data from s3: {relative_path}.")
+        except Exception as e:
+            self.logger.error(f"❌ Failed to delete prediction data: {e}")
