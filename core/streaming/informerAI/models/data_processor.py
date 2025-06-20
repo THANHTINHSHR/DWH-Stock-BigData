@@ -64,13 +64,11 @@ class DataProcessor(ABC):
         """
         Get current data for predicting (20% of MAX_DIRECTORIES)
         """
-        n_current_dir = self.MAX_DIRECTORIES // (10*2)
-        if n_current_dir == 0:
-            n_current_dir = 1
+        n_current_dir = max(1, int(self.MAX_DIRECTORIES * 0.2))
 
         # Real
-        return self.spark_loader.read_s3(stream_type, 1, n_current_dir)
-        # return self.spark_loader.read_csv("1day598t.csv")
+        # return self.spark_loader.read_s3(stream_type, 1, n_current_dir)
+        return self.spark_loader.read_csv("raw_36dir.csv")
 
     def process_train(self, df: DataFrame):
         """
