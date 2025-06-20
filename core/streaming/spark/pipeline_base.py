@@ -11,7 +11,7 @@ from functools import reduce
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-import os, json, logging, time
+import os, json, logging, time, glob
 from dotenv import load_dotenv
 # autopep8:on
 
@@ -41,12 +41,12 @@ class PipelineBase(ABC):
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
-        jars_directory = self.project_root_dir / "jars"
-        jar_files_list = list(jars_directory.glob("*.jar"))
-        jars = ",".join([str(f) for f in jar_files_list])
+        # jars_directory = self.project_root_dir / "jars"
+        # jar_files_list = list(jars_directory.glob("*.jar"))
+        # jars = ",".join([str(f) for f in jar_files_list])
 
-        # jar_files = glob.glob("/opt/spark/jars/*.jar")
-        # jars = ",".join(jar_files)
+        jar_files = glob.glob("/opt/spark/jars/*.jar")
+        jars = ",".join(jar_files)
 
         spark = (
             SparkSession.builder.appName(f"{app_name}")
