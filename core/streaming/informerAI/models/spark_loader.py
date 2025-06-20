@@ -31,11 +31,11 @@ class SparkLoader:
         # Define the base directory for output files
         self.output_target_base_dir = self.project_root_dir / \
             "core"/"streaming" / "informerAI" / "files"
-        print(f"Project root directory: {self.project_root_dir}")
         # Spark configuration
         self.spark = self.get_spark(self.AI_APP_NAME)
         # Logging configuration
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.info(f"Project root directory: {self.project_root_dir}")
         self.current_dir = os.path.dirname(os.path.abspath(__file__))
 
     def getInstance(self):
@@ -112,7 +112,7 @@ class SparkLoader:
 
             df = self.spark.read.parquet(*directories[:max_directories])
             # OPTION - SAVE CSV BIG FILE TO EASY USE (DONT NEED RUN COLLECTED DATA AGAIN)
-            df.coalesce(1).write.mode("overwrite").parquet(
+            df.coalesce(1).write.mode("overwrite").csv(
                 f"s3a://{self.BUCKET_NAME}/Big_csv/{stream_type}_{max_directories}dir_data.csv")
 
             self.logger.info(
