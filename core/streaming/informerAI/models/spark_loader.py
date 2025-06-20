@@ -33,6 +33,7 @@ class SparkLoader:
             "core"/"streaming" / "informerAI" / "files"
         # Spark configuration
         self.spark = self.get_spark(self.AI_APP_NAME)
+        self.REPARTITION = int(os.getenv("REPARTITION", 12))
         # Logging configuration
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info(f"Project root directory: {self.project_root_dir}")
@@ -110,7 +111,8 @@ class SparkLoader:
             directories = [f"{s3_path}/" + file.getPath().getName()+"/" for file in status if file.isDirectory(
             ) and int(file.getPath().getName()) <= start_time]
 
-            df = self.spark.read.parquet(*directories[:max_directories])
+            df = self.spark.read.parquet(
+                *directories[:max_directories]).repartition(self.REPARTITION)
             # OPTION - SAVE CSV BIG FILE TO EASY USE (DONT NEED RUN COLLECTED DATA AGAIN)
             df.coalesce(1).write.mode("overwrite").csv(
                 f"s3a://{self.BUCKET_NAME}/Big_csv/{stream_type}_{max_directories}dir_data.csv", header=True)
@@ -130,7 +132,7 @@ class SparkLoader:
             f"✅output_target_base_dir: {self.output_target_base_dir}")
         relative_path = os.path.join(
             self.output_target_base_dir, path)
-        return self.spark.read.csv(relative_path, header=True, inferSchema=True)
+        return self.spark.read.csv(relative_path, header=True, inferSchema=True).repartition(self.REPARTITION)
 
     def write_csv(self, df: DataFrame, path):
         """SUPPORT DEBUG AND TEST ONLY"""
@@ -141,7 +143,7 @@ class SparkLoader:
             self.output_target_base_dir, "csv", path)
 
         df.coalesce(1).write.mode("overwrite").csv(
-            relative_path, header=True)
+            relative_path, header=True).repartition(self.REPARTITION)
         self.logger.info(f"✅ DataFrame has been written to {relative_path}.")
 
     def write_parquet(self, df: DataFrame, path):
@@ -152,7 +154,8 @@ class SparkLoader:
             self.output_target_base_dir, "parquet", path)
 
         # df.write.mode("overwrite").parquet(relative_path)
-        df.coalesce(1).write.mode("overwrite").parquet(relative_path)
+        df.coalesce(1).write.mode("overwrite").parquet(
+            relative_path).repartition(self.REPARTITION)
         self.logger.info(f"✅ DataFrame has been written to {relative_path}.")
 
     def upload_predict_data(self, type: str, df: DataFrame):
@@ -165,8 +168,9 @@ class SparkLoader:
             df = df.withColumn("trade_count", col(
                 "trade_count").cast(LongType()))
 
-            df.write.mode("overwrite").parquet(f"/{relative_path}")
+            df.write.mode("overwrite").parquet(
+                f"/{relative_path}").repartition(self.REPARTITION)
             self.logger.info(
-                f"✅ Successfully uploaded prediction data to: {relative_path}.")
+                f"✅ Successfully uploaded prediction data to s3: {relative_path}.")
         except Exception as e:
             self.logger.error(f"❌ Failed to upload prediction data: {e}")
