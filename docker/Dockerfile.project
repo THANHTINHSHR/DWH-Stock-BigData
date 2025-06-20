@@ -28,4 +28,5 @@ COPY ./jars/*.jar /opt/spark/jars/
 
 # Copy source code
 COPY ./core ./core
+COPY log4j.properties /opt/spark-dist/conf/log4j.properties
 CMD ["python3", "core/streaming/run_streaming.py"]
