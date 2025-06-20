@@ -1,14 +1,15 @@
 services:
   trainer:
     container_name: informerAI_trainer
-    image: informerAI
+    image: informer_ai
     build:
       context: .
       dockerfile: docker/Dockerfile.informer
     command: python3 core/streaming/informerAI/train/ai_ticker_trainer.py
     restart: no
     networks:
-      - networkName: kafka_network
+      - kafka_network 
+
 networks:
   kafka_network:
     driver: bridge

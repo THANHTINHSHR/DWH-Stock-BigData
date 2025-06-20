@@ -1,14 +1,14 @@
 services:
   predictor:
     container_name: informerAI_predictor
-    image: informerAI
+    image: informer_ai
     build:
       context: .
       dockerfile: docker/Dockerfile.informer
     command: python3 core/streaming/informerAI/predict/ai_ticker_predictor.py
     restart: no
     networks:
-      - networkName: kafka_network
+      - kafka_network 
 networks:
   kafka_network:
     driver: bridge
