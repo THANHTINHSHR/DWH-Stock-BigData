@@ -73,9 +73,10 @@ class RunStreaming:
 if __name__ == "__main__":
     # Entry point of the script.
     try:
+        logging.info("📡📡Starting Spark streaming pipeline📡📡...")
         run = RunStreaming()
         run.run()
     except Exception as e:
-        logging.error("❌ Lỗi trong Spark pipeline: %s", str(e))
+        logging.error(f"❌ Error when running Spark pipeline{e}")
     finally:
-        logging.info("SUCCESS")
+        logging.info("✅✅Spark streaming pipeline finished running✅✅")
