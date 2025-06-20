@@ -67,8 +67,8 @@ class DataProcessor(ABC):
         n_current_dir = max(1, int(self.MAX_DIRECTORIES * 0.2))
 
         # Real
-        # return self.spark_loader.read_s3(stream_type, 1, n_current_dir)
-        return self.spark_loader.read_csv("raw_36dir.csv")
+        return self.spark_loader.read_s3(stream_type, 1, n_current_dir)
+        # return self.spark_loader.read_csv("raw_36dir.csv")
 
     def process_train(self, df: DataFrame):
         """
