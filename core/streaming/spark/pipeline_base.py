@@ -62,6 +62,7 @@ class PipelineBase(ABC):
             )
             # Points to the S3 bucket
             .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+            # Set check point for each stream
             .config("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/{self.type}")
             .config("spark.jars", jars)
             .config("spark.hadoop.fs.s3a.connection.maximum", "100")
@@ -164,16 +165,9 @@ class PipelineBase(ABC):
 
         return reduce(lambda a, b: a & b, conditions)
 
+    @abstractmethod
     def read_stream(self, symbol):
-        df = (
-            self.spark.readStream.format("kafka")
-            .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
-            .option("startingOffsets", "latest")
-            .option("subscribe", f"{self.BINANCE_TOPIC}_{self.type}")
-            .option("groupId", f"{symbol}")
-            .load()
-        )
-        return {"df": df, "symbol": symbol}
+        pass
 
     @abstractmethod
     def transform_stream(self, data: dict):
