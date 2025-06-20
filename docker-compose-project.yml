@@ -1,10 +1,10 @@
 services:
-  dwh_stock_service:
-    container_name: dwh_stock_service
+  dwh_stock_bigdata:
+    container_name: dwh_stock_bigdata
     build:
       context: .
-      dockerfile: Dockerfile
-    image: dwh_stock_service 
+      dockerfile: docker/Dockerfile.project
+    image: dwh_stock_bigdata 
     volumes:
       - ./core:/DWH-STOCK/core
       - ./jars:/opt/spark/jars
