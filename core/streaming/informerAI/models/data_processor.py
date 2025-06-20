@@ -53,6 +53,7 @@ class DataProcessor(ABC):
     def get_raw_data(self, stream_type: str
                      ) -> DataFrame:
         """Get raw data for training"""
+        self.logger.info(f"⏳ Getting raw data for {self.type}...")
         # host
         # return self.spark_loader.read_csv("raw_1800dir.csv")
         # return self.spark_loader.read_csv("raw_180dir.csv")
