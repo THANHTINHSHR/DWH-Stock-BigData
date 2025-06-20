@@ -45,8 +45,10 @@ class PipelineBase(ABC):
         # jars_directory = self.project_root_dir / "jars"
         # jar_files_list = list(jars_directory.glob("*.jar"))
         # jars = ",".join([str(f) for f in jar_files_list])
+        # log4j_path = "/log4j.properties"
 
         # Docker environment
+        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
         jar_files = glob.glob("/opt/spark/jars/*.jar")
         jars = ",".join(jar_files)
 
@@ -81,6 +83,19 @@ class PipelineBase(ABC):
             .config("max.poll.records", "50")
             .config("trigger", "ProcessingTime(10 seconds)")
             .config("spark.sql.shuffle.partitions", "300")
+            # Commit to S3
+            .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.internal.io.cloud.PathOutputCommitProtocol")
+            .config("spark.sql.parquet.output.committer.class", "org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter")
+            .config("spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a", "org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory")
+            .config("spark.hadoop.fs.s3a.committer.name", "directory")
+            .config("spark.hadoop.fs.s3a.committer.staging.conflict-mode", "replace")
+            # log4j properties
+            .config(
+                "spark.driver.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
+            ).config(
+                "spark.executor.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
+            )
+
             .getOrCreate()
         )
 

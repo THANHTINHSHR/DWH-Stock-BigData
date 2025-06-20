@@ -71,14 +71,18 @@ class RunStreaming:
 
 
 if __name__ == "__main__":
-    # Entry point of the script.
     logging.basicConfig(
+        # Configure basic logging for the application.
         level=logging.INFO,
         format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+    # Suppress specific Python loggers if their warnings are not desired
+    logging.getLogger("DBTicker").setLevel(logging.ERROR)
+    logging.getLogger("DBBookTicker").setLevel(logging.ERROR)
+
     try:
-        logging.info("📡📡Starting Spark streaming pipeline📡📡...")
+        logging.info("📡🟢📡Starting Spark streaming pipeline📡🟢📡...")
         run = RunStreaming()
         run.run()
     except Exception as e:
