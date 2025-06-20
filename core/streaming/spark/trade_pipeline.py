@@ -32,7 +32,7 @@ class TradePipeline(PipelineBase):
                 self.spark.readStream.format("kafka")
                 .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
                 .option("startingOffsets", "latest")  # "latest if deploy
-                .option("failOnDataLoss", "false")
+                .option("failOnDataLoss", "true")
                 .option("subscribe", f"{self.BINANCE_TOPIC}_{self.type}")
                 .option("groupId", f"{symbol}")
                 .load()
