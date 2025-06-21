@@ -95,8 +95,8 @@ Before you begin, ensure you have the following installed:
     cd DWH-Stock-BigData
     ```
 
-    Download the required "jar" and "tar" folders from this [Google Drive link.](https://drive.google.com/drive/folders/1eZhnL0KiCo_QIFfYhHR31ZDMYf5BDM2a?usp=sharing)  
-    After downloading, copy both folders into your project directory.
+    Download the required "jar", "tar" and "wheels" folders from this [Google Drive link.](https://drive.google.com/file/d/1zC7iDt4YWZr48RO1p-7l15TLl2J0NtHi/view?usp=sharing)  
+    After downloading, copy all folders into your project directory.
 
 2.  **Configure environment variables:**
     Create a `.env` file in the project root (you can copy `.env.example` if provided in the repository) and populate it with your specific configuration values.
