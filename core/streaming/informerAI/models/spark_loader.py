@@ -173,7 +173,7 @@ class SparkLoader:
                 "trade_count").cast(LongType()))
 
             df.write.mode("overwrite").parquet(
-                f"/{relative_path}").repartition(self.REPARTITION)
+                f"/{relative_path}")
             self.logger.info(
                 f"✅ Successfully uploaded prediction data to s3: {relative_path}.")
         except Exception as e:
