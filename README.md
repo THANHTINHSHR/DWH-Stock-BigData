@@ -44,12 +44,13 @@ The core data flow encompasses:
 - Historical data analysis and business intelligence capabilities using:
     - AWS Athena for querying data directly from S3 using standard SQL.
     - Apache Superset for creating interactive dashboards and visualizations based on Athena queries.
+- **Independent Prediction Module:** Features a standalone module using the Informer model for time-series forecasting. Supports on-demand training and prediction, allowing for flexible and up-to-date trend analysis.
 - Modular architecture allows for easy addition of new stream types.
 
 
 ## System Architecture
 Below is a high-level overview of the system architecture:
-![System Architecture](images/System_Architecture.PNG)
+![System Architecture](images/System_Architecture_2.PNG)
 ## Technologies Used
 
 **Core & Orchestration:**
@@ -69,48 +70,69 @@ Below is a high-level overview of the system architecture:
 - **AWS Athena**: Interactive SQL-based querying service for data in S3.
 - **Apache Superset**: BI platform for creating dashboards from Athena data.
 
+**Prediction Module (ML-based):**
+- **Informer**: A self-contained forecasting component that uses Informer architecture to predict crypto trends, supporting retraining and re-prediction on demand.
+
+
 ## Installation
 
 ### Prerequisites
 
 Before you begin, ensure you have the following installed:
-- Git LFS (Large File Storage)
 - Git
 - Docker (latest version recommended)
 - Docker Compose (latest version recommended)
 - An AWS account (for S3, Athena)
 - AWS CLI configured (optional, but helpful for manual AWS resource checks/setup)
+- Interneted connection
+
 
 ### Setup Steps
 
-1.  **Clone the repository and ensure LFS files are downloaded:**
+1.  **Clone the repository and download zip files:**
     ```bash
     git clone https://github.com/THANHTINHSHR/DWH-Stock-BigData.git
     cd DWH-Stock-BigData
-    git lfs pull
     ```
+
+    Download the required "jar" and "tar" folders from this [Google Drive link.](https://drive.google.com/drive/folders/1eZhnL0KiCo_QIFfYhHR31ZDMYf5BDM2a?usp=sharing)  
+    After downloading, copy both folders into your project directory.
 
 2.  **Configure environment variables:**
     Create a `.env` file in the project root (you can copy `.env.example` if provided in the repository) and populate it with your specific configuration values.
     Pay close attention to API keys, tokens, and AWS credentials. Some keys (like for InfluxDB and Grafana) will be obtained in the next step.
     For `SUPERSET_SECRET_KEY`, generate a strong random string (e.g., using `openssl rand -base64 32`) and add it to your `.env` file now.
-    ![env example](images/env.PNG)
+    ![env example](images/env_example.PNG)
 
 
 3.  **Initial Service Startup & Key Generation:**
-    Run `docker-compose -f docker-compose-services.yml up --build` to start build and run all services.
-    Then, access the InfluxDB UI (e.g., `http://localhost:8086`) and Grafana UI (e.g., `http://localhost:3000`) to complete their initial setup and generate the necessary API tokens/keys (`INFLUXDB_TOKEN`, `GRAFANA_KEY`).
+
+    -   Run:
+        ```bash
+        docker-compose -f docker-compose-services.yml up --build
+        ```
+    - Access the InfluxDB UI (e.g., `http://localhost:8086`) and Grafana UI (e.g., `http://localhost:3000`) to complete their initial setup and generate the necessary API tokens/keys (`INFLUXDB_TOKEN`, `GRAFANA_KEY`).
 
 
 4.  **Configure Keys & Finalize Setup:**
     -   Update your `.env` file with the `INFLUXDB_TOKEN` and `GRAFANA_KEY` obtained in the previous step.
     -   Ensure the `SUPERSET_SECRET_KEY` (generated in step 2) is also correctly set in your `.env` file.
-    -   Apply these new configurations by restarting all services:
+    -   After config, build two container:
+
+        - dwh_stock_bigdata
         ```bash
         docker-compose -f docker-compose-project.yml build
         ```
+    - For Informer module:
+        - informerAI_trainer
+        ```bash
+        docker-compose -f docker-compose-trainer.yml build
+        ```
+        - informerAI_trainer
+        ```bash
+        docker-compose -f docker-compose-predictor.yml build
+        ```
         All components should now be fully functional with the correct API keys. After this step, your system is ready to operate as described in the "Running the Application" section.
-
 
 
 ## Running the Application
@@ -119,7 +141,23 @@ Once the installation and setup steps (including API key configuration) are comp
 ```bash
 docker-compose -f docker-compose-project.yml up
 ```
-"You can monitor the running process through the logs of the dwh_stock_service container."
+
+### Running the Informer Modules
+
+After the main services are up and running and sufficient data has been collected (recommended: at least several hours of streaming data), you can start the Informer modules for training and prediction.
+
+> **Note:** You can adjust the data range and scope used for Informer training and prediction by modifying relevant parameters in the `.env` file.
+
+- **Start the Informer Trainer module:**
+  ```bash
+  docker-compose -f docker-compose-trainer.yml up
+  ```
+- **Start the Informer Predictor module:**
+  ```bash
+  docker-compose -f docker-compose-predictor.yml up
+  ```
+
+> **Note:** Only run the Informer modules after confirming that enough historical data is available in your storage (InfluxDB and S3). Running these modules too early may result in insufficient data for effective training and prediction.
 
 ### Accessing Services
 
@@ -133,20 +171,29 @@ docker-compose -f docker-compose-project.yml up
 
 Grafana dashboards are designed to be automatically created and configured upon system startup, connecting to the pre-defined InfluxDB datasource.
 
-Trade Dashboard :
-![grafana trade](images/grafana_trade.PNG)
+Trade Dashboard:
+![Grafana Trade](images/grafana_trade.PNG)
 
-Ticker Dashboard :
-![grafana ticker](images/grafana_ticker.PNG)
+Ticker Dashboard:
+![Grafana Ticker](images/grafana_ticker.PNG)
 
-BookTicker Dashboard : 
-![grafana bookticker](images/grafana_bookticker.PNG)
+BookTicker Dashboard:
+![Grafana BookTicker](images/grafana_bookticker.PNG)
 
-You can view real-time data visualizations through these Grafana dashboards. For analysis of historical or aggregated data stored in S3 (via Athena), you can create and view charts in Superset.
+You can view real-time data visualizations on these Grafana dashboards. For analysis of historical or aggregated data stored in S3 (via Athena), you can create and view charts in Superset.
 
-Superset Dashboard :
-![superset dashboard](images/superset_dashboard.PNG)
+Superset Dashboard:
+![Superset Dashboard](images/superset_dashboard.PNG)
 
+Ticker Predict Dashboard:
+![Grafana Ticker Predict](images/grafana_ticker_predict_1.PNG)
+![Grafana Ticker Predict](images/grafana_ticker_predict_2.PNG)
+
+Superset Predict Chart:
+![Superset Predict Chart](images/superset_ticker_predict.PNG)
+
+InfluxDB Interface:
+![InfluxDB Interface](images/influx_Interface.PNG)
 
 
 ## Data Streams Processed
@@ -158,11 +205,14 @@ The system currently processes the following data streams from Binance, configur
 - **`bookTicker`**: Information about the best bid and ask prices currently in the order book.
 
 ## Troubleshooting
-
-- **"Connection refused" error when one service tries to connect to another?**
-  Ensure all services in `docker-compose.yml` are running (`docker-compose ps`). Check network and port configurations in `docker-compose.yml` and the `.env` file.
-- **"401 Unauthorized" error when a Python script tries to call Grafana/Superset API?**
+- **"401 Unauthorized" error when a Python script tries to call Grafana/Superset API?**  
   Double-check `GRAFANA_KEY` or relevant authentication details in the `.env` file and ensure they have sufficient permissions.
+
+- **Informer module returns inaccurate predictions or errors about insufficient data?**  
+  The Informer module requires a substantial amount of historical data to train and make accurate predictions. Make sure the main project has been running continuously for a sufficient period to collect enough data (ideally several hours or more). Also, verify that all Informer-related configuration parameters in your `.env` file (such as MAX_DIRECTORIES, SEQUENCE_LENGTH, PREDICTION_LENGTH, etc.) are set appropriately and match your data availability.
+
+- **Informer module training takes too long?**  
+  This is expected for large datasets. For example, training with 180 directories typically takes about 20 minutes. For larger models with around 1800 directories, training time can range from several hours to a full day depending on your hardware and configuration.
 
 ## Key Takeaways & Experiences
 
