@@ -20,23 +20,10 @@ class TickerPipeline(PipelineBase):
     def __init__(self):
         self.type = "ticker"
         super().__init__(type=self.type)
-        self.spark = super().get_spark_session("ticker_pipeline")
         self.schema = super().get_schema(self.type)
         self.filter_condition = self.get_filter_condition(self.type)
         self.influxDB = InfluxDBConnector.get_instance()
         self.logger = logging.getLogger(self.__class__.__name__)
-
-    def read_stream(self, symbol):
-        df = (
-            self.spark.readStream.format("kafka")
-            .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
-            .option("startingOffsets", "latest")  # "latest if deploy
-            .option("failOnDataLoss", "false")
-            .option("subscribe", f"{self.BINANCE_TOPIC}_{self.type}")
-            .option("groupId", f"{symbol}")
-            .load()
-        )
-        return {"df": df, "symbol": symbol}
 
     def transform_stream(self, data: dict):
         df = data["df"]
@@ -173,11 +160,6 @@ class TickerPipeline(PipelineBase):
         )
         timestamp = int(row["close_time"].timestamp() * 1_000_000_000)
         return f"{measurement},{tag_set} {field_set} {timestamp}"
-
-    def load_to_InfluxDB(self, df):
-        self.logger.info(f"✅ Sending data to influxDB: {self.type}")
-        for row in df.toLocalIterator():
-            self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
 
 
 if __name__ == "__main__":

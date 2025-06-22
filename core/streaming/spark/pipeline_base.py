@@ -6,6 +6,7 @@ from pyspark.sql import SparkSession # type: ignore
 from pyspark.sql.types import * # type: ignore
 from pyspark.sql.functions import col, isnan # type: ignore
 from pyspark.sql.types import StructType,StructField,StringType,IntegerType,LongType,FloatType,DoubleType,BooleanType,Row# type: ignore
+from core.streaming.influxDB.influxDB_creator import InfluxDBConnector
 
 from functools import reduce
 from abc import ABC, abstractmethod
@@ -33,9 +34,14 @@ class PipelineBase(ABC):
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
 
+        # Project root directory
         script_file_path = Path(__file__).resolve()
         self.project_root_dir = script_file_path.parent.parent.parent.parent
-
+        # InfluxDB instance
+        self.influxDB = InfluxDBConnector.get_instance()
+        # Spark session
+        self.spark = self.get_spark_session(self.type)
+        # Logger setup
         self.logger = logging.getLogger(
             self.__class__.__name__)  # Add logger here
 
@@ -180,9 +186,22 @@ class PipelineBase(ABC):
 
         return reduce(lambda a, b: a & b, conditions)
 
-    @abstractmethod
     def read_stream(self, symbol):
-        pass
+        df = (
+            self.spark.readStream.format("kafka")
+            .option("kafka.bootstrap.servers", self.BOOTSTRAP_SERVERS)
+            .option("startingOffsets", "latest")
+            .option("failOnDataLoss", "false")
+            .option("subscribe", f"{self.BINANCE_TOPIC}_{self.type}")
+            .option("groupId", f"{symbol}")
+            .load()
+        )
+        return {"df": df, "symbol": symbol}
+
+    def load_to_InfluxDB(self, df):
+        self.logger.info(f"✅ Sending data to influxDB: {self.type}")
+        for row in df.toLocalIterator():
+            self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
 
     @abstractmethod
     def transform_stream(self, data: dict):
@@ -190,10 +209,6 @@ class PipelineBase(ABC):
 
     @abstractmethod
     def to_line_protocol(self, row: Row):
-        pass
-
-    @abstractmethod
-    def load_to_InfluxDB(self, df):
         pass
 
     def load_to_S3(self, df, type):
