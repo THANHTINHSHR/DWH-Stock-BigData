@@ -48,15 +48,16 @@ class PipelineBase(ABC):
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
         # Local environment
-        # jars_directory = self.project_root_dir / "jars"
-        # jar_files_list = list(jars_directory.glob("*.jar"))
-        # jars = ",".join([str(f) for f in jar_files_list])
-        # log4j_path = "/log4j.properties"
+        jars_directory = self.project_root_dir / "jars"
+        jar_files_list = list(jars_directory.glob("*.jar"))
+        jars = ",".join([str(f) for f in jar_files_list])
+        log4j_properties_path = self.project_root_dir / "log4j.properties"
+        log4j_path = log4j_properties_path.as_uri()
 
         # Docker environment
-        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
-        jar_files = glob.glob("/opt/spark/jars/*.jar")
-        jars = ",".join(jar_files)
+        # log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
+        # jar_files = glob.glob("/opt/spark/jars/*.jar")
+        # jars = ",".join(jar_files)
 
         spark = (
             SparkSession.builder.appName(f"{app_name}")
@@ -70,7 +71,6 @@ class PipelineBase(ABC):
             )
             # Points to the S3 bucket
             .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
-            # load jars from the local directory
             .config("spark.jars", jars)
             .config("spark.hadoop.fs.s3a.connection.maximum", "100")
             .config("spark.hadoop.fs.s3a.connection.timeout", "5000")
@@ -84,22 +84,16 @@ class PipelineBase(ABC):
             .config("spark.sql.adaptive.enabled", "false")
             .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
 
+            # Logging configuration
+            .config("spark.driver.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
+            .config("spark.executor.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
+
             # spark configurations memory and cores
             .config("spark.sql.shuffle.partitions", "300")
-            # Commit to S3
-            .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.internal.io.cloud.PathOutputCommitProtocol")
-            .config("spark.sql.parquet.output.committer.class", "org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter")
-            .config("spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a", "org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory")
-            .config("spark.hadoop.fs.s3a.committer.name", "directory")
-            .config("spark.hadoop.fs.s3a.committer.staging.conflict-mode", "replace")
-            # log4j properties
-            .config(
-                "spark.driver.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
-            ).config(
-                "spark.executor.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
-            )
-            # Config hostname for Spark , in docker can resolve to real ip or delete
-            .config("spark.driver.host", "localhost")  # or 127.0.0.1
+
+            # Hosting!
+            .config("spark.driver.host", "127.0.0.1")
+
 
             .getOrCreate()
         )
