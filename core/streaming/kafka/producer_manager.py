@@ -2,7 +2,10 @@ from core.streaming.kafka.topic_creator import TopicCreator
 from confluent_kafka import Producer
 
 # import io, requests, json # Unused imports
-import os, asyncio, websockets, logging
+import os
+import asyncio
+import websockets
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -70,7 +73,8 @@ class ProducerManager:
         while True:
             try:
                 async with websockets.connect(url) as ws:
-                    self.logger.info(f"📡 Established WebSocket connection to {url}")
+                    self.logger.info(
+                        f"📡 Established WebSocket connection to {url}")
                     while True:
                         message = await ws.recv()
                         # Log received message (can be verbose, consider DEBUG or truncating)
