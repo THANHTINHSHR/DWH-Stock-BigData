@@ -70,8 +70,7 @@ class PipelineBase(ABC):
             )
             # Points to the S3 bucket
             .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
-            # Set check point for each stream
-            .config("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/{self.type}")
+            # load jars from the local directory
             .config("spark.jars", jars)
             .config("spark.hadoop.fs.s3a.connection.maximum", "100")
             .config("spark.hadoop.fs.s3a.connection.timeout", "5000")
@@ -86,8 +85,6 @@ class PipelineBase(ABC):
             .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
 
             # spark configurations memory and cores
-            .config("max.poll.records", "50")
-            .config("trigger", "ProcessingTime(10 seconds)")
             .config("spark.sql.shuffle.partitions", "300")
             # Commit to S3
             .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.internal.io.cloud.PathOutputCommitProtocol")
@@ -101,6 +98,8 @@ class PipelineBase(ABC):
             ).config(
                 "spark.executor.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
             )
+            # Config hostname for Spark , in docker can resolve to real ip or delete
+            .config("spark.driver.host", "localhost")  # or 127.0.0.1
 
             .getOrCreate()
         )
@@ -199,9 +198,13 @@ class PipelineBase(ABC):
         return {"df": df, "symbol": symbol}
 
     def load_to_InfluxDB(self, df):
-        self.logger.info(f"✅ Sending data to influxDB: {self.type}")
-        for row in df.toLocalIterator():
-            self.influxDB.send_line_data(self.type, self.to_line_protocol(row))
+        try:
+            self.logger.info(f"✅ Sending data to influxDB: {self.type}")
+            for row in df.toLocalIterator():
+                self.influxDB.send_line_data(
+                    self.type, self.to_line_protocol(row))
+        except Exception as e:
+            self.logger.error(f"❌Fail to write to InfluxDB: {e}")
 
     @abstractmethod
     def transform_stream(self, data: dict):
