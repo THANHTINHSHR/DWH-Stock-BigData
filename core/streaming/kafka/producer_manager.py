@@ -17,9 +17,10 @@ class ProducerManager:
         # Load environment variables
         self.WSS_ENDPOINT = os.getenv("WSS_ENDPOINT")
         self.URL_TOP = os.getenv("URL_TOP")
-        self.LIMIT = int(os.getenv("LIMIT"))
+        self.LIMIT = int(os.getenv("LIMIT"))  # type: ignore
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
-        self.STREAM_TYPES = os.getenv("STREAM_TYPES").split(",")
+        self.STREAM_TYPES = os.getenv(
+            "STREAM_TYPES").split(",")  # type: ignore
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
         self.SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL")
         # List of producers base on coin
