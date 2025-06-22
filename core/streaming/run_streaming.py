@@ -68,6 +68,8 @@ class RunStreaming:
             book_ticker_pipeline_future = executor.submit(
                 self.book_ticker_pipeline.run_streams
             )
+            wait([producer_future, trade_pipeline_future,
+                 ticker_pipeline_future, book_ticker_pipeline_future])
 
 
 if __name__ == "__main__":
@@ -77,10 +79,6 @@ if __name__ == "__main__":
         format="[%(asctime)s] %(name)s - %(levelname)s - %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
-    # Suppress specific Python loggers if their warnings are not desired
-    logging.getLogger("DBTicker").setLevel(logging.ERROR)
-    logging.getLogger("DBBookTicker").setLevel(logging.ERROR)
-
     try:
         logging.info("📡🟢📡Starting Spark streaming pipeline📡🟢📡...")
         run = RunStreaming()

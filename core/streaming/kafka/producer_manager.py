@@ -68,32 +68,27 @@ class ProducerManager:
             )
 
     async def fetch_stream(self, stream_type, symbol):
-        """Open WebSocket connection and handle reconnection"""
         url = f"{self.WSS_ENDPOINT}/{symbol}@{stream_type}"
         while True:
             try:
                 async with websockets.connect(url) as ws:
-                    self.logger.info(
-                        f"📡 Established WebSocket connection to {url}")
+                    self.logger.info(f"📡 Connected to {url}")
                     while True:
                         message = await ws.recv()
-                        # Log received message (can be verbose, consider DEBUG or truncating)
-                        product = self.get_producer(symbol=symbol)
-                        # Sending message to Kafka
+                        # Process the message
+                        producer = self.get_producer(symbol=symbol)
                         self.send_message(
-                            product,
+                            producer,
                             f"{self.BINANCE_TOPIC}_{stream_type}",
                             symbol,
-                            (
-                                message.encode("utf-8")
-                                if isinstance(message, str)
-                                else message
-                            ),  # Ensure message is bytes
+                            message.encode(
+                                "utf-8") if isinstance(message, str) else message,
                         )
+                        # limit One message per second
+                        await asyncio.sleep(1)
             except Exception as e:
                 self.logger.error(
-                    f"🔄 WebSocket error for {url}: {e}. Reconnecting in 3 seconds..."
-                )
+                    f"🔄 WebSocket error for {url}: {e}. Reconnecting in 3s...")
                 await asyncio.sleep(3)
 
     async def start_publish(self):

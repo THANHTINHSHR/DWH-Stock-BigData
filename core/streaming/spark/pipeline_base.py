@@ -210,6 +210,8 @@ class PipelineBase(ABC):
 
     def load_to_S3(self, df, type):
         try:
+            # Debugging: save csv for  check skew
+            self.write_to_s3_csv(df, type)
             df.write.mode("append").format("parquet").option(
                 "compression", "snappy"
             ).save(f"s3a://{self.BUCKET_NAME}/{type}/{int(time.time())}/")
@@ -229,17 +231,22 @@ class PipelineBase(ABC):
             transformed_data = self.transform_stream(raw_data)  # type: ignore
             df_to_influx = transformed_data["df"].select("*")  # type: ignore
             df_to_s3 = transformed_data["df"].select("*")  # type: ignore
-            query_influx = df_to_influx.writeStream \
-                .foreachBatch(lambda df, epoch_id: self.load_to_InfluxDB(df)) \
-                .option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/influx/{symbol}") \
-                .start()
+            query_influx = df_to_influx.writeStream.foreachBatch(lambda df, epoch_id: self.load_to_InfluxDB(df)).option(
+                "checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/influx/{self.type}/{symbol}").start()
 
-            query_s3 = df_to_s3.writeStream \
-                .foreachBatch(lambda df, epoch_id: self.load_to_S3(df, self.type)) \
-                .option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/s3/{symbol}") \
-                .start()
+            query_s3 = df_to_s3.writeStream.trigger(processingTime="60 seconds") .foreachBatch(lambda df, epoch_id: self.load_to_S3(
+                df, self.type)).option("checkpointLocation", f"{self.BUCKET_NAME}/checkpoints/s3/{self.type}/{symbol}").start()
 
-            queries.append(query_s3)
             queries.append(query_influx)
+            queries.append(query_s3)
         for query in queries:
             query.awaitTermination()
+
+    def write_to_s3_csv(self, df, type):
+        try:
+            df.coalesce(1).write.mode("append").format("csv").option(
+                "header", "true"
+            ).save(f"s3a://{self.BUCKET_NAME}/csv_{type}/{int(time.time())}/")
+            self.logger.info(f"✅ Success send CSV to S3: {type}")
+        except Exception as e:
+            self.logger.error(f"❌Fail to write CSV to S3: {e}")
