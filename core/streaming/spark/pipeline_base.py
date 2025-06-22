@@ -48,16 +48,16 @@ class PipelineBase(ABC):
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
         # Local environment
-        jars_directory = self.project_root_dir / "jars"
-        jar_files_list = list(jars_directory.glob("*.jar"))
-        jars = ",".join([str(f) for f in jar_files_list])
-        log4j_properties_path = self.project_root_dir / "log4j.properties"
-        log4j_path = log4j_properties_path.as_uri()
+        # self.project_root_dir / "jars"
+        # jar_files_list = list(jars_directory.glob("*.jar"))
+        # jars = ",".join([str(f) for f in jar_files_list])
+        # log4j_properties_path = self.project_root_dir / "log4j.properties"
+        # log4j_path = log4j_properties_path.as_uri()
 
         # Docker environment
-        # log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
-        # jar_files = glob.glob("/opt/spark/jars/*.jar")
-        # jars = ",".join(jar_files)
+        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
+        jar_files = glob.glob("/opt/spark/jars/*.jar")
+        jars = ",".join(jar_files)
 
         spark = (
             SparkSession.builder.appName(f"{app_name}")
@@ -211,7 +211,8 @@ class PipelineBase(ABC):
     def load_to_S3(self, df, type):
         try:
             # Debugging: save csv for  check skew
-            self.write_to_s3_csv(df, type)
+            # self.write_to_s3_csv(df, type)
+            # Debugg Off
             df.write.mode("append").format("parquet").option(
                 "compression", "snappy"
             ).save(f"s3a://{self.BUCKET_NAME}/{type}/{int(time.time())}/")
@@ -242,6 +243,7 @@ class PipelineBase(ABC):
         for query in queries:
             query.awaitTermination()
 
+    # DEBUG: Write DataFrame to S3 in CSV format
     def write_to_s3_csv(self, df, type):
         try:
             df.coalesce(1).write.mode("append").format("csv").option(

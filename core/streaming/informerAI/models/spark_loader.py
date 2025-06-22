@@ -7,7 +7,7 @@ from pyspark.sql.types import TimestampType, LongType # type: ignore
 import datetime
 from datetime import datetime, timedelta
 import logging
-import os
+import os, glob
 from dotenv import load_dotenv
 from pathlib import Path
 from py4j.java_gateway import java_import
@@ -43,18 +43,20 @@ class SparkLoader:
         return self
 
     def get_spark(self, app_name: str) -> SparkSession:
-        # Use the instance attribute for project_root_dir
-        #  When running in Docker
-        # jar_files_list = glob.glob("/opt/spark/jars/*.jar")
-        # else :jars_directory = Path("/opt/spark/jars")
-        jars_directory = self.project_root_dir / "jars"
-        jar_files_list = list(jars_directory.glob("*.jar"))
-        jars = ",".join([str(f) for f in jar_files_list])
+        # Docker:
+        # Docker environment
+        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
+        jar_files = glob.glob("/opt/spark/jars/*.jar")
+        jars = ",".join(jar_files)
+
+        # jars_directory = self.project_root_dir / "jars"
+        # jar_files_list = list(jars_directory.glob("*.jar"))
+        # jars = ",".join([str(f) for f in jar_files_list])
+        # log4j_properties_path = self.project_root_dir / "log4j.properties"
+        # log4j_path = log4j_properties_path.as_uri()
         # log4j configuration
-        log4j_properties_file_path = self.project_root_dir / "log4j.properties"
         spark_local_temp_dir = (
             self.project_root_dir / "spark-temp").as_posix()
-        log4j_config_option = f"-Dlog4j.configuration=file:{log4j_properties_file_path.as_posix()}"
         # Create Spark session with S3A support and log4j configuration
         spark = (
             SparkSession.builder.appName(f"{app_name}")
@@ -70,8 +72,9 @@ class SparkLoader:
             .config("spark.jars", jars)
             .config("spark.driver.host", "localhost")
             # log4j
-            .config("spark.driver.extraJavaOptions", log4j_config_option)
-            .config("spark.executor.extraJavaOptions", log4j_config_option)
+            # Logging configuration
+            .config("spark.driver.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
+            .config("spark.executor.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
             # Cleanup settings
             .config("spark.local.dir", spark_local_temp_dir)
             .config("spark.sql.debug.maxToStringFields", 100)
