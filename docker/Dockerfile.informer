@@ -34,4 +34,4 @@ COPY ./core/streaming/informerAI ./core/streaming/informerAI
 COPY ./Informer2020 ./Informer2020
 
 # Copy .jar files
-COPY ./jars/*.jar ./jars/
+COPY ./jars/*.jar /opt/spark/jars/
