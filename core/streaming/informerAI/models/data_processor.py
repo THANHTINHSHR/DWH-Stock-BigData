@@ -63,9 +63,9 @@ class DataProcessor(ABC):
     def get_current_data(self, stream_type: str
                          ) -> DataFrame:
         """
-        Get current data for predicting (20% of MAX_DIRECTORIES)
+        Get current data for predicting (10% of MAX_DIRECTORIES)
         """
-        n_current_dir = max(1, int(self.MAX_DIRECTORIES * 0.2))
+        n_current_dir = max(1, int(self.MAX_DIRECTORIES * 0.1))
 
         # Real
         return self.spark_loader.read_s3(stream_type, 1, n_current_dir)

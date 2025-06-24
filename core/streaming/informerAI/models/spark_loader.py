@@ -44,16 +44,17 @@ class SparkLoader:
 
     def get_spark(self, app_name: str) -> SparkSession:
         # Docker:
-        # Docker environment
         log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
         jar_files = glob.glob("/opt/spark/jars/*.jar")
         jars = ",".join(jar_files)
 
+        # Local:
         # jars_directory = self.project_root_dir / "jars"
         # jar_files_list = list(jars_directory.glob("*.jar"))
         # jars = ",".join([str(f) for f in jar_files_list])
         # log4j_properties_path = self.project_root_dir / "log4j.properties"
         # log4j_path = log4j_properties_path.as_uri()
+
         # log4j configuration
         spark_local_temp_dir = (
             self.project_root_dir / "spark-temp").as_posix()

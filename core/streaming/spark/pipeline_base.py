@@ -47,17 +47,22 @@ class PipelineBase(ABC):
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
-        # Local environment
-        # self.project_root_dir / "jars"
+        # Docker:
+        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
+        jar_files = glob.glob("/opt/spark/jars/*.jar")
+        jars = ",".join(jar_files)
+
+        # Local:
+        # jars_directory = self.project_root_dir / "jars"
         # jar_files_list = list(jars_directory.glob("*.jar"))
         # jars = ",".join([str(f) for f in jar_files_list])
         # log4j_properties_path = self.project_root_dir / "log4j.properties"
         # log4j_path = log4j_properties_path.as_uri()
 
-        # Docker environment
-        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
-        jar_files = glob.glob("/opt/spark/jars/*.jar")
-        jars = ",".join(jar_files)
+        # log4j configuration
+        spark_local_temp_dir = (
+            self.project_root_dir / "spark-temp").as_posix()
+        # Create Spark session with S3A support and log4j configuration
 
         spark = (
             SparkSession.builder.appName(f"{app_name}")
@@ -91,9 +96,23 @@ class PipelineBase(ABC):
             # spark configurations memory and cores
             .config("spark.sql.shuffle.partitions", "300")
 
+            # Commit to S3
+            .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.internal.io.cloud.PathOutputCommitProtocol")
+            .config("spark.sql.parquet.output.committer.class", "org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter")
+            .config("spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a", "org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory")
+            .config("spark.hadoop.fs.s3a.committer.name", "directory")
+            .config("spark.hadoop.fs.s3a.committer.staging.conflict-mode", "replace")
+            # log4j properties
+            .config(
+                "spark.driver.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
+            ).config(
+                "spark.executor.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
+            )
+            # Cleanup settings
+            .config("spark.local.dir", spark_local_temp_dir)
+            .config("spark.sql.debug.maxToStringFields", 100)
             # Hosting!
             .config("spark.driver.host", "127.0.0.1")
-
 
             .getOrCreate()
         )
