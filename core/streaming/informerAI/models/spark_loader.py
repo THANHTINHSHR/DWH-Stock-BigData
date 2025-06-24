@@ -114,8 +114,13 @@ class SparkLoader:
             # Retrieve the list of files in the specified S3 directory
             status = fs.listStatus(self.spark._jvm.Path(s3_path))
             # Filter files that were created within the required date range
-            directories = [f"{s3_path}/" + file.getPath().getName()+"/" for file in status if file.isDirectory(
-            ) and int(file.getPath().getName()) <= start_time]
+
+            directories = sorted(
+                [f"{s3_path}/" + file.getPath().getName() + "/" for file in status
+                 if file.isDirectory() and int(file.getPath().getName()) <= start_time],
+                key=lambda x: int(x.strip("/").split("/")[-1]),
+                reverse=True
+            )
 
             df = self.spark.read.parquet(
                 *directories[:max_directories]).repartition(self.REPARTITION)
