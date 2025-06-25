@@ -89,14 +89,15 @@ Before you begin, ensure you have the following installed:
 
 ### Setup Steps
 
-1.  **Clone the repository and download zip files:**
+1.  **Clone Repository & Download Dependencies:**
     ```bash
     git clone https://github.com/THANHTINHSHR/DWH-Stock-BigData.git
     cd DWH-Stock-BigData
     ```
 
-    Download the required "jar", "tar" and "wheels" folders from this [Google Drive link.](https://drive.google.com/file/d/1zC7iDt4YWZr48RO1p-7l15TLl2J0NtHi/view?usp=sharing)  
-    After downloading, copy all folders into your project directory.
+    Download the required `jar`, `tar`, and `wheels` folders from this [Google Drive link.](https://drive.google.com/file/d/1zC7iDt4YWZr48RO1p-7l15TLl2J0NtHi/view?usp=sharing).  
+    After downloading the `.zip` file, extract its contents and copy all three folders (`jar`, `tar`, `wheels`) into your project's root directory.
+
 
 2.  **Configure environment variables:**
     Create a `.env` file in the project root (you can copy `.env.example` if provided in the repository) and populate it with your specific configuration values.
@@ -205,14 +206,37 @@ The system currently processes the following data streams from Binance, configur
 - **`bookTicker`**: Information about the best bid and ask prices currently in the order book.
 
 ## Troubleshooting
-- **"401 Unauthorized" error when a Python script tries to call Grafana/Superset API?**  
-  Double-check `GRAFANA_KEY` or relevant authentication details in the `.env` file and ensure they have sufficient permissions.
 
-- **Informer module returns inaccurate predictions or errors about insufficient data?**  
-  The Informer module requires a substantial amount of historical data to train and make accurate predictions. Make sure the main project has been running continuously for a sufficient period to collect enough data (ideally several hours or more). Also, verify that all Informer-related configuration parameters in your `.env` file (such as MAX_DIRECTORIES, SEQUENCE_LENGTH, PREDICTION_LENGTH, etc.) are set appropriately and match your data availability.
+#### **1. S3 Bucket Not Found or Permission Errors**
+*   **Problem:** The application or a module (e.g., for archival or prediction) fails due to an S3 bucket not existing or lacking necessary permissions.
+*   **Solution:**
+    *   **Create the Bucket:** Before running the application, you must manually create the S3 bucket in your AWS account. The bucket name must exactly match the `S3_BUCKET_NAME` variable in your `.env` file.
+    *   **Set Permissions:** Ensure that the AWS credentials configured for this project have sufficient permissions (e.g., `s3:GetObject`, `s3:PutObject`, `s3:ListBucket`, `s3:DeleteObject`) for this specific bucket. This is the most common cause of access-related errors.
 
-- **Informer module training takes too long?**  
-  This is expected for large datasets. For example, training with 180 directories typically takes about 20 minutes. For larger models with around 1800 directories, training time can range from several hours to a full day depending on your hardware and configuration.
+#### **2. `401 Unauthorized` Error When Calling Grafana/Superset API**
+*   **Problem:** A Python script fails to authenticate and receives a `401 Unauthorized` error.
+*   **Solution:**
+    *   Double-check the value of `GRAFANA_KEY` or other relevant authentication keys in the `.env` file.
+    *   Ensure the API key you are using has the necessary permissions to perform the required actions.
+
+#### **3. Informer Module Reports Insufficient Data**
+*   **Problem:** The Informer module returns inaccurate predictions or throws an error about not having enough data for training.
+*   **Solution:**
+    *   **Collect More Data:** The Informer model requires a substantial amount of historical data. Ensure the main system has been running continuously for a sufficient period (at least several hours is recommended) to gather data.
+    *   **Check Configuration:** Verify that the Informer-related parameters in your `.env` file (e.g., `MAX_DIRECTORIES`, `SEQUENCE_LENGTH`, `PREDICTION_LENGTH`) are set appropriately for the amount of data you have available.
+
+#### **4. Informer Module Training Takes Too Long**
+*   **Problem:** The model training process is time-consuming.
+*   **Explanation:** This is **normal and expected behavior** when working with large datasets.
+    *   **Performance Benchmark:** On standard hardware, training on **1800 data directories** (with `seq_len=300`, `pred_len=100`) takes approximately **50 minutes**. The subsequent prediction phase (using an input size of 10% of the training data) takes about **7 minutes**.
+    *   **Note:** These times can vary significantly depending on your hardware configuration.
+
+#### **5. Prediction Results Are Inaccurate**
+*   **Problem:** The values predicted by the model have a high margin of error compared to actual market data.
+*   **Explanation & Future Development:**
+    *   **Current Scope:** The current prediction model is built as a **proof-of-concept**. It is trained exclusively on a subset of data from the `ticker` stream.
+    *   **Reason for Inaccuracy:** For highly accurate forecasting, the model would need to incorporate a much wider range of data sources, such as data from other streams (`trade`, `bookTicker`), social media sentiment analysis, or macroeconomic indicators.
+    *   **Extensibility:** The prediction module was intentionally designed to be **easily extensible**. You can improve accuracy by integrating new data sources into the training process.
 
 ## Key Takeaways & Experiences
 
