@@ -50,7 +50,7 @@ The core data flow encompasses:
 
 ## System Architecture
 Below is a high-level overview of the system architecture:
-![System Architecture](images/System_Architecture_2.PNG)
+![System Architecture](images/System_Architecture_2.png)
 ## Technologies Used
 
 **Core & Orchestration:**
@@ -103,7 +103,7 @@ Before you begin, ensure you have the following installed:
     Create a `.env` file in the project root (you can copy `.env.example` if provided in the repository) and populate it with your specific configuration values.
     Pay close attention to API keys, tokens, and AWS credentials. Some keys (like for InfluxDB and Grafana) will be obtained in the next step.
     For `SUPERSET_SECRET_KEY`, generate a strong random string (e.g., using `openssl rand -base64 32`) and add it to your `.env` file now.
-    ![env example](images/env_example.PNG)
+    ![env example](images/env_example.png)
 
 
 3.  **Initial Service Startup & Key Generation:**
@@ -173,28 +173,29 @@ After the main services are up and running and sufficient data has been collecte
 Grafana dashboards are designed to be automatically created and configured upon system startup, connecting to the pre-defined InfluxDB datasource.
 
 Trade Dashboard:
-![Grafana Trade](images/grafana_trade.PNG)
+![Grafana Trade](images/grafana_trade.png)
 
 Ticker Dashboard:
-![Grafana Ticker](images/grafana_ticker.PNG)
+![Grafana Ticker](images/grafana_ticker.png)
 
 BookTicker Dashboard:
-![Grafana BookTicker](images/grafana_bookticker.PNG)
+![Grafana BookTicker](images/grafana_bookticker.png)
+![Grafana BookTicker](images/grafana_bookticker.png)
 
 You can view real-time data visualizations on these Grafana dashboards. For analysis of historical or aggregated data stored in S3 (via Athena), you can create and view charts in Superset.
 
 Superset Dashboard:
-![Superset Dashboard](images/superset_dashboard.PNG)
+![Superset Dashboard](images/superset_dashboard.png)
 
 Ticker Predict Dashboard:
-![Grafana Ticker Predict](images/grafana_ticker_predict_1.PNG)
-![Grafana Ticker Predict](images/grafana_ticker_predict_2.PNG)
+![Grafana Ticker Predict](images/grafana_ticker_predict_1.png)
+![Grafana Ticker Predict](images/grafana_ticker_predict_2.png)
 
 Superset Predict Chart:
-![Superset Predict Chart](images/superset_ticker_predict.PNG)
+![Superset Predict Chart](images/superset_ticker_predict.png)
 
 InfluxDB Interface:
-![InfluxDB Interface](images/influx_Interface.PNG)
+![InfluxDB Interface](images/influx_Interface.png)
 
 
 ## Data Streams Processed
