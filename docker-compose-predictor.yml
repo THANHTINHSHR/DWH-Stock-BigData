@@ -1,7 +1,7 @@
 services:
   predictor:
-    container_name: informerAI_predictor
-    image: informer_ai
+    container_name: informerAI-predictor
+    image: informer-ai
     env_file:
       - ./.env
     build:

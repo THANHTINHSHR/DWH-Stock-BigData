@@ -1,7 +1,7 @@
 services:
   trainer:
-    container_name: informerAI_trainer
-    image: informer_ai
+    container_name: informerAI-trainer
+    image: informer-ai
     env_file:
       - ./.env
     build:
