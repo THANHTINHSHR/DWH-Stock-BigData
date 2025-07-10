@@ -120,8 +120,8 @@ diagnosticMode:
 ##
 image:
   registry: docker.io
-  repository: bitnami/postgresql
-  tag: 17.5.0-debian-12-r16
+  repository: postgresql-custom
+  tag: 17.5.0
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -152,13 +152,13 @@ auth:
   postgresPassword: ""
   ## @param auth.username Name for a custom user to create
   ##
-  username: ""
+  username: "old_silver"
   ## @param auth.password Password for the custom user to create. Ignored if `auth.existingSecret` is provided
   ##
   password: ""
   ## @param auth.database Name for a custom database to create
   ##
-  database: ""
+  database: "superset"
   ## @param auth.replicationUsername Name of the replication user
   ##
   replicationUsername: repl_user
@@ -167,7 +167,7 @@ auth:
   replicationPassword: ""
   ## @param auth.existingSecret Name of existing secret to use for PostgreSQL credentials. `auth.postgresPassword`, `auth.password`, and `auth.replicationPassword` will be ignored and picked up from this secret. The secret might also contains the key `ldap-password` if LDAP is enabled. `ldap.bind_password` will be ignored and picked from this secret in this case.
   ##
-  existingSecret: ""
+  existingSecret: "postgres-secret"
   ## @param auth.secretKeys.adminPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
   ## @param auth.secretKeys.userPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
   ## @param auth.secretKeys.replicationPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
