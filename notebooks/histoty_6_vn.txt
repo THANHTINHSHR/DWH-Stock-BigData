@@ -19,3 +19,9 @@ nhưng nó lại ko tự thêm vào image đi mà bắt mình phải cài vào, 
 Nhưng nó ko nhận ra vì bản thân nó có core là python, dùng pip cài trực tiếp sẽ cài vào môi trường chính ,
 vậy nên cần phải tạo 1 env trong image này để bật pip bên trong và cài flask vào... Rất rất chi là mệt,
 vì sao nó là core python đã luôn luôn cần flask mà ko cài thêm luôn đi, để mình đi vòng  vòng như vầy.
+--------------  tiến hóa suy nghĩ------
+cái này là ý tưởng 2 file values và values-secret, cái này dc nhưng cũ và ko tuân thủ manifest Kubernetes, cách tốt hơn là dùng existingSecret và sau đó apply secret đó vào
+--------- CỔ ĐIỂN HAY NÂNG CAO?-------- 
+Tình hình là mình tham khảo chart của bitnami và confluent kafka, lúc trc xài kafka cũng ko để ý lắm, 
+biết sơ sơ cp-kafka có shema register mà hồi đó nắm khái niệm thôi, ko xài ( hay nói chính xác hơn là tự chế việc đọc file avro tự load)
+lúc trc dù xài cp-kafka nhwung chưa xài schema nên giống thuần kafka của bitnami. ko có chart sẵn của cp-kafka nên phải tự build
