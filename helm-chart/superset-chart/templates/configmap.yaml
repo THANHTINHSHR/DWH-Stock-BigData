@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "superset-chart.fullname" . }}-config
+  labels:
+    {{- include "superset-chart.labels" . | nindent 4 }}
+data:
+  superset_config.py: |
+    import os
+
+    # Best Practice: Read sensitive values from environment variables
+    # which are populated from a Kubernetes Secret.
+    SECRET_KEY = "{{ .Values.secret.secret_key }}"
+
+    WTF_CSRF_ENABLED = {{ .Values.config.wtf_csrf_enabled | default true | toString | title }}
+    ENABLE_CORS = {{ .Values.config.enable_cors | default true | toString | title }}

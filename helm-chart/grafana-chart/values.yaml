@@ -1,0 +1,13 @@
+replicaCount: 1
+
+image:
+  repository: grafana-custom
+  tag: 10.4.2
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+env:
+  grafana_url: http://grafana:3000
+  grafana_db_url: http://influxdb:8086 

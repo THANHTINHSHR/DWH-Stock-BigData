@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+metadata:
+  name: {{ include "grafana-chart.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "grafana-chart.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "grafana-chart.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: grafana_admin_user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: grafana_admin_password
+            - name: GRAFANA_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secret
+                  key: grafana_key
+            - name: GRAFANA_URL
+              value: {{ .Values.env.grafana_url }}
+            - name: GRAFANA_DB_URL
+              value: {{ .Values.env.grafana_db_url }}
+
+

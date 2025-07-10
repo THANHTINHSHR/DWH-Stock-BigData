@@ -1,0 +1,21 @@
+replicaCount: 1
+
+image:
+  repository: influxdb-custom
+  tag: "2.7"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8086
+
+env:
+  # ==============================================================================
+  # InfluxDB Configuration (for InfluxDB 2.x)
+  # ==============================================================================
+  influxdb_url: http://influxdb:8086 
+  #influxdb_url:http://localhost:8086
+  docker_influxdb_init_mode: setup
+  docker_influxdb_init_org: THANH_TINH
+  docker_influxdb_init_bucket: realtime_crypto
+  docker_influxdb_init_retention: 48h

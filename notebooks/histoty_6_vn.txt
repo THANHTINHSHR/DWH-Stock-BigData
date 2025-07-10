@@ -1,0 +1,21 @@
+ KAFKA_CFG_ và  KAFKA nó làm mình mệt, chạy trong docker khác rất rất nhiều so với trong k8s
+
+ - cơ bản yml của docker muốn chuyển sang k8s rất phức tạp, cách hueeyr yml và yaml cũng khác , đọc biến env,....
+- thật kỳ lạ, nếu t để service là kafka thì docker vẫn chạy kraf, nhhuwng qua k8s thì nó là zoo
+
+--------------------HELM- chân trời mới--------------
+tính ra mình muốn chỉnh yaml mà nó tự động là đang cố làm helm.
+h học helm, 
+grafana :   thì xong rồi bao gồm values, values-secret,secret,deployment,service.yaml là ok
+chú ý đặt tên các biến env cho đúng
+influxdb    : install dc nhưng chưa nhận token init
+kafka và kafka ui : sốc toàn tập, các biến lúc trước sai hết, không thể xài dc, vì docker dễ dãi nên nó chấp nhận và tự map đúng, 
+còn k8s thì nó khó hơn rât rất nhiều
+superset    : thì lại có quy chuẩn của nó, các biến khác nhau, Refusing to start due to insecure SECRET_KEY
+cái này thì kinh khủng nữa, nó cần 1 db thật chứ ko phải cái aopr như lúc trong docker, vì vậy cần tải thêm pgsql cho nó vừa lòng,
+phải cấu hình cho đúng kết nối giữa superset và pgsql cho nó vùa lòng, quan trọng là phải map đúng.
+NHƯNG NÓ CÓ 1 VẤN ĐỀ KINH KHỦNG! nó cần flask để xài với bật csrf mà thật sự thì nó cần phairluoon luôn có!
+nhưng nó lại ko tự thêm vào image đi mà bắt mình phải cài vào, mà khi cài thì nó không nhạn ra dù image đã có.
+Nhưng nó ko nhận ra vì bản thân nó có core là python, dùng pip cài trực tiếp sẽ cài vào môi trường chính ,
+vậy nên cần phải tạo 1 env trong image này để bật pip bên trong và cài flask vào... Rất rất chi là mệt,
+vì sao nó là core python đã luôn luôn cần flask mà ko cài thêm luôn đi, để mình đi vòng  vòng như vầy.

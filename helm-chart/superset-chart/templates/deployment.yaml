@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "superset-chart.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "superset-chart.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "superset-chart.name" . }}
+    spec:
+      initContainers:
+        - name: superset-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "==> SQLALCHEMY_DATABASE_URI: $SQLALCHEMY_DATABASE_URI" && \
+              superset db upgrade && \
+              (superset fab create-admin \
+                --username "$ADMIN_USERNAME" \
+                --firstname Superset \
+                --lastname Admin \
+                --email "$ADMIN_EMAIL" \
+                --password "$ADMIN_PASSWORD" || true) && \
+              superset init
+
+          env:
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: admin_username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: admin_password
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: admin_email
+            - name: SQLALCHEMY_DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: sqlalchemy_database_uri
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: admin_username
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: admin_password
+            - name: ADMIN_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: admin_email
+            - name: SQLALCHEMY_DATABASE_URI
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: sqlalchemy_database_uri
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 5
+
+      volumes:
+        - name: superset-config
+          configMap:
+            name: {{ include "superset-chart.fullname" . }}-config
+            items:
+              - key: superset_config.py
+                path: superset_config.py

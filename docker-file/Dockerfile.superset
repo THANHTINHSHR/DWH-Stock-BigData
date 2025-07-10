@@ -1,0 +1,17 @@
+FROM apache/superset:5.0.0
+
+USER root
+
+RUN python3 -m venv /app/.venv
+
+RUN /app/.venv/bin/pip install --upgrade pip
+RUN /app/.venv/bin/pip install flask-cors PyAthena[SQLAlchemy] Pillow psycopg2-binary
+RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y netcat-openbsd
+
+
+USER superset
+WORKDIR /app
+
+COPY docker-file/superset_config.py /app/superset_config.py
+ENV SUPERSET_CONFIG_PATH=/app/superset_config.py

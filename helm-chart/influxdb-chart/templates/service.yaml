@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "influxdb-chart.fullname" . }}
+  labels:
+    {{- include "influxdb-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+# service slector app map with deployment label app
+  selector:
+    app: {{ include "influxdb-chart.name" . }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP
+      name: http

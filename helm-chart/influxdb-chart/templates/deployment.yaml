@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+metadata:
+  name: {{ include "influxdb-chart.fullname" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "influxdb-chart.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "influxdb-chart.name" . }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: DOCKER_INFLUXDB_INIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: influxdb-secret
+                  key: docker_influxdb_init_username
+            - name: DOCKER_INFLUXDB_INIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: influxdb-secret
+                  key: docker_influxdb_init_password
+            - name: DOCKER_INFLUXDB_INIT_ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: influxdb-secret
+                  key: docker_influxdb_init_admin_token
+            - name: INFLUXDB_URL
+              value: {{ .Values.env.influxdb_url }}
+            - name: DOCKER_INFLUXDB_INIT_ORG
+              value: {{ .Values.env.docker_influxdb_init_org }}
+            - name: DOCKER_INFLUXDB_INIT_MODE 
+              value: {{ .Values.env.docker_influxdb_init_mode }}
+            - name: DOCKER_INFLUXDB_INIT_BUCKET
+              value: {{ .Values.env.docker_influxdb_init_bucket }}
+            - name: DOCKER_INFLUXDB_INIT_RETENTION
+              value: {{ .Values.env.docker_influxdb_init_retention }}
+
+
