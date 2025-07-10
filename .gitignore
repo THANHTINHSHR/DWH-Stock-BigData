@@ -18,5 +18,5 @@ wheels
 secret.yaml
 values-secret.yaml
 superset-chart/templates/superset-secret.yaml
-
+*-secret.yaml
 
