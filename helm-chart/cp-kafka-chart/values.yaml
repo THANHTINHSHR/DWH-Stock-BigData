@@ -1,0 +1,34 @@
+replicaCount: 1
+
+image:
+  repository: kafka-custom
+  tag: 7.6.1
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  ports:
+    - name: client
+      port: 9092
+      targetPort: 9092
+    - name: controller
+      port: 9093
+      targetPort: 9093
+env:
+  # ==============================================================================
+  # Default Kafka Environment Variables
+  kafka_kraft_storage_format: "true"
+  kafka_node_id: "1"
+  kafka_process_roles: broker,controller
+  kafka_listeners: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+  kafka_listener_security_protocol_map: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+  kafka_controller_quorum_voters: 1@kafka-release-kafka-chart:9093
+  kafka_advertised_listeners: PLAINTEXT://kafka-release-kafka-chart:9092
+  kafka_controller_listener_names: CONTROLLER
+  kafka_log_dirs: /tmp/kraft-combined-logs
+  cluster_id: 3zms-h-xqdsl7yyrhvreeg
+  kafka_offsets_topic_replication_factor: "1"
+  # kafka configuration
+  kafka_log_retention_ms: "600000"
+  kafka_log_retention_bytes: "1000000000"
+  kafka_log_segment_bytes: "100000000"

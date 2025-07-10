@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kafka-chart.fullname" . }}
+  labels:
+    {{- include "kafka-chart.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: client
+      port: 9092
+      targetPort: 9092
+      protocol: TCP
+    - name: controller
+      port: 9093
+      targetPort: 9093
+      protocol: TCP
+  selector:
+    {{- include "kafka-chart.selectorLabels" . | nindent 4 }}
