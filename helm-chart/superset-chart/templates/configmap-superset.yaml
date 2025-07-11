@@ -17,10 +17,11 @@
 
 */}}
 
+{{- if .Values.extraConfigs }}
 apiVersion: v1
-kind: Service
+kind: ConfigMap
 metadata:
-  name: {{ template "superset.fullname" . }}
+  name: {{ template "superset.fullname" . }}-extra-config
   namespace: {{ .Release.Namespace }}
   labels:
     app: {{ template "superset.name" . }}
@@ -30,22 +31,9 @@ metadata:
     {{- if .Values.extraLabels }}
       {{- toYaml .Values.extraLabels | nindent 4 }}
     {{- end }}
-  {{- with .Values.service.annotations }}
-  annotations: {{- toYaml . | nindent 4 }}
-  {{- end }}
-spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
-      {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePort.http)) }}
-      nodePort: {{ .Values.service.nodePort.http }}
-      {{- end }}
-  selector:
-    app: {{ template "superset.name" . }}
-    release: {{ .Release.Name }}
-  {{- if .Values.service.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
-  {{- end }}
+data:
+  {{- range $path, $config := .Values.extraConfigs }}
+  {{ $path }}: |
+    {{- tpl $config $ | nindent 4 -}}
+  {{- end -}}
+{{- end -}}

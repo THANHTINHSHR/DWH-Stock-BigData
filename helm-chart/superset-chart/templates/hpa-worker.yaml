@@ -17,11 +17,11 @@
 
 */}}
 
-apiVersion: v1
-kind: Service
+{{- if .Values.supersetWorker.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ template "superset.fullname" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "superset.fullname" . }}-hpa-worker
   labels:
     app: {{ template "superset.name" . }}
     chart: {{ template "superset.chart" . }}
@@ -30,22 +30,28 @@ metadata:
     {{- if .Values.extraLabels }}
       {{- toYaml .Values.extraLabels | nindent 4 }}
     {{- end }}
-  {{- with .Values.service.annotations }}
-  annotations: {{- toYaml . | nindent 4 }}
-  {{- end }}
 spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
-      {{- if and (or (eq .Values.service.type "NodePort") (eq .Values.service.type "LoadBalancer")) (not (empty .Values.service.nodePort.http)) }}
-      nodePort: {{ .Values.service.nodePort.http }}
-      {{- end }}
-  selector:
-    app: {{ template "superset.name" . }}
-    release: {{ .Release.Name }}
-  {{- if .Values.service.loadBalancerIP }}
-  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
-  {{- end }}
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "superset.fullname" . }}-worker
+  minReplicas: {{ .Values.supersetWorker.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.supersetWorker.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.supersetWorker.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.supersetWorker.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.supersetWorker.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.supersetWorker.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

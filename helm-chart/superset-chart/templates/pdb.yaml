@@ -17,25 +17,32 @@
 
 */}}
 
-{{- if .Values.serviceAccount.create }}
-apiVersion: v1
-kind: ServiceAccount
+{{- with .Values.supersetNode.podDisruptionBudget }}
+{{- if .enabled -}}
+{{- if and .minAvailable .maxUnavailable }}
+{{- fail "Only one of minAvailable or maxUnavailable should be set" }}
+{{- end}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
 metadata:
-  name: {{ include "superset.serviceAccountName" . }}
-  namespace: {{ .Release.Namespace }}
+  name: {{ include "superset.fullname" $ }}-pdb
   labels:
-    app.kubernetes.io/name: {{ include "superset.name" . }}
-    helm.sh/chart: {{ include "superset.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- if semverCompare "> 1.6" .Capabilities.KubeVersion.GitVersion }}
-    kubernetes.io/cluster-service: "true"
+    app: {{ template "superset.name" $ }}
+    chart: {{ template "superset.chart" $ }}
+    release: {{ $.Release.Name }}
+    heritage: {{ $.Release.Service }}
+    {{- if $.Values.extraLabels }}
+      {{- toYaml $.Values.extraLabels | nindent 4 }}
     {{- end }}
-    addonmanager.kubernetes.io/mode: Reconcile
-    {{- if .Values.extraLabels }}
-      {{- toYaml .Values.extraLabels | nindent 4 }}
-    {{- end }}
-  {{- if .Values.serviceAccount.annotations }}
-  annotations: {{- toYaml .Values.serviceAccount.annotations | nindent 4 }}
-  {{- end }}
-{{- end -}}
+spec:
+{{- if .minAvailable }}
+  minAvailable: {{ .minAvailable }}
+{{- end }}
+{{- if .maxUnavailable }}
+  maxUnavailable: {{ .maxUnavailable }}
+{{- end }}
+  selector:
+    matchLabels:
+    {{- include "supersetNode.selectorLabels" $ | nindent 6 }}
+{{- end }}
+{{- end }}
