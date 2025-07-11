@@ -23,7 +23,7 @@ global:
   ##
   security:
     ## @param global.security.allowInsecureImages Allows skipping image verification
-    allowInsecureImages: false
+    allowInsecureImages: true
   postgresql:
     ## @param global.postgresql.fullnameOverride Full chart name (overrides `fullnameOverride`)
     ## @param global.postgresql.auth.postgresPassword Password for the "postgres" admin user (overrides `auth.postgresPassword`)
@@ -120,7 +120,7 @@ diagnosticMode:
 ##
 image:
   registry: docker.io
-  repository: postgresql-custom
+  repository: postgres-custom
   tag: 17.5.0
   digest: ""
   ## Specify a imagePullPolicy
@@ -167,7 +167,7 @@ auth:
   replicationPassword: ""
   ## @param auth.existingSecret Name of existing secret to use for PostgreSQL credentials. `auth.postgresPassword`, `auth.password`, and `auth.replicationPassword` will be ignored and picked up from this secret. The secret might also contains the key `ldap-password` if LDAP is enabled. `ldap.bind_password` will be ignored and picked from this secret in this case.
   ##
-  existingSecret: "postgres-secret"
+  existingSecret: ""
   ## @param auth.secretKeys.adminPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
   ## @param auth.secretKeys.userPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
   ## @param auth.secretKeys.replicationPasswordKey Name of key in existing secret to use for PostgreSQL credentials. Only used when `auth.existingSecret` is set.
@@ -194,7 +194,7 @@ replication:
   numSynchronousReplicas: 0
   ## @param replication.applicationName Cluster application name. Useful for advanced replication settings
   ##
-  applicationName: my_application
+  applicationName: old_silver_application
 ## @param containerPorts.postgresql PostgreSQL container port
 ##
 containerPorts:
