@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: kafka-custom
+  repository: cp-kafka-custom
   tag: 7.6.1
   pullPolicy: IfNotPresent
 
