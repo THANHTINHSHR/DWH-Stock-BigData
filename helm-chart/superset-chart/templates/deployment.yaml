@@ -28,8 +28,12 @@ spec:
                 --email "$ADMIN_EMAIL" \
                 --password "$ADMIN_PASSWORD" || true) && \
               superset init
-
           env:
+            - name: PYTHONPATH
+              value: /app/pythonpath
+            - name: SUPERSET_CONFIG_PATH
+              value: /app/pythonpath/superset_config.py
+
             - name: ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -50,6 +54,16 @@ spec:
                 secretKeyRef:
                   name: superset-secret
                   key: sqlalchemy_database_uri
+            - name: SUPERSET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: secret_key
+          volumeMounts:
+            - name: superset-config
+              mountPath: /app/pythonpath/superset_config.py
+              subPath: superset_config.py
+
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -59,6 +73,11 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
+            - name: PYTHONPATH
+              value: /app/pythonpath
+            - name: SUPERSET_CONFIG_PATH
+              value: /app/pythonpath/superset_config.py
+
             - name: ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -79,6 +98,15 @@ spec:
                 secretKeyRef:
                   name: superset-secret
                   key: sqlalchemy_database_uri
+            - name: SUPERSET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: superset-secret
+                  key: secret_key
+          volumeMounts:
+            - name: superset-config
+              mountPath: /app/pythonpath/superset_config.py
+              subPath: superset_config.py
           readinessProbe:
             httpGet:
               path: /health

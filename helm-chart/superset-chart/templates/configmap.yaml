@@ -10,7 +10,10 @@ data:
 
     # Best Practice: Read sensitive values from environment variables
     # which are populated from a Kubernetes Secret.
-    SECRET_KEY = "{{ .Values.secret.secret_key }}"
-
+    SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY")
+    print("My Custom superset config--------------------------------------------------------------")
+    print(f"SECRET_KEY: {SECRET_KEY}")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    print(f"SQLALCHEMY_DATABASE_URI: {SQLALCHEMY_DATABASE_URI}")
     WTF_CSRF_ENABLED = {{ .Values.config.wtf_csrf_enabled | default true | toString | title }}
     ENABLE_CORS = {{ .Values.config.enable_cors | default true | toString | title }}

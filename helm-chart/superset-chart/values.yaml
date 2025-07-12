@@ -1,12 +1,9 @@
 replicaCount: 1
-
 image:
   repository: superset-custom
   tag: 5.0.0
   #pullPolicy: IfNotPresent
-  pullPolicy: Never
-
-
+  pullPolicy: IfNotPresent
 
 service:
   type: ClusterIP
