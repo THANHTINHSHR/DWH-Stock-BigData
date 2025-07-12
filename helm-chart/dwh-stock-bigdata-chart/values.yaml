@@ -1,0 +1,19 @@
+replicaCount: 1
+
+image:
+  repository: dwh-stock-bigdata
+  tag: 2.0
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+env:
+WSS_ENDPOINT=wss://stream.binance.com:9443/ws
+URL_TOP=https://api.binance.com/api/v3/ticker/24hr
+# Limit number coin streaming each time 2 is recomment
+LIMIT=2 
+STREAM_TYPES=trade,ticker,bookTicker
+BOOTSTRAP_SERVERS=my-kafka:9092
+BINANCE_TOPIC=binance
+NUM_PARTITIONS=10
