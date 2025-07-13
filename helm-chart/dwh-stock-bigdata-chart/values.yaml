@@ -2,18 +2,32 @@ replicaCount: 1
 
 image:
   repository: dwh-stock-bigdata
-  tag: 2.0
-  pullPolicy: IfNotPresent
+  tag: "2.0"
+  pullPolicy: Never
+  
 
-service:
-  type: ClusterIP
-  port: 8080
 env:
-WSS_ENDPOINT=wss://stream.binance.com:9443/ws
-URL_TOP=https://api.binance.com/api/v3/ticker/24hr
-# Limit number coin streaming each time 2 is recomment
-LIMIT=2 
-STREAM_TYPES=trade,ticker,bookTicker
-BOOTSTRAP_SERVERS=my-kafka:9092
-BINANCE_TOPIC=binance
-NUM_PARTITIONS=10
+  core:
+    WSS_ENDPOINT: wss://stream.binance.com:9443/ws
+    URL_TOP: https://api.binance.com/api/v3/ticker/24hr
+    LIMIT: "2"
+    STREAM_TYPES: trade,ticker,bookTicker
+  aws:
+    AWS_DEFAULT_REGION: ap-southeast-1  
+    BUCKET_NAME: binance-old-silver
+    ROOT_DB: trade,ticker,bookTicker
+    ATHENA_DB: binance
+    S3_STAGING_DIR: s3://staging-binance-old-silver/    
+  kafka:
+    BOOTSTRAP_SERVERS: cp-kafka-release-kafka-chart:9092
+    BINANCE_TOPIC: binance
+    NUM_PARTITIONS: "10"
+  granfana:
+    GRAFANA_URL: grafana-release-grafana-chart:3000
+    GRAFANA_DB_URL: influxdb-release-influxdb-chart:8086 
+  influxdb:
+    INFLUXDB_URL: influxdb-release-influxdb-chart:8086 
+    INFLUXDB_ORG: THANH_TINH
+    INFLUXDB_BUCKET: realtime_crypto
+  superset:
+    SUPERSET_URL: superset-release-superset-chart:8088

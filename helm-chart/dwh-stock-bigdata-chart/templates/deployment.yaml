@@ -1,78 +1,73 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "dwh-stock-bigdata-chart.fullname" . }}
-  labels:
-    {{- include "dwh-stock-bigdata-chart.labels" . | nindent 4 }}
+  name: dwh-stock-bigdata-release
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "dwh-stock-bigdata-chart.selectorLabels" . | nindent 6 }}
+      app: {{ include "dwh-stock-bigdata-chart.name" . }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "dwh-stock-bigdata-chart.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
+        app: {{ include "dwh-stock-bigdata-chart.name" . }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "dwh-stock-bigdata-chart.serviceAccountName" . }}
-      {{- with .Values.podSecurityContext }}
-      securityContext:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
-          securityContext:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+          # ports:
+          #   - containerPort: 8080
+
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-secret
+
+          env:
+            # core
+            - name: WSS_ENDPOINT
+              value: {{ .Values.env.core.WSS_ENDPOINT }}
+            - name: URL_TOP
+              value: {{ .Values.env.core.URL_TOP }}
+            - name: LIMIT
+              value: "{{ .Values.env.core.LIMIT }}"
+            - name: STREAM_TYPES
+              value: {{ .Values.env.core.STREAM_TYPES }}
+
+            # aws
+            - name: AWS_DEFAULT_REGION
+              value: {{ .Values.env.aws.AWS_DEFAULT_REGION }}
+            - name: BUCKET_NAME
+              value: {{ .Values.env.aws.BUCKET_NAME }}
+            - name: ROOT_DB
+              value: {{ .Values.env.aws.ROOT_DB }}
+            - name: ATHENA_DB
+              value: {{ .Values.env.aws.ATHENA_DB }}
+            - name: S3_STAGING_DIR
+              value: {{ .Values.env.aws.S3_STAGING_DIR }}
+
+            # kafka
+            - name: BOOTSTRAP_SERVERS
+              value: {{ .Values.env.kafka.BOOTSTRAP_SERVERS }}
+            - name: BINANCE_TOPIC
+              value: {{ .Values.env.kafka.BINANCE_TOPIC }}
+            - name: NUM_PARTITIONS
+              value: "{{ .Values.env.kafka.NUM_PARTITIONS }}"
+
+            # grafana
+            - name: GRAFANA_URL
+              value: {{ .Values.env.granfana.GRAFANA_URL }}
+            - name: GRAFANA_DB_URL
+              value: {{ .Values.env.granfana.GRAFANA_DB_URL }}
+
+            # influxdb
+            - name: INFLUXDB_URL
+              value: {{ .Values.env.influxdb.INFLUXDB_URL }}
+            - name: INFLUXDB_ORG
+              value: {{ .Values.env.influxdb.INFLUXDB_ORG }}
+            - name: INFLUXDB_BUCKET
+              value: {{ .Values.env.influxdb.INFLUXDB_BUCKET }}
+
+            # superset
+            - name: SUPERSET_URL
+              value: {{ .Values.env.superset.SUPERSET_URL }}
