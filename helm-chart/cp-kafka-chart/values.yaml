@@ -15,20 +15,20 @@ service:
       port: 9093
       targetPort: 9093
 env:
-  # ==============================================================================
-  # Default Kafka Environment Variables
-  kafka_kraft_storage_format: "true"
-  kafka_node_id: "1"
-  kafka_process_roles: broker,controller
-  kafka_listeners: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
-  kafka_listener_security_protocol_map: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-  kafka_controller_quorum_voters: 1@kafka-release-kafka-chart:9093
-  kafka_advertised_listeners: PLAINTEXT://kafka-release-kafka-chart:9092
-  kafka_controller_listener_names: CONTROLLER
-  kafka_log_dirs: /tmp/kraft-combined-logs
-  cluster_id: 3zms-h-xqdsl7yyrhvreeg
-  kafka_offsets_topic_replication_factor: "1"
-  # kafka configuration
-  kafka_log_retention_ms: "600000"
-  kafka_log_retention_bytes: "1000000000"
-  kafka_log_segment_bytes: "100000000"
+  KAFKA_NODE_ID: "1"
+  KAFKA_PROCESS_ROLES: broker,controller
+  KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+  KAFKA_CONTROLLER_QUORUM_VOTERS: 1@cp-kafka-release-kafka-chart:9093
+  KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://cp-kafka-release-kafka-chart:9092
+  KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+  CLUSTER_ID: 3zms-h-xqdsl7yyrhvreeg
+  KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+  KAFKA_LOG_RETENTION_MS: "600000"
+  KAFKA_LOG_RETENTION_BYTES: "1000000000"
+  KAFKA_LOG_SEGMENT_BYTES: "100000000"
+
+configurationOverrides:
+  listeners: PLAINTEXT://0.0.0.0:9092
+  advertised.listeners: PLAINTEXT://cp-kafka-release-kafka-chart:9092

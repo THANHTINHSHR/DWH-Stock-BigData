@@ -24,36 +24,9 @@ spec:
 {{- end }}
 
           env:
-            - name: KAFKA_KRAFT_STORAGE_FORMAT
-              value: {{ .Values.env.kafka_kraft_storage_format | quote }}
-            - name: KAFKA_NODE_ID
-              value: {{ .Values.env.kafka_node_id | quote }}
-            - name: KAFKA_PROCESS_ROLES
-              value: {{ .Values.env.kafka_process_roles | quote }}
-            - name: KAFKA_LISTENERS 
-              value: {{ .Values.env.kafka_listeners | quote }}
-            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: {{ .Values.env.kafka_listener_security_protocol_map | quote }}
-            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: {{ .Values.env.kafka_controller_quorum_voters | quote }}
-            - name: KAFKA_CONTROLLER_LISTENER_NAMES
-              value: {{ .Values.env.kafka_controller_listener_names | quote }}
-            - name: KAFKA_ADVERTISED_LISTENERS
-              value: {{ .Values.env.kafka_advertised_listeners | quote }}
-            - name: KAFKA_LOG_DIRS
-              value: {{ .Values.env.kafka_log_dirs | quote }}
-            - name: CLUSTER_ID
-              value: {{ .Values.env.cluster_id | quote }}
-            - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
-              value: {{ .Values.env.kafka_offsets_topic_replication_factor | quote }}
-            # kafka configuration
-            - name: KAFKA_LOG_RETENTION_MS
-              value: {{ .Values.env.kafka_log_retention_ms | quote }}
-            - name: KAFKA_LOG_RETENTION_BYTES
-              value: {{ .Values.env.kafka_log_retention_bytes | quote }}
-            - name: KAFKA_LOG_SEGMENT_BYTES
-              value: {{ .Values.env.kafka_log_segment_bytes | quote }}
-
-
-
-
+  {{- with .Values.env }}
+  {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+  {{- end }}
+  {{- end }}
