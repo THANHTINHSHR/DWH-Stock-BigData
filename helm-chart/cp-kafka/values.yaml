@@ -7,12 +7,15 @@
 ## ------------------------------------------------------
 
 ## Number of Kafka brokers
-brokers: 3
+brokers: 1
 
 ## Image Info
 ## ref: https://hub.docker.com/r/confluentinc/cp-server/
-image: confluentinc/cp-server
-imageTag: 6.1.0
+#image: confluentinc/cp-server
+#imageTag: 6.1.0
+image: cp-kafka-custom
+imageTag: 7.2.15
+
 
 ## Specify a imagePullPolicy
 ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -56,11 +59,21 @@ configurationOverrides:
   ## Setting "advertised.listeners" here appends to "PLAINTEXT://${POD_IP}:9092,"
   # "advertised.listeners": |-
   # EXTERNAL://${HOST_IP}:$((31090 + ${KAFKA_BROKER_ID}))
-  "listener.security.protocol.map": |-
-   PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+  #"listener.security.protocol.map": |-
+  # PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
 
 ## Additional env variables
-customEnv: {}
+customEnv:
+  KAFKA_NODE_ID: "0"  # Tăng dần nếu có nhiều broker
+  KAFKA_PROCESS_ROLES: "broker,controller"
+  KAFKA_LISTENERS: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+  KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://cp-kafka-release-cp-kafka:9092
+  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
+  KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+  KAFKA_CONTROLLER_QUORUM_VOTERS: "0@cp-kafka-release-cp-kafka:9093"
+  KAFKA_LOG_DIRS: "/tmp/kraft-combined-logs"
+  CLUSTER_ID: "3zms-h-xqdsl7yyrhvreeg" 
+
   # KAFKA_METRIC_REPORTERS: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
   # CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: "localhost:9092"
 
@@ -117,14 +130,17 @@ affinity: {}
 ## ref: https://docs.confluent.io/current/kafka/monitoring.html
 jmx:
   port: 5555
-
+## ------------------------------------------------------
+## Prometheus
+## ------------------------------------------------------
 ## Prometheus Exporter Configuration
 ## ref: https://prometheus.io/docs/instrumenting/exporters/
 prometheus:
   ## JMX Exporter Configuration
   ## ref: https://github.com/prometheus/jmx_exporter
   jmx:
-    enabled: true
+    #enabled: true
+    enabled: false
     image: solsson/kafka-prometheus-jmx-exporter@sha256
     imageTag: 6f82e2b0464f50da8104acd7363fb9b995001ddff77d248379f8788e78946143
     imagePullPolicy: IfNotPresent
@@ -145,7 +161,8 @@ nodeport:
 cp-zookeeper:
   ## If true, install the cp-zookeeper chart alongside cp-kafka
   ## ref: ../cp-zookeeper
-  enabled: true
+  #enabled: true
+  enabled: false
   servers: 3
   persistence:
     enabled: true
