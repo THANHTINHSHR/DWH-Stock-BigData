@@ -23,7 +23,8 @@ serviceHttpPort: 9021
 ## Control Center properties
 ## ref: 
 configurationOverrides:
-  "replication.factor": "3"
+  #"replication.factor": "3"
+  "replication.factor": "1"
   # "internal.topics.replication": "1"
   # "monitoring.interceptor.topic.replication": "1"
   # "metrics.topic.replication": "1"
@@ -95,15 +96,7 @@ kafka:
 
 ## If the Kafka Chart is disabled a URL and port are required to connect
 ## e.g. gnoble-panther-cp-schema-registry:8081
-cp-schema-registry:
-  url: ""
-
-cp-kafka-connect:
-  url: ""
-
-cp-ksql-server:
-  url: ""
-
-cp-zookeeper:
-  ## If the Zookeeper Chart is disabled a URL and port are required to connect
-  url: ""  
+cp-schema-registry: {}
+cp-kafka-connect: {}
+cp-ksql-server: {}
+cp-zookeeper: {}
