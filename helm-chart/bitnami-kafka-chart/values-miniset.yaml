@@ -1,76 +1,27 @@
-# Copyright Broadcom, Inc. All Rights Reserved.
-# SPDX-License-Identifier: APACHE-2.0
 
-## @section Global parameters
-## Global Docker image parameters
-## Please, note that this will override the image parameters, including dependencies, configured to use the global value
-## Current available global Docker image parameters: imageRegistry, imagePullSecrets and storageClass
-
-## @param global.imageRegistry Global Docker image registry
-## @param global.imagePullSecrets Global Docker registry secret names as an array
-## @param global.defaultStorageClass Global default StorageClass for Persistent Volume(s)
-##
 global:
   imageRegistry: ""
-  ## E.g.
-  ## imagePullSecrets:
-  ##   - myRegistryKeySecretName
-  ##
+
   imagePullSecrets: []
   defaultStorageClass: ""
-  ## Security parameters
-  ##
+
   security:
-    ## @param global.security.allowInsecureImages Allows skipping image verification
     #allowInsecureImages: false
     allowInsecureImages: true
-  ## Compatibility adaptations for Kubernetes platforms
-  ##
   compatibility:
-    ## Compatibility adaptations for Openshift
-    ##
     openshift:
-      ## @param global.compatibility.openshift.adaptSecurityContext Adapt the securityContext sections of the deployment to make them compatible with Openshift restricted-v2 SCC: remove runAsUser, runAsGroup and fsGroup and let the platform use their allowed default IDs. Possible values: auto (apply if the detected running cluster is Openshift), force (perform the adaptation always), disabled (do not perform adaptation)
-      ##
       adaptSecurityContext: auto
 
-## @section Common parameters
-
-## @param kubeVersion Override Kubernetes version
-##
 kubeVersion: ""
-## @param apiVersions Override Kubernetes API versions reported by .Capabilities
-##
 apiVersions: []
-## @param nameOverride String to partially override common.names.fullname
-##
 nameOverride: ""
-## @param fullnameOverride String to fully override common.names.fullname
-##
 fullnameOverride: ""
-## @param namespaceOverride String to fully override common.names.namespace
-##
 namespaceOverride: ""
-## @param clusterDomain Default Kubernetes cluster domain
-##
 clusterDomain: cluster.local
-## @param commonLabels Labels to add to all deployed objects
-##
 commonLabels: {}
-## @param commonAnnotations Annotations to add to all deployed objects
-##
 commonAnnotations: {}
-## @param extraDeploy Array of extra objects to deploy with the release
-##
 extraDeploy: []
-## @param usePasswordFiles Mount credentials as files instead of using environment variables
-##
 usePasswordFiles: true
-## Diagnostic mode
-## @param diagnosticMode.enabled Enable diagnostic mode (all probes will be disabled and the command will be overridden)
-## @param diagnosticMode.command Command to override all containers in the chart release
-## @param diagnosticMode.args Args to override all containers in the chart release
-##
 diagnosticMode:
   enabled: false
   command:
