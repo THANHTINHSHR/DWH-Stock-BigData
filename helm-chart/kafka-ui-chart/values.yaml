@@ -11,4 +11,5 @@ service:
 env:
   kafka_clusters_0_name: kraft-cluster
   kafka_clusters_0_kafka_version: 4.0.0
-  kafka_clusters_0_bootstrap_servers: cp-kafka-release-kafka-chart:9092
+  #advertisedListeners: "EXTERNAL://<NODE_IP>:9093"
+  kafka_clusters_0_bootstrap_servers: 192.168.49.2:9093
