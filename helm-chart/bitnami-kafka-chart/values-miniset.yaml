@@ -1,0 +1,60 @@
+zookeeper:
+  enabled: false
+
+kraftVersion: 1
+clusterId: "demo-cluster-kraft-001"
+
+controller:
+  replicaCount: 1
+  minId: 0
+  controllerOnly: false
+
+broker:
+  replicaCount: 0
+
+global:
+  imageRegistry: docker.io
+  security:
+    allowInsecureImages: true
+
+image:
+  registry: docker.io
+  repository: bitnami/kafka
+  tag: 4.0.0-debian-12-r8
+  digest: ""
+  pullPolicy: IfNotPresent
+
+listeners:
+  client:
+    name: CLIENT
+    containerPort: 9092
+    protocol: PLAINTEXT
+  external:
+    name: EXTERNAL
+    containerPort: 9094
+    protocol: PLAINTEXT
+  advertisedListeners: "EXTERNAL://192.168.49.2:9093"
+  overrideListeners: "CLIENT://:9092,EXTERNAL://:9094"
+  securityProtocolMap: "CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT"
+
+service:
+  type: NodePort
+  nodePorts:
+    external: 9093
+  external:
+    enabled: true
+    bootstrap: true
+    publishNotReadyAddresses: true
+
+defaultInitContainers:
+  volumePermissions:
+    image:
+      registry: ""
+  autoDiscovery:
+    image:
+      registry: ""
+
+metrics:
+  jmx:
+    image:
+      registry: ""
