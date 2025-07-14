@@ -1,1 +1,0 @@
-FROM confluentinc/cp-control-center:3.0.1
