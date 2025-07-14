@@ -9,7 +9,6 @@ service:
   type: ClusterIP
   port: 8080
 env:
-  kafka_clusters_0_name: kraft-cluster
+  kafka_clusters_0_name: k_raft-cluster   # Phải giống với URL
   kafka_clusters_0_kafka_version: 4.0.0
-  #advertisedListeners: "EXTERNAL://<NODE_IP>:9093"
   kafka_clusters_0_bootstrap_servers: 192.168.49.2:30092
