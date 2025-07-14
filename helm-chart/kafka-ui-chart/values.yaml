@@ -6,8 +6,10 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 8080
+  nodePort: 30080
+
 env:
   kafka_clusters_0_name: k_raft-cluster   
   kafka_clusters_0_kafka_version: 4.0.0
