@@ -56,9 +56,9 @@ spec:
 
             # grafana
             - name: GRAFANA_URL
-              value: {{ .Values.env.granfana.GRAFANA_URL }}
+              value: {{ .Values.env.grafana.GRAFANA_URL }}
             - name: GRAFANA_DB_URL
-              value: {{ .Values.env.granfana.GRAFANA_DB_URL }}
+              value: {{ .Values.env.grafana.GRAFANA_DB_URL }}
 
             # influxdb
             - name: INFLUXDB_URL
