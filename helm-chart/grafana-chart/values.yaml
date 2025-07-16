@@ -9,5 +9,5 @@ service:
   type: ClusterIP
   port: 3000
 env:
-  grafana_url: http://grafana:3000
-  grafana_db_url: http://influxdb:8086 
+  grafana_url: http://grafana-release-grafana-chart:3000 
+  grafana_db_url: http://influxdb-release-influxdb-chart:8086
