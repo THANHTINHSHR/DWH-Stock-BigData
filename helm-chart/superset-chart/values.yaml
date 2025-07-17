@@ -5,12 +5,24 @@ image:
   #pullPolicy: IfNotPresent
   pullPolicy: IfNotPresent
 
+supersetNode:
+  extraArgs:
+    - run
+    - -h
+    - 0.0.0.0
+    - -p
+    - "8088"
+
 service:
   type: ClusterIP
   port: 8088
 
 config:
-  wtf_csrf_enabled: True
+  wtf_csrf_enabled: False
   enable_cors: True
+  enable_proxy_fix: True
+  superset_webserver_address: 0.0.0.0
+  superset_webserver_port: 8088
+
 #             self.ATHENA_URI = f"awsathena+rest://{self.AWS_ACCESS_KEY_ID}:{self.AWS_SECRET_ACCESS_KEY}@athena.{self.AWS_REGION}.amazonaws.com/{self.ATHENA_DB}?s3_staging_dir={self.S3_STAGING_DIR}"
 
