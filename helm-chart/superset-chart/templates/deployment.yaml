@@ -2,15 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "superset-chart.fullname" . }}
+  labels:
+    app.kubernetes.io/name: {{ include "superset-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+
+
 spec:
-  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ include "superset-chart.name" . }}
+      app.kubernetes.io/name: {{ include "superset-chart.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+
   template:
     metadata:
       labels:
-        app: {{ include "superset-chart.name" . }}
+        app.kubernetes.io/name: {{ include "superset-chart.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+
     spec:
       initContainers:
         - name: superset-init
@@ -28,37 +36,25 @@ spec:
                 --email "$ADMIN_EMAIL" \
                 --password "$ADMIN_PASSWORD" || true) && \
               superset init
+          envFrom:
+            - secretRef:
+                name: superset-secret
           env:
             - name: PYTHONPATH
               value: /app/pythonpath
             - name: SUPERSET_CONFIG_PATH
               value: /app/pythonpath/superset_config.py
+            - name: WTF_CSRF_ENABLED
+              value: "{{ .Values.config.wtf_csrf_enabled }}"
+            - name: ENABLE_CORS
+              value: "{{ .Values.config.enable_cors }}" 
+            - name: ENABLE_PROXY_FIX
+              value: "{{ .Values.config.enable_proxy_fix }}"
+            - name: SUPERSET_WEBSERVER_ADDRESS
+              value: "{{ .Values.config.superset_webserver_address }}"
+            - name: SUPERSET_WEBSERVER_PORT
+              value: "{{ .Values.config.superset_webserver_port }}"
 
-            - name: ADMIN_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: admin_username
-            - name: ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: admin_password
-            - name: ADMIN_EMAIL
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: admin_email
-            - name: SQLALCHEMY_DATABASE_URI
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: sqlalchemy_database_uri
-            - name: SUPERSET_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: secret_key
           volumeMounts:
             - name: superset-config
               mountPath: /app/pythonpath/superset_config.py
@@ -72,37 +68,25 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          envFrom:
+            - secretRef:
+                name: superset-secret
           env:
             - name: PYTHONPATH
               value: /app/pythonpath
             - name: SUPERSET_CONFIG_PATH
               value: /app/pythonpath/superset_config.py
+            - name: WTF_CSRF_ENABLED
+              value: "{{ .Values.config.wtf_csrf_enabled }}"
+            - name: ENABLE_CORS
+              value: "{{ .Values.config.enable_cors }}" 
+            - name: ENABLE_PROXY_FIX
+              value: "{{ .Values.config.enable_proxy_fix }}"
+            - name: SUPERSET_WEBSERVER_ADDRESS
+              value: "{{ .Values.config.superset_webserver_address }}"
+            - name: SUPERSET_WEBSERVER_PORT
+              value: "{{ .Values.config.superset_webserver_port }}"
 
-            - name: ADMIN_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: admin_username
-            - name: ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: admin_password
-            - name: ADMIN_EMAIL
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: admin_email
-            - name: SQLALCHEMY_DATABASE_URI
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: sqlalchemy_database_uri
-            - name: SUPERSET_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: superset-secret
-                  key: secret_key
           volumeMounts:
             - name: superset-config
               mountPath: /app/pythonpath/superset_config.py
