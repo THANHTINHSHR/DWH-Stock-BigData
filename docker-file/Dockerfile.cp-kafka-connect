@@ -1,1 +1,0 @@
-FROM confluentinc/cp-kafka-connect:7.2.15
