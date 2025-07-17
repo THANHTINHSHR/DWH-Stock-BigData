@@ -10,10 +10,21 @@ data:
 
     # Best Practice: Read sensitive values from environment variables
     # which are populated from a Kubernetes Secret.
-    SECRET_KEY = os.environ.get("SUPERSET_SECRET_KEY")
     print("My Custom superset config--------------------------------------------------------------")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
     print(f"SECRET_KEY: {SECRET_KEY}")
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     print(f"SQLALCHEMY_DATABASE_URI: {SQLALCHEMY_DATABASE_URI}")
-    WTF_CSRF_ENABLED = {{ .Values.config.wtf_csrf_enabled | default true | toString | title }}
-    ENABLE_CORS = {{ .Values.config.enable_cors | default true | toString | title }}
+    WTF_CSRF_ENABLED = os.getenv("WTF_CSRF_ENABLED", "True")
+    print(f"WTF_CSRF_ENABLED: {WTF_CSRF_ENABLED}")
+    ENABLE_CORS = os.getenv("ENABLE_CORS", "True")
+    print(f"ENABLE_CORS: {ENABLE_CORS}")
+    ENABLE_PROXY_FIX = os.getenv("ENABLE_PROXY_FIX", "True")
+    print(f"ENABLE_PROXY_FIX: {ENABLE_PROXY_FIX}")
+    SUPERSET_WEBSERVER_ADDRESS = os.getenv("SUPERSET_WEBSERVER_ADDRESS", "0.0.0.0")
+    print(f"SUPERSET_WEBSERVER_ADDRESS: {SUPERSET_WEBSERVER_ADDRESS}")
+    SUPERSET_WEBSERVER_PORT = os.getenv("SUPERSET_WEBSERVER_PORT", "8088")
+    print(f"SUPERSET_WEBSERVER_PORT: {SUPERSET_WEBSERVER_PORT}")
+
+
+    
