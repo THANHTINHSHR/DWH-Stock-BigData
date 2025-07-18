@@ -15,11 +15,11 @@ data:
     print(f"SECRET_KEY: {SECRET_KEY}")
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     print(f"SQLALCHEMY_DATABASE_URI: {SQLALCHEMY_DATABASE_URI}")
-    WTF_CSRF_ENABLED = os.getenv("WTF_CSRF_ENABLED", "True")
+    WTF_CSRF_ENABLED = os.environ.get("WTF_CSRF_ENABLED", "True").lower() == "true"
     print(f"WTF_CSRF_ENABLED: {WTF_CSRF_ENABLED}")
-    ENABLE_CORS = os.getenv("ENABLE_CORS", "True")
+    ENABLE_CORS = os.environ.get("ENABLE_CORS", "True").lower() == "true"
     print(f"ENABLE_CORS: {ENABLE_CORS}")
-    ENABLE_PROXY_FIX = os.getenv("ENABLE_PROXY_FIX", "True")
+    ENABLE_PROXY_FIX = os.environ.get("ENABLE_PROXY_FIX", "True").lower() == "true"
     print(f"ENABLE_PROXY_FIX: {ENABLE_PROXY_FIX}")
     SUPERSET_WEBSERVER_ADDRESS = os.getenv("SUPERSET_WEBSERVER_ADDRESS", "0.0.0.0")
     print(f"SUPERSET_WEBSERVER_ADDRESS: {SUPERSET_WEBSERVER_ADDRESS}")

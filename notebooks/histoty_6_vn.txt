@@ -27,3 +27,4 @@ biết sơ sơ cp-kafka có shema register mà hồi đó nắm khái niệm th�
 lúc trc dù xài cp-kafka nhwung chưa xài schema nên giống thuần kafka của bitnami. ko có chart sẵn của cp-kafka nên phải tự build
 - Tự mò ra dc git của cp-kafka vf các nhóm của nó, TUY NHIÊN, tải xong thì chay thấy nó không hỗ trợ krafft mới nhất dù có tùy chọn, tốn 5g dữ liệu tải xuống image :D
 - nó bị ngưng hỗ trợ (deprecated) do ko tương thích với kraft và bây h, họ làm cái mới là CKF.
+---------- Hiểu sâu hơn về pod,svc,pvc không chỉ uninstall là hết ví dụ như mình uninstall superset thì dữ liệu vẫn còn lưu bên tỏng pgsql
