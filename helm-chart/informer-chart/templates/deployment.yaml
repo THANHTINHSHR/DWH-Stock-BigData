@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "informer-chart.fullname" . }}
+  labels:
+    {{- include "informer-chart.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "informer-chart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "informer-chart.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # ports:
+          #   - containerPort: 8080
+
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-secret
+
+          env:
+            # core
+            - name: STREAM_TYPES
+              value: {{ .Values.env.core.STREAM_TYPES }}
+
+            # aws
+            - name: AWS_DEFAULT_REGION
+              value: {{ .Values.env.aws.AWS_DEFAULT_REGION }}
+            - name: BUCKET_NAME
+              value: {{ .Values.env.aws.BUCKET_NAME }}
+            - name: ROOT_DB
+              value: {{ .Values.env.aws.ROOT_DB }}
+            - name: ATHENA_DB
+              value: {{ .Values.env.aws.ATHENA_DB }}
+            - name: S3_STAGING_DIR
+              value: {{ .Values.env.aws.S3_STAGING_DIR }}
+
+            # grafana
+            - name: GRAFANA_URL
+              value: {{ .Values.env.grafana.GRAFANA_URL }}
+            - name: GRAFANA_DB_URL
+              value: {{ .Values.env.grafana.GRAFANA_DB_URL }}
+
+            # influxdb
+            - name: INFLUXDB_URL
+              value: {{ .Values.env.influxdb.INFLUXDB_URL }}
+            - name: INFLUXDB_ORG
+              value: {{ .Values.env.influxdb.INFLUXDB_ORG }}
+            - name: INFLUXDB_BUCKET
+              value: {{ .Values.env.influxdb.INFLUXDB_BUCKET }}
+
+            # superset
+            - name: SUPERSET_URL
+              value: {{ .Values.env.superset.SUPERSET_URL }}
+
+            # informer
+            - name: AI_APP_NAME
+              value: {{ .Values.env.informer.AI_APP_NAME }}
+            - name: REPARTITION
+              value: "{{ .Values.env.informer.REPARTITION }}"
+            - name: TRAIN_RATIO
+              value: "{{ .Values.env.informer.TRAIN_RATIO }}"
+            - name: VAL_RATIO
+              value: "{{ .Values.env.informer.VAL_RATIO }}"
+            - name: BATCH_SIZE
+              value: "{{ .Values.env.informer.BATCH_SIZE }}"
+            - name: N_DAYS_AGO
+              value: "{{ .Values.env.informer.N_DAYS_AGO }}"
+            - name: MAX_DIRECTORIES
+              value: "{{ .Values.env.informer.MAX_DIRECTORIES }}"
+            - name: SEQUENCE_LENGTH
+              value: "{{ .Values.env.informer.SEQUENCE_LENGTH }}"       
+            - name: PREDICTION_LENGTH
+              value: "{{ .Values.env.informer.PREDICTION_LENGTH }}"   
+            - name: NUM_EPOCHS
+              value: "{{ .Values.env.informer.NUM_EPOCHS }}"
