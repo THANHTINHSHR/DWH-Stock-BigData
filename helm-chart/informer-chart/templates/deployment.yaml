@@ -14,23 +14,31 @@ spec:
       labels:
         {{- include "informer-chart.selectorLabels" . | nindent 8 }}
     spec:
+      initContainers:
+        - name: copy-model-to-temp
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          command: ["sh", "-c", "mkdir -p /app/core/streaming/informerAI/temp && cp /app/core/streaming/informerAI/files/models/*.pth /app/core/streaming/informerAI/temp/"]
+          volumeMounts:
+            - name: temp-storage
+              mountPath: /app/core/streaming/informerAI/temp
+            - name: model-storage
+              mountPath: /app/core/streaming/informerAI/files/models
+
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          # ports:
-          #   - containerPort: 8080
-
+          volumeMounts:
+            - name: model-storage
+              mountPath: /app/core/streaming/informerAI/files/models
+            - name: temp-storage
+              mountPath: /app/core/streaming/informerAI/temp
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}-secret
-
           env:
-            # core
             - name: STREAM_TYPES
               value: {{ .Values.env.core.STREAM_TYPES }}
-
-            # aws
             - name: AWS_DEFAULT_REGION
               value: {{ .Values.env.aws.AWS_DEFAULT_REGION }}
             - name: BUCKET_NAME
@@ -41,26 +49,18 @@ spec:
               value: {{ .Values.env.aws.ATHENA_DB }}
             - name: S3_STAGING_DIR
               value: {{ .Values.env.aws.S3_STAGING_DIR }}
-
-            # grafana
             - name: GRAFANA_URL
               value: {{ .Values.env.grafana.GRAFANA_URL }}
             - name: GRAFANA_DB_URL
               value: {{ .Values.env.grafana.GRAFANA_DB_URL }}
-
-            # influxdb
             - name: INFLUXDB_URL
               value: {{ .Values.env.influxdb.INFLUXDB_URL }}
             - name: INFLUXDB_ORG
               value: {{ .Values.env.influxdb.INFLUXDB_ORG }}
             - name: INFLUXDB_BUCKET
               value: {{ .Values.env.influxdb.INFLUXDB_BUCKET }}
-
-            # superset
             - name: SUPERSET_URL
               value: {{ .Values.env.superset.SUPERSET_URL }}
-
-            # informer
             - name: AI_APP_NAME
               value: {{ .Values.env.informer.AI_APP_NAME }}
             - name: REPARTITION
@@ -76,8 +76,14 @@ spec:
             - name: MAX_DIRECTORIES
               value: "{{ .Values.env.informer.MAX_DIRECTORIES }}"
             - name: SEQUENCE_LENGTH
-              value: "{{ .Values.env.informer.SEQUENCE_LENGTH }}"       
+              value: "{{ .Values.env.informer.SEQUENCE_LENGTH }}"
             - name: PREDICTION_LENGTH
-              value: "{{ .Values.env.informer.PREDICTION_LENGTH }}"   
+              value: "{{ .Values.env.informer.PREDICTION_LENGTH }}"
             - name: NUM_EPOCHS
               value: "{{ .Values.env.informer.NUM_EPOCHS }}"
+      volumes:
+        - name: temp-storage
+          emptyDir: {}
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: {{ include "informer-chart.fullname" . }}-pvc
