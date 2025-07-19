@@ -45,3 +45,6 @@ env:
     PREDICTION_LENGTH: "100"
     # Number epoch, 200 will recomment, 20 was use to test
     NUM_EPOCHS: "20"
+persistence:
+  size: 1Gi
+  storageClass: standard

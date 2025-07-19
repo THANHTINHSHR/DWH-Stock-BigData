@@ -1,10 +1,18 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: {{ include "informer-chart.fullname" . }}-trigger-predict-job
+  name: {{ include "informer-chart.fullname" . }}-predict-job
+  labels:
+    app.kubernetes.io/name: {{ include "informer-chart.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: predict
+    app.kubernetes.io/part-of: informer
 spec:
   ttlSecondsAfterFinished: 60
   template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: trigger-predict
     spec:
       containers:
         - name: trainer-job
@@ -12,49 +20,36 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["python3"]
           args: ["core/streaming/informerAI/predict/ai_ticker_predictor.py"]
-          # ENV:
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}-secret
-
           env:
-            # core
             - name: STREAM_TYPES
-              value: {{ .Values.env.core.STREAM_TYPES }}
-
-            # aws
+              value: "{{ .Values.env.core.STREAM_TYPES }}"
             - name: AWS_DEFAULT_REGION
-              value: {{ .Values.env.aws.AWS_DEFAULT_REGION }}
+              value: "{{ .Values.env.aws.AWS_DEFAULT_REGION }}"
             - name: BUCKET_NAME
-              value: {{ .Values.env.aws.BUCKET_NAME }}
+              value: "{{ .Values.env.aws.BUCKET_NAME }}"
             - name: ROOT_DB
-              value: {{ .Values.env.aws.ROOT_DB }}
+              value: "{{ .Values.env.aws.ROOT_DB }}"
             - name: ATHENA_DB
-              value: {{ .Values.env.aws.ATHENA_DB }}
+              value: "{{ .Values.env.aws.ATHENA_DB }}"
             - name: S3_STAGING_DIR
-              value: {{ .Values.env.aws.S3_STAGING_DIR }}
-
-            # grafana
+              value: "{{ .Values.env.aws.S3_STAGING_DIR }}"
             - name: GRAFANA_URL
-              value: {{ .Values.env.grafana.GRAFANA_URL }}
+              value: "{{ .Values.env.grafana.GRAFANA_URL }}"
             - name: GRAFANA_DB_URL
-              value: {{ .Values.env.grafana.GRAFANA_DB_URL }}
-
-            # influxdb
+              value: "{{ .Values.env.grafana.GRAFANA_DB_URL }}"
             - name: INFLUXDB_URL
-              value: {{ .Values.env.influxdb.INFLUXDB_URL }}
+              value: "{{ .Values.env.influxdb.INFLUXDB_URL }}"
             - name: INFLUXDB_ORG
-              value: {{ .Values.env.influxdb.INFLUXDB_ORG }}
+              value: "{{ .Values.env.influxdb.INFLUXDB_ORG }}"
             - name: INFLUXDB_BUCKET
-              value: {{ .Values.env.influxdb.INFLUXDB_BUCKET }}
-
-            # superset
+              value: "{{ .Values.env.influxdb.INFLUXDB_BUCKET }}"
             - name: SUPERSET_URL
-              value: {{ .Values.env.superset.SUPERSET_URL }}
-
-            # informer
+              value: "{{ .Values.env.superset.SUPERSET_URL }}"
             - name: AI_APP_NAME
-              value: {{ .Values.env.informer.AI_APP_NAME }}
+              value: "{{ .Values.env.informer.AI_APP_NAME }}"
             - name: REPARTITION
               value: "{{ .Values.env.informer.REPARTITION }}"
             - name: TRAIN_RATIO
@@ -68,9 +63,16 @@ spec:
             - name: MAX_DIRECTORIES
               value: "{{ .Values.env.informer.MAX_DIRECTORIES }}"
             - name: SEQUENCE_LENGTH
-              value: "{{ .Values.env.informer.SEQUENCE_LENGTH }}"       
+              value: "{{ .Values.env.informer.SEQUENCE_LENGTH }}"
             - name: PREDICTION_LENGTH
-              value: "{{ .Values.env.informer.PREDICTION_LENGTH }}"   
+              value: "{{ .Values.env.informer.PREDICTION_LENGTH }}"
             - name: NUM_EPOCHS
               value: "{{ .Values.env.informer.NUM_EPOCHS }}"
+          volumeMounts:
+            - name: model-storage
+              mountPath: /app/core/streaming/informerAI/files
       restartPolicy: Never
+      volumes:
+        - name: model-storage
+          persistentVolumeClaim:
+            claimName: {{ include "informer-chart.fullname" . }}-pvc
