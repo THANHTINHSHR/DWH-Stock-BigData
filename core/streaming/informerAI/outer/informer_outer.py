@@ -40,7 +40,7 @@ class InformerOuter():
         self.athena_creator_predict.run_athena()
         self.superset_creator_predict.run_superset()
         self.influxDB_creator_predict.create_buckets()
-        self.grafana_creator_predict.run_grafana
+        self.grafana_creator_predict.run_grafana()
 
     def send_predict_data(self, type: str, sparkDF: DataFrame):
         self.influxDB_creator_predict.send_bulk_data(type, sparkDF)
