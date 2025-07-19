@@ -6,6 +6,8 @@ metadata:
     {{- include "informer-chart.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
+  restartPolicy: Never
+
   selector:
     matchLabels:
       {{- include "informer-chart.selectorLabels" . | nindent 6 }}
