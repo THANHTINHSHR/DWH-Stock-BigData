@@ -2,9 +2,12 @@
 
  - cơ bản yml của docker muốn chuyển sang k8s rất phức tạp, cách hueeyr yml và yaml cũng khác , đọc biến env,....
 - thật kỳ lạ, nếu t để service là kafka thì docker vẫn chạy kraf, nhhuwng qua k8s thì nó là zoo
+- cái anyf là mâu thuẩn phiên bản, kafa và cp-kafka, cp-kafka thì cần hiểu sâu dc thêm.
+kraft thì nó là dạng chạy mới hơn, không bi phụ thuộc vote với zoo. cách đặt biết và các biến cần thioeets cũng khấc.
 
 --------------------HELM- chân trời mới--------------
-tính ra mình muốn chỉnh yaml mà nó tự động là đang cố làm helm.
+tính ra mình muốn chỉnh yaml mà nó tự động , ý là muốn từ docker-compose.yml sang file yaml, muốn nó tự động dùng kmpose,
+chạy script ps1,.... nhưng rất khó, học thêm thì hiểu là đang cố tạo ra helm :D hài vãi.
 h học helm, 
 grafana :   thì xong rồi bao gồm values, values-secret,secret,deployment,service.yaml là ok
 chú ý đặt tên các biến env cho đúng
@@ -29,4 +32,6 @@ lúc trc dù xài cp-kafka nhwung chưa xài schema nên giống thuần kafka c
 - nó bị ngưng hỗ trợ (deprecated) do ko tương thích với kraft và bây h, họ làm cái mới là CKF.
 ---------- Hiểu sâu hơn về pod,svc,pvc ---------
 -- không chỉ uninstall là hết ví dụ như mình uninstall superset thì dữ liệu vẫn còn lưu bên trong pvc của pgsql, phải xóa đi mới dc
-- thêm 1 kine nữa là Job, cái này sẽ chạy khi build thành công, áp dungjc ho train và predict- > un-to-completion . tuy nhiên ko hiệu theo ý muốn lắm
+- thêm 1 kine nữa là Job, cái này sẽ chạy khi build thành công, áp dụng cho train và predict- > un-to-completion . tuy nhiên ko hiệu theo ý muốn lắm
+- PVC : cái này thiết kế thông minh, nhwung mà không hỗ trợ dạng để yên mấy cái có sắn, nó sẽ cho empth haonf toàn thư mục mount
+vì vậy muốn giữ các file ở tỏng thư mục mount thì cần dạng chuyền tay, gởi nó qua 1 folder khác , tạo pvc rồi copy vào

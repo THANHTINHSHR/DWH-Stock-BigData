@@ -20,6 +20,10 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["python3"]
           args: ["core/streaming/informerAI/predict/ai_ticker_predictor.py"]
+
+          volumeMounts:
+            - name: model-storage
+              mountPath: core/streaming/informerAI/files
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}-secret
@@ -68,9 +72,7 @@ spec:
               value: "{{ .Values.env.informer.PREDICTION_LENGTH }}"
             - name: NUM_EPOCHS
               value: "{{ .Values.env.informer.NUM_EPOCHS }}"
-          volumeMounts:
-            - name: model-storage
-              mountPath: /app/core/streaming/informerAI/files
+
       restartPolicy: Never
       volumes:
         - name: model-storage

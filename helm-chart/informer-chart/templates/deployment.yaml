@@ -14,25 +14,16 @@ spec:
       labels:
         {{- include "informer-chart.selectorLabels" . | nindent 8 }}
     spec:
-      initContainers:
-        - name: copy-model-to-temp
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          command: ["sh", "-c", "mkdir -p /app/core/streaming/informerAI/temp && cp /app/core/streaming/informerAI/files/models/*.pth /app/core/streaming/informerAI/temp/"]
-          volumeMounts:
-            - name: temp-storage
-              mountPath: /app/core/streaming/informerAI/temp
-            - name: model-storage
-              mountPath: /app/core/streaming/informerAI/files/models
-
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          #command: ["python3"]
+          #args: ["core/streaming/informerAI/predict/ai_ticker_predictor.py"]
+
           volumeMounts:
             - name: model-storage
-              mountPath: /app/core/streaming/informerAI/files/models
-            - name: temp-storage
-              mountPath: /app/core/streaming/informerAI/temp
+              mountPath: core/streaming/informerAI/files
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}-secret
@@ -82,8 +73,6 @@ spec:
             - name: NUM_EPOCHS
               value: "{{ .Values.env.informer.NUM_EPOCHS }}"
       volumes:
-        - name: temp-storage
-          emptyDir: {}
         - name: model-storage
           persistentVolumeClaim:
             claimName: {{ include "informer-chart.fullname" . }}-pvc
