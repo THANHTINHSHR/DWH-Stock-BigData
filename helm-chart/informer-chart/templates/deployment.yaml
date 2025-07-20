@@ -30,6 +30,13 @@ spec:
             - secretRef:
                 name: {{ .Release.Name }}-secret
           env:
+            - name: AI_SPARK_MODE
+              value: {{ .Values.env.aiSpark.AI_SPARK_MODE }}
+            - name: AI_SPARK_LOCAL_DIR
+              value: {{ .Values.env.aiSpark.AI_SPARK_LOCAL_DIR }}
+            - name: AI_SPARK_APP_NAME
+              value: {{ .Values.env.aiSpark.AI_SPARK_APP_NAME }}
+
             - name: STREAM_TYPES
               value: {{ .Values.env.core.STREAM_TYPES }}
             - name: AWS_DEFAULT_REGION

@@ -6,8 +6,7 @@ image:
   pullPolicy: Never
 env:
   aiSpark:
-    AI_SPARK_MODE: local  # Options: local, docker, k8s
-    AI_SPARK_MASTER_URL: local[*]  # Use local mode with all available cores
+    AI_SPARK_MODE: k8s  # Options: local, docker, k8s
     AI_SPARK_LOCAL_DIR: /tmp/ai-spark  # Temporary directory for Spark
     AI_SPARK_APP_NAME: Informer_AI
   core:
