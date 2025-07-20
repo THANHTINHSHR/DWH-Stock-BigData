@@ -24,6 +24,8 @@ spec:
           volumeMounts:
             - name: model-storage
               mountPath: core/streaming/informerAI/files
+            - name: spark-temp
+              mountPath: {{ .Values.env.aiSpark.AI_SPARK_LOCAL_DIR }}
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}-secret
@@ -78,3 +80,5 @@ spec:
         - name: model-storage
           persistentVolumeClaim:
             claimName: {{ include "informer-chart.fullname" . }}-pvc
+        - name: spark-temp
+          emptyDir: {} 

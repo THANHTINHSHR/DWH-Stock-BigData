@@ -11,13 +11,27 @@ import os, glob
 from dotenv import load_dotenv
 from pathlib import Path
 from py4j.java_gateway import java_import
+from enum import Enum
+
 # autopep8: on
 load_dotenv()
 
 
+class SparkMode(str, Enum):
+    LOCAL = "local"
+    DOCKER = "docker"
+    K8S = "k8s"
+
+
 class SparkLoader:
     def __init__(self):
+        self.mode = SparkMode(os.getenv("AI_SPARK_MODE", "local").lower())
+        self.project_root_dir = Path(__file__).resolve().parent
+
         self.AI_APP_NAME = os.getenv("AI_APP_NAME", "InformerAI_App")
+        self.AI_SPARK_LOCAL_DIR = os.getenv(
+            "AI_SPARK_LOCAL_DIR", "/tmp/ai-spark")
+        # AWS S3 configuration
         self.BUCKET_NAME = os.getenv("BUCKET_NAME")
         self.AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
         self.AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -34,6 +48,7 @@ class SparkLoader:
         # Spark configuration
         self.spark = self.get_spark(self.AI_APP_NAME)
         self.REPARTITION = int(os.getenv("REPARTITION", 12))
+
         # Logging configuration
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info(f"Project root directory: {self.project_root_dir}")
@@ -43,47 +58,53 @@ class SparkLoader:
         return self
 
     def get_spark(self, app_name: str) -> SparkSession:
-        # Docker:
-        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
-        jar_files = glob.glob("/opt/spark/jars/*.jar")
-        jars = ",".join(jar_files)
+        jars, log4j_path = self.get_jars_and_log4j()
 
-        # Local:
-        # jars_directory = self.project_root_dir / "jars"
-        # jar_files_list = list(jars_directory.glob("*.jar"))
-        # jars = ",".join([str(f) for f in jar_files_list])
-        # log4j_properties_path = self.project_root_dir / "log4j.properties"
-        # log4j_path = log4j_properties_path.as_uri()
+        builder = SparkSession.builder.appName(app_name) \
+            .config("spark.hadoop.fs.s3a.access.key", self.AWS_ACCESS_KEY_ID) \
+            .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY) \
+            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/") \
+            .config("spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com") \
+            .config("spark.jars", jars) \
+            .config("spark.sql.debug.maxToStringFields", 100)
+        # Spark local dir (temp files)
+        if self.mode == SparkMode.LOCAL:
+            temp_dir = (self.project_root_dir /
+                        self.AI_SPARK_LOCAL_DIR).as_posix()
+        elif self.mode in [SparkMode.DOCKER, SparkMode.K8S]:
+            temp_dir = self.AI_SPARK_LOCAL_DIR
+
+        builder = builder.config("spark.local.dir", temp_dir)
 
         # log4j configuration
-        spark_local_temp_dir = (
-            self.project_root_dir / "spark-temp").as_posix()
-        # Create Spark session with S3A support and log4j configuration
-        spark = (
-            SparkSession.builder.appName(f"{app_name}")
-            .config("spark.hadoop.fs.s3a.access.key", self.AWS_ACCESS_KEY_ID)
-            .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY)
-            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-            # Points to the S3 bucket
-            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+        if log4j_path:
+            builder = builder \
+                .config("spark.driver.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}") \
+                .config("spark.executor.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
 
-            .config(
-                "spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com"
-            )
-            .config("spark.jars", jars)
-            .config("spark.driver.host", "localhost")
-            # log4j
-            # Logging configuration
-            .config("spark.driver.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
-            .config("spark.executor.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
-            # Cleanup settings
-            .config("spark.local.dir", spark_local_temp_dir)
-            .config("spark.sql.debug.maxToStringFields", 100)
+        # LOCAL mode
+        if self.mode == SparkMode.LOCAL:
+            builder = builder.config(
+                "spark.driver.host", "localhost").master("local[*]")
 
-            .master("local[*]")
-            .getOrCreate()
-        )
-        return spark
+        return builder.getOrCreate()
+
+    def get_jars_and_log4j(self):
+        if self.mode == SparkMode.LOCAL:
+            jars_directory = self.project_root_dir / "jars"
+            jar_files_list = list(jars_directory.glob("*.jar"))
+            jars = ",".join([str(f) for f in jar_files_list])
+            log4j_path = (self.project_root_dir / "log4j.properties").as_uri()
+            return jars, log4j_path
+
+        elif self.mode in (SparkMode.DOCKER, SparkMode.K8S):
+            jars = ",".join(glob.glob("/opt/spark/jars/*.jar"))
+            log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
+            return jars, log4j_path
+        else:
+            # Default fallback to avoid returning None
+            return "", None
 
     def close_spark(self):
         """Close the Spark session."""
