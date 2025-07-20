@@ -14,14 +14,25 @@ from pathlib import Path
 
 import os, json, logging, time, glob
 from dotenv import load_dotenv
+from enum import Enum
+
 # autopep8:on
 
 load_dotenv()
 
 
+class SparkMode(str, Enum):
+    LOCAL = "local"
+    DOCKER = "docker"
+    K8S = "k8s"
+
+
 class PipelineBase(ABC):
 
     def __init__(self, type):
+        self.mode = SparkMode(os.getenv("SPARK_MODE", "local").lower())
+        self.project_root_dir = Path(__file__).resolve().parent
+
         self.type = type
         # Initialize environment variables
         self.BUCKET_NAME = os.getenv("BUCKET_NAME")
@@ -33,6 +44,8 @@ class PipelineBase(ABC):
 
         self.BINANCE_TOPIC = os.getenv("BINANCE_TOPIC")
         self.BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
+        self.SPARK_LOCAL_DIR = os.getenv(
+            "SPARK_LOCAL_DIR", "/tmp/spark")
 
         # Project root directory
         script_file_path = Path(__file__).resolve()
@@ -47,77 +60,75 @@ class PipelineBase(ABC):
 
     def get_spark_session(self, app_name):
         """Returns the single instance of SparkSession"""
-        # Docker:
-        log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
-        jar_files = glob.glob("/opt/spark/jars/*.jar")
-        jars = ",".join(jar_files)
+        jars, log4j_path = self.get_jars_and_log4j()
 
-        # Local:
-        # jars_directory = self.project_root_dir / "jars"
-        # jar_files_list = list(jars_directory.glob("*.jar"))
-        # jars = ",".join([str(f) for f in jar_files_list])
-        # log4j_properties_path = self.project_root_dir / "log4j.properties"
-        # log4j_path = log4j_properties_path.as_uri()
+        builder = SparkSession.builder.appName(app_name)
 
-        # log4j configuration
-        spark_local_temp_dir = (
-            self.project_root_dir / "spark-temp").as_posix()
-        # Create Spark session with S3A support and log4j configuration
-
-        spark = (
-            SparkSession.builder.appName(f"{app_name}")
-            .config("spark.hadoop.fs.s3a.access.key", self.AWS_ACCESS_KEY_ID)
-            .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY)
-            .config(
-                "spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com"
-            )
-            .config(
-                "spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem"
-            )
-            # Points to the S3 bucket
-            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/")
+        # AWS S3 config
+        builder = builder.config("spark.hadoop.fs.s3a.access.key", self.AWS_ACCESS_KEY_ID) \
+            .config("spark.hadoop.fs.s3a.secret.key", self.AWS_SECRET_ACCESS_KEY) \
+            .config("spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com") \
+            .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem") \
+            .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/") \
             .config("spark.jars", jars)
-            .config("spark.hadoop.fs.s3a.connection.maximum", "100")
-            .config("spark.hadoop.fs.s3a.connection.timeout", "5000")
-            .config("spark.hadoop.fs.s3a.attempts.maximum", "3")
-            .config("spark.hadoop.fs.s3a.retry.limit", "3")
+
+        # S3 performance + retry
+        builder = builder.config("spark.hadoop.fs.s3a.connection.maximum", "100") \
+            .config("spark.hadoop.fs.s3a.connection.timeout", "5000") \
+            .config("spark.hadoop.fs.s3a.attempts.maximum", "3") \
+            .config("spark.hadoop.fs.s3a.retry.limit", "3") \
             .config("spark.hadoop.fs.s3a.fast.upload", "true")
-            .config("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2")
+
+        # Spark tuning
+        builder = builder.config("spark.sql.shuffle.partitions", "300") \
+            .config("spark.sql.caseSensitive", "true") \
+            .config("spark.sql.adaptive.enabled", "false") \
+            .config("spark.sql.debug.maxToStringFields", 100) \
+            .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true") \
+            .config("spark.hadoop.mapreduce.fileoutputcommitter.algorithm.version", "2") \
             .config("spark.hadoop.hadoop.metrics.logger", "NONE")
-            .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
-            .config("spark.sql.caseSensitive", "true")
-            .config("spark.sql.adaptive.enabled", "false")
-            .config("spark.sql.streaming.forceDeleteTempCheckpointLocation", "true")
 
-            # Logging configuration
-            .config("spark.driver.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
-            .config("spark.executor.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
-
-            # spark configurations memory and cores
-            .config("spark.sql.shuffle.partitions", "300")
-
-            # Commit to S3
-            .config("spark.sql.sources.commitProtocolClass", "org.apache.spark.internal.io.cloud.PathOutputCommitProtocol")
-            .config("spark.sql.parquet.output.committer.class", "org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter")
-            .config("spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a", "org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory")
-            .config("spark.hadoop.fs.s3a.committer.name", "directory")
+        # Commit to S3
+        builder = builder.config("spark.sql.sources.commitProtocolClass", "org.apache.spark.internal.io.cloud.PathOutputCommitProtocol") \
+            .config("spark.sql.parquet.output.committer.class", "org.apache.spark.internal.io.cloud.BindingParquetOutputCommitter") \
+            .config("spark.hadoop.mapreduce.outputcommitter.factory.scheme.s3a", "org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory") \
+            .config("spark.hadoop.fs.s3a.committer.name", "directory") \
             .config("spark.hadoop.fs.s3a.committer.staging.conflict-mode", "replace")
-            # log4j properties
-            .config(
-                "spark.driver.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
-            ).config(
-                "spark.executor.extraJavaOptions", f"-Dlog4j.configuration={log4j_path}"
-            )
-            # Cleanup settings
-            .config("spark.local.dir", spark_local_temp_dir)
-            .config("spark.sql.debug.maxToStringFields", 100)
-            # Hosting!
-            .config("spark.driver.host", "127.0.0.1")
 
-            .getOrCreate()
-        )
+        # log4j
+        if log4j_path:
+            builder = builder.config("spark.driver.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}") \
+                .config("spark.executor.extraJavaOptions", f"-Dlog4j.configurationFile={log4j_path}")
 
-        return spark
+        # Temp dir
+        temp_dir = (self.project_root_dir / self.SPARK_LOCAL_DIR).as_posix(
+        ) if self.mode == SparkMode.LOCAL else self.SPARK_LOCAL_DIR
+        builder = builder.config("spark.local.dir", temp_dir)
+
+        # Local mode
+        if self.mode == SparkMode.LOCAL:
+            builder = builder.master(
+                "local[*]").config("spark.driver.host", "localhost")
+
+        return builder.getOrCreate()
+
+    def get_jars_and_log4j(self):
+        if self.mode == SparkMode.LOCAL:
+            jars_directory = self.project_root_dir / "jars"
+            jar_files_list = list(jars_directory.glob("*.jar"))
+            jars = ",".join([str(f) for f in jar_files_list])
+            log4j_properties_path = self.project_root_dir / "log4j.properties"
+            log4j_path = log4j_properties_path.as_uri()
+            return jars, log4j_path
+
+        elif self.mode in (SparkMode.DOCKER, SparkMode.K8S):
+            log4j_path = "file:/opt/spark-dist/conf/log4j.properties"
+            jar_files = glob.glob("/opt/spark/jars/*.jar")
+            jars = ",".join(jar_files)
+            return jars, log4j_path
+        else:
+            # Default fallback to avoid returning None
+            return "", None
 
     def avro_type_to_spark_type(self, avro_type):
         """Map basic Avro types to PySpark types"""
