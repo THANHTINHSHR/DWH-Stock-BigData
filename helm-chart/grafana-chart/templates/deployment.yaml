@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-metadata:
   name: {{ include "grafana-chart.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -19,6 +18,9 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
           env:
             - name: GF_SECURITY_ADMIN_USER
               valueFrom:
@@ -39,5 +41,7 @@ spec:
               value: {{ .Values.env.grafana_url }}
             - name: GRAFANA_DB_URL
               value: {{ .Values.env.grafana_db_url }}
-
-
+      volumes:
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: grafana-pvc
