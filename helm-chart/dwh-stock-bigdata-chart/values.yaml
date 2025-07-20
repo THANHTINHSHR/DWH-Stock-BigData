@@ -7,6 +7,9 @@ image:
   
 
 env:
+  spark:
+    SPARK_LOCAL_DIR: /tmp/spark
+    SPARK_MODE: k8s
   core:
     WSS_ENDPOINT: wss://stream.binance.com:9443/ws
     URL_TOP: https://api.binance.com/api/v3/ticker/24hr

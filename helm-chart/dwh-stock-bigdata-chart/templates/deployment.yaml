@@ -24,6 +24,11 @@ spec:
                 name: {{ .Release.Name }}-secret
 
           env:
+            # spark
+            - name: SPARK_LOCAL_DIR
+              value: {{ .Values.env.spark.SPARK_LOCAL_DIR }}
+            - name: SPARK_MODE
+              value: {{ .Values.env.spark.SPARK_MODE }}
             # core
             - name: WSS_ENDPOINT
               value: {{ .Values.env.core.WSS_ENDPOINT }}
