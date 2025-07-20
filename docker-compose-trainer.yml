@@ -1,14 +1,14 @@
 services:
   trainer:
-    container_name: informerAI-trainer
-    image: informer-ai
-    env_file:
-      - ./.env
     build:
       context: .
-      dockerfile: docker/Dockerfile.informer
-    command: python3 core/streaming/informerAI/train/ai_ticker_trainer.py
+      dockerfile: docker-file/Dockerfile.informer
+    container_name: informerAI-trainer
+    image: informer-ai:2.0
     restart: no
+    env_file:
+      - ./.env
+    command: python3 core/streaming/informerAI/train/ai_ticker_trainer.py
     networks:
       - kafka_network 
 networks:

@@ -3,10 +3,8 @@ services:
     container_name: dwh-stock-bigdata
     build:
       context: .
-      dockerfile: docker/Dockerfile.project
-    image: dwh-stock-bigdata
-    ports:
-      - "8000:8000"
+      dockerfile: docker-file/Dockerfile.project
+    image: dwh-stock-bigdata:2.0
     env_file:
       - ./.env
     environment:

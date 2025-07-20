@@ -1,31 +1,39 @@
 services:
-  my-kafka:
-    image: confluentinc/cp-kafka:7.6.1 # Pin to a specific, stable version
-    container_name: my-kafka
+  bitnami-kafka:
+    build:
+      context: . 
+      dockerfile: docker-file/Dockerfile.bitnami-kafka
+    container_name: bitnami-kafka
+    image: bitnami-kafka:4.0.0-debian-12-r8
     restart: always
     ports:
-      - "9092:9092" # client (broker)
-      - "9093:9093" # controller
+      - "9092:9092"   # broker
+      - "9093:9093"   # controller
     environment:
-      KAFKA_NODE_ID: ${KAFKA_NODE_ID}
-      KAFKA_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}
-      KAFKA_LISTENERS: ${KAFKA_LISTENERS}
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}
-      KAFKA_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}
-      KAFKA_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES}
-      KAFKA_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}
-      KAFKA_LOG_DIRS: ${KAFKA_LOG_DIRS}
-      CLUSTER_ID: ${CLUSTER_ID}
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_NODE_ID: ${KAFKA_NODE_ID}
+      KAFKA_CFG_PROCESS_ROLES: ${KAFKA_PROCESS_ROLES}                        # "broker,controller"
+      KAFKA_CFG_LISTENERS: ${KAFKA_LISTENERS}                                # "PLAINTEXT://:9092,CONTROLLER://:9093"
+      KAFKA_CFG_ADVERTISED_LISTENERS: ${KAFKA_ADVERTISED_LISTENERS}          # "PLAINTEXT://localhost:9092"
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: ${KAFKA_LISTENER_SECURITY_PROTOCOL_MAP}  # "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: ${KAFKA_CONTROLLER_QUORUM_VOTERS}  # "1@localhost:9093"
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES} # "CONTROLLER"
+      KAFKA_CFG_LOG_DIRS: ${KAFKA_LOG_DIRS}                                   # "/bitnami/kafka/data"
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+
     networks:
       - kafka_network
 
   kafka-ui:
-    image: provectuslabs/kafka-ui:v0.7.2 # Pin to a specific version
+    build:
+      context: . 
+      dockerfile: docker-file/Dockerfile.kafka-ui 
     container_name: kafka-ui
+    image: kafka-ui:v0.7.2
     restart: always
     depends_on:
-      - my-kafka
+      - bitnami-kafka
     ports:
       - "8080:8080"
     environment:
@@ -35,8 +43,11 @@ services:
     networks:
       - kafka_network
   influxdb:
-    image: influxdb:2.7 # Pin to a specific major/minor version
+    build:
+      context: . 
+      dockerfile: docker-file/Dockerfile.influxdb 
     container_name: influxdb
+    image: influxdb:2.7.0
     # Environment variables for InfluxDB 2.x initial setup
     environment:
       DOCKER_INFLUXDB_INIT_MODE: ${INFLUXDB_INIT_MODE:-setup} # Default to 'setup' if not set
@@ -54,8 +65,11 @@ services:
       - kafka_network
 
   grafana:
-    image: grafana/grafana:10.4.2 # Pin to a specific version
+    build:
+      context: . 
+      dockerfile: docker-file/Dockerfile.grafana 
     container_name: grafana
+    image: grafana:10.4.2
     environment: # Use variables from .env for Grafana admin
       GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
@@ -72,10 +86,9 @@ services:
   superset:
     build:
       context: . 
-      dockerfile: docker/Dockerfile.superset 
-    image: apache/superset
-
+      dockerfile: docker-file/Dockerfile.superset 
     container_name: superset
+    image: superset:5.0.0
     ports:
       - "8088:8088"
     environment:
