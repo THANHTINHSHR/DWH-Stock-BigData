@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: superset-custom
+  tag: 5.0.0
+  pullPolicy: IfNotPresent
+
+secret:
+  secret_key: "xxx-hiden"
+  admin_username: admin
+  admin_password: xxx-hiden
+  admin_email: thanhtinh14.06.1998@gamil.com
+  # The SQLAlchemy URI for the Superset database ( make sure to replace with your actual database URI )
+  sqlalchemy_database_uri: postgresql+psycopg2://old_silver:xxx-hiden@postgres-release-postgresql:5432/superset
+

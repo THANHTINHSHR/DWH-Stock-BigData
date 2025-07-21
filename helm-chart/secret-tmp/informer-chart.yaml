@@ -1,0 +1,17 @@
+secret:
+  core:
+  aws:
+    AWS_ACCESS_KEY_ID: xxx-hiden
+    AWS_SECRET_ACCESS_KEY: xxx-hiden
+    AWS_DEFAULT_REGION : us-east-1
+  kafka:
+  grafana:
+    GRAFANA_KEY: xxx-hiden
+    GRAFANA_ADMIN_USER: admin
+    GRAFANA_ADMIN_PASSWORD: xxx-hiden
+  influxdb:
+    INFLUXDB_TOKEN: xxx-hiden
+  superset:
+    SUPERSET_USERNAME: admin
+    SUPERSET_PASSWORD: xxx-hiden
+    SUPERSET_SECRET_KEY: xxx-hiden

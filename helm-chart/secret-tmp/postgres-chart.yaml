@@ -1,0 +1,9 @@
+auth:
+  username: old_silver
+  password: "xxx-hiden"
+  postgresPassword: "xxx-hiden"
+  replicationPassword: "xxx-hiden"
+  secretKeys:
+    adminPasswordKey: postgres-password
+    userPasswordKey: password
+    replicationPasswordKey: replication-password
