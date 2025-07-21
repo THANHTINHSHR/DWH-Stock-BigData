@@ -11,7 +11,6 @@ This branch introduces major improvements in both infrastructure and data proces
 - [Architecture](#architecture)
 - [Knowledge Improvements](#knowledge-improvements)
 - [How to Run](#how-to-run)
-- [Screenshots / Demo](#screenshots--demo)
 - [Reference to Old Version](#reference-to-old-version)
 
 ## 📌 Overview
@@ -78,6 +77,8 @@ For full details, refer to the original [README.md](https://github.com/THANHTINH
   - Apply proper Helm structuring to separate templates, values, and environment-specific configs.
   - Ensure services communicate smoothly within the same namespace.
   - Familiar with Helm release lifecycles: install, upgrade, rollback, and delete.
+  - Helm chart:
+![Helm Chart Folder](images/helm-chart-folder.png)
 
 ## 🚀 How to Run
 
@@ -156,11 +157,6 @@ minikube start --driver=docker
 > 📌 **Note:**  
 > You can also run the project using Docker instead of Minikube.  
 > Ensure your `.env` file is correctly filled with required environment variables.
-
-
-
-## 🖼️ Screenshots / Demo
-GIF or image/video link showing it in action.
 
 ## 🔗 Reference to Old Version
 For full project structure and previous setup, check:
