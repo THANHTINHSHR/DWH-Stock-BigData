@@ -1,0 +1,7 @@
+------------ AIRFLOW ORCHESTRATION ------------
+- mất khá nhiều thời gian để hiểu được khái niệm và sự khác biệt của nó so với cái trước mình dùng airflow dạng build-in
+- lúc trước mình dùng dạng build in là dùng airflow làm base image rồi phát triển app trên đó, 
+    sau đó tạo dags và gọi cmd trong das để thực thi, thức là dags ở trong app luôn ( đó là lý do tại sao gọi là build in)
+- còn bây h thì khác, airflow sẽ nằm ở bên ngoài, app không chứa dags, các dags bây h được xem như là 1 tờ hướng dẫn
+    sử dụng cổ máy (image hay app), chỉ cachs bật nút gì (trigger sự kiện), cacsi nào trước, cái nào sau 
+    và Airflow hoàn toàn orchestration quá trình , chỉ điều phối, công việc chia càng nhỏ thì càng rõ ràng, dễ bảo trì.
