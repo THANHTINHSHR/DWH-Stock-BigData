@@ -92,15 +92,14 @@ class ProducerManager:
                     f"🔄 WebSocket error for {url}: {e}. Reconnecting in 3s...")
                 await asyncio.sleep(3)
 
-    async def start_publish(self):
+    async def start_publish(self, stream_type="trade"):
         """Start multiple WebSocket connections concurrently"""
         tasks = []
         for symbol in TopicCreator.TOPCOIN:
-            for stream_type in self.STREAM_TYPES:
-                self.logger.info(
-                    f"📡 Preparing to start WebSocket stream for {symbol}@{stream_type}"
-                )
-                tasks.append(self.fetch_stream(stream_type, symbol))
+            self.logger.info(
+                f"📡 Preparing to start WebSocket stream for {symbol}@{stream_type}"
+            )
+            tasks.append(self.fetch_stream(stream_type, symbol))
         await asyncio.gather(*tasks)
 
 
