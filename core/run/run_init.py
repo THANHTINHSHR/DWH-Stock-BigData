@@ -4,16 +4,12 @@ from core.streaming.grafana.grafana_creator import GrafanaCreator
 from core.streaming.athena.athena_creator import AthenaCreator
 from core.streaming.superset.superset_creator import SupersetCreator
 from core.streaming.kafka.topic_creator import TopicCreator
-from core.streaming.spark.trade_pipeline import TradePipeline
-from core.streaming.spark.ticker_pipeline import TickerPipeline
-from core.streaming.spark.book_ticker_pipeline import BookTickerPipeline
-from concurrent.futures import ThreadPoolExecutor, wait
-import asyncio
+
 import logging
 
 
 # Main class to orchestrate the entire streaming process.
-class RunStreaming:
+class RunInit:
     def __init__(self):
         logging.basicConfig(
             # Configure basic logging for the application.
@@ -22,22 +18,11 @@ class RunStreaming:
             datefmt="%Y-%m-%d %H:%M:%S",
         )
         self.topic_creator = TopicCreator()
-        self.producer = ProducerManager()
         self.influxDB = InfluxDBConnector()
         # Initialize various components needed for the streaming pipeline.
         self.grafana = GrafanaCreator()
         self.athena = AthenaCreator()
         self.superset = SupersetCreator()
-
-        # Initialize Spark streaming pipelines
-        self.trade_pipeline = TradePipeline()
-        self.ticker_pipeline = TickerPipeline()
-        self.book_ticker_pipeline = BookTickerPipeline()
-
-    @staticmethod
-    def run_async_producer(producer):
-        # Static method to run the Kafka producer's asynchronous publishing process.
-        asyncio.run(producer.start_publish())
 
     def run(self):
         # Main method to start all parts of the streaming application.
@@ -56,22 +41,6 @@ class RunStreaming:
         # Create Superset Dataset and chart.
         self.superset.run_superset()
 
-        # Run producer + Spark pipelines concurrently
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            # Submit Kafka producer and Spark streaming pipelines to run in parallel.
-            producer_future = executor.submit(
-                self.run_async_producer, self.producer)
-            trade_pipeline_future = executor.submit(
-                self.trade_pipeline.run_streams)
-
-            ticker_pipeline_future = executor.submit(
-                self.ticker_pipeline.run_streams)
-            book_ticker_pipeline_future = executor.submit(
-                self.book_ticker_pipeline.run_streams
-            )
-            wait([producer_future, trade_pipeline_future,
-                 ticker_pipeline_future, book_ticker_pipeline_future])
-
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -81,10 +50,10 @@ if __name__ == "__main__":
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     try:
-        logging.info("📡🟢📡Starting Spark streaming pipeline📡🟢📡...")
-        run = RunStreaming()
+        logging.info("📡🟢📡Starting Init Project streaming pipeline📡🟢📡...")
+        run = RunInit()
         run.run()
     except Exception as e:
-        logging.error(f"❌ Error when running Spark pipeline{e}")
+        logging.error(f"❌ Error when init Project : {e}")
     finally:
-        logging.info("✅✅Spark streaming pipeline finished running✅✅")
+        logging.info("✅✅ Finish Init Project ✅✅")
