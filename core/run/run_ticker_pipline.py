@@ -1,7 +1,6 @@
 from core.streaming.kafka.producer_manager import ProducerManager
 from core.streaming.spark.ticker_pipeline import TickerPipeline
 from core.run.run_base import RunBase
-import asyncio
 import logging
 
 # Main class to orchestrate the entire streaming process.
