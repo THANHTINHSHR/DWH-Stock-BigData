@@ -1,15 +1,62 @@
 services:
-  dwh_stock_bigdata:
-    container_name: dwh-stock-bigdata
+  dwh_stock_bigdata_init:
+    container_name: project_init
     build:
       context: .
       dockerfile: docker-file/Dockerfile.project
+
     image: dwh-stock-bigdata:2.0
     env_file:
       - ./.env
-    environment:
-      - PYTHONPATH=/app
-    restart: unless-stopped
+    command:  ["python3", "core/run/run_init.py"]
+    restart: no 
+    networks:
+      - kafka_network
+
+  dwh_stock_bigdata_trade_pipeline:
+    container_name: project_trade_pipeline
+    build:
+      context: .
+      dockerfile: docker-file/Dockerfile.project
+
+    image: dwh-stock-bigdata:2.0
+    depends_on:
+    - dwh_stock_bigdata_init
+    env_file:
+      - ./.env
+    command:  ["python3", "core/run/run_trade_pipline.py"]
+    restart: on-failure
+    networks:
+      - kafka_network
+
+  dwh_stock_bigdata_ticker_pipeline:
+    container_name: project_ticker_pipeline
+    build:
+      context: .
+      dockerfile: docker-file/Dockerfile.project
+
+    image: dwh-stock-bigdata:2.0
+    depends_on:
+    - dwh_stock_bigdata_init
+    env_file:
+      - ./.env
+    command:  ["python3", "core/run/run_ticker_pipline.py"]
+    restart: on-failure
+    networks:
+      - kafka_network
+  dwh_stock_bigdata_book_ticker_pipeline:
+    container_name: project_book_ticker_pipeline
+    build:
+      context: .
+      dockerfile: docker-file/Dockerfile.project
+
+    image: dwh-stock-bigdata:2.0
+    depends_on:
+    - dwh_stock_bigdata_init
+    env_file:
+      - ./.env
+    command:  ["python3", "core/run/run_book_ticker_pipline.py"]
+    restart: on-failure
     networks:
       - kafka_network
 
