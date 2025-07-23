@@ -25,18 +25,13 @@ class ProducerManager:
         self.SCHEMA_REGISTRY_URL = os.getenv("SCHEMA_REGISTRY_URL")
         # List of producers base on coin
         self.producers = {}
+        self.topic_creator = TopicCreator()
+        self.TOPCOIN = self.topic_creator.get_TOPCOIN()
         if not TopicCreator.TOPCOIN:
-            self.logger.warning(
-                "TOPCOIN list is empty. ProducerManager might not function as expected."
-            )
-        else:
-            self.load_top_coins_list()
+            "TOPCOIN list is empty. ProducerManager might not function as expected."
+
         self.logger.info(f"📌 STREAM_TYPES: {self.STREAM_TYPES}")
         self.logger.info(f"TOPCOIN from TopicCreator: {TopicCreator.TOPCOIN}")
-
-    def load_top_coins_list(self):
-        for symbol in TopicCreator.TOPCOIN:
-            self.get_producer(symbol)
 
     def get_producer(self, symbol):
         # Create producer base on symbol or return producer if exist
@@ -95,7 +90,7 @@ class ProducerManager:
     async def start_publish(self, stream_type="trade"):
         """Start multiple WebSocket connections concurrently"""
         tasks = []
-        for symbol in TopicCreator.TOPCOIN:
+        for symbol in self.TOPCOIN:
             self.logger.info(
                 f"📡 Preparing to start WebSocket stream for {symbol}@{stream_type}"
             )
