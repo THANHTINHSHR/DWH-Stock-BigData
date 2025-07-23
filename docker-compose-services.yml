@@ -9,6 +9,8 @@ services:
     ports:
       - "9092:9092"   # broker
       - "9093:9093"   # controller
+    volumes:
+      - kafka_data:/bitnami/kafka
     environment:
       KAFKA_ENABLE_KRAFT: "yes"
       KAFKA_CFG_NODE_ID: ${KAFKA_NODE_ID}
@@ -20,6 +22,8 @@ services:
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: ${KAFKA_CONTROLLER_LISTENER_NAMES} # "CONTROLLER"
       KAFKA_CFG_LOG_DIRS: ${KAFKA_LOG_DIRS}                                   # "/bitnami/kafka/data"
       KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_KRAFT_CLUSTER_ID: ${KAFKA_KRAFT_CLUSTER_ID}
+
       ALLOW_PLAINTEXT_LISTENER: "yes"
 
     networks:
@@ -115,6 +119,7 @@ services:
       - kafka_network
 
 volumes:
+  kafka_data:
   influxdb_data:
   grafana_data:
   superset_home:
