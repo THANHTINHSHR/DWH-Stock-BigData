@@ -19,6 +19,6 @@ with DAG(
         timeout=600,
         poke_interval=30,
     )
-    image = "dwh-stock-bigdata:2.0"
+    image = "dwh-stock-bigdata:3.0"
     ticker_pipeline = TickerPipelineTask(image).build()
     wait_for_init >> ticker_pipeline

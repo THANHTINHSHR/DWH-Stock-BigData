@@ -10,6 +10,6 @@ with DAG(
     schedule_interval=None,
     catchup=False,
 ) as dag:
-    image = "dwh-stock-bigdata:2.0"
+    image = "dwh-stock-bigdata:3.0"
     project_init_task = ProjectInitTask(image).build()
     project_init_task

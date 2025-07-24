@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: docker-file/Dockerfile.project
 
-    image: dwh-stock-bigdata:2.0
+    image: dwh-stock-bigdata:3.0
     env_file:
       - ./.env
     command:  ["python3", "core/run/run_init.py"]
@@ -19,7 +19,7 @@ services:
       context: .
       dockerfile: docker-file/Dockerfile.project
 
-    image: dwh-stock-bigdata:2.0
+    image: dwh-stock-bigdata:3.0
     depends_on:
     - dwh_stock_bigdata_init
     env_file:
@@ -35,7 +35,7 @@ services:
       context: .
       dockerfile: docker-file/Dockerfile.project
 
-    image: dwh-stock-bigdata:2.0
+    image: dwh-stock-bigdata:3.0
     depends_on:
     - dwh_stock_bigdata_init
     env_file:
@@ -50,7 +50,7 @@ services:
       context: .
       dockerfile: docker-file/Dockerfile.project
 
-    image: dwh-stock-bigdata:2.0
+    image: dwh-stock-bigdata:3.0
     depends_on:
     - dwh_stock_bigdata_init
     env_file:
