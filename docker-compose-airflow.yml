@@ -1,0 +1,12 @@
+services:
+  airflow:
+    build:
+      context: .
+      dockerfile: docker-file/Dockerfile.airflow
+    container_name: airflow
+    ports:
+      - "8888:8080"
+    environment:
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+    command: airflow standalone
