@@ -5,3 +5,18 @@
 - còn bây h thì khác, airflow sẽ nằm ở bên ngoài, app không chứa dags, các dags bây h được xem như là 1 tờ hướng dẫn
     sử dụng cổ máy (image hay app), chỉ cachs bật nút gì (trigger sự kiện), cacsi nào trước, cái nào sau 
     và Airflow hoàn toàn orchestration quá trình , chỉ điều phối, công việc chia càng nhỏ thì càng rõ ràng, dễ bảo trì.
+- việc mount dags vào cũng có nhiuef khó khắn và khác biệt, lúc trước t build image rồi bỏ vào luôn (build in) còn bây h thì đó cũng là 1 cách nhưng cũng có cách dùng pvc mount, git sync,...
+- nhanh gọn thì đóng gói vào image luôn, dùng lệnh copy để đưa vào thư mục dags của nó
+- tuy nhiên, có nhiều thứ phải tính toán :
+    + nó đọc dags trực tiếp từ folder dags, ko cho phép thư mục con. các phiên bản airfloe khác nhau có những cải tiến khác nhau.
+    + cách gọi hàm, tham số khác nhau, 
+        ví dụ airflow.providers.standard.sensors.external_task.ExternalTaskSensor import ExternalTaskSensor  
+        và airflow.providers.standard.sensors.external_task import ExternalTaskSensor .
+        hay     schedule với schedule_interval,...
+    + cách nó load dag, helm cảu bitnami có cơ chế lựa chọn load từ db hay dags folder theo phiên abnr airflow, vì vậy cần chỉnh lại
+    standalone_dag_processor: False để nó quét được dag.
+    + còn cần phải có globals()["dag"] = dag trong dag file để nó nhận diện được.
+    + cơ chế này còn có chỏ chưa rõ, việc build-in nhwung mà vẫn persistence= true thì nó sẽ tạo ra 1 pvc , pvc này sẽ ghi đè
+        thư mục vì vậy Dagprocesser sẽ ko tìm ra khi quét mặc dùi dùng ls vẫn thấy file - vì nó trỏ đến hai nơi kahcs nhau dù cùng địa chỉ
+        cần persistence=false. 
+    + à, còn from airflow.sensors.external_task import ExternalTaskSensor nữa chứ, nó bị thay đổi r

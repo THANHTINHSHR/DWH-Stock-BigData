@@ -1,2 +1,10 @@
 FROM apache/airflow:3.0.2
 
+USER airflow
+
+COPY requirements_airflow.txt /
+RUN pip install --no-cache-dir --break-system-packages -r /requirements_airflow.txt
+
+COPY airflow/dags/ /opt/airflow/dags/
+
+ENV PYTHONOPTIMIZE=0

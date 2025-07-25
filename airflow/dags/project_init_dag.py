@@ -1,15 +1,19 @@
 from airflow import DAG  # type: ignore
-from airflow.tasks.project_init_task import ProjectInitTask
-from airflow.utils.dates import days_ago  # type: ignore
+from tasks.project_init_task import ProjectInitTask
+from datetime import datetime, timedelta
+
 default_args = {
     "owner": "airflow",
-    "start_date": days_ago(1),
+    "start_date": datetime.now() - timedelta(days=1),
+
 }
 with DAG(
     dag_id="Project_init_dag",
-    schedule_interval=None,
+    schedule="@once",
+    default_args=default_args,
     catchup=False,
 ) as dag:
     image = "dwh-stock-bigdata:3.0"
     project_init_task = ProjectInitTask(image).build()
-    project_init_task
+    task = project_init_task
+globals()["Project_init_dag"] = dag

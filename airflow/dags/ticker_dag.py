@@ -1,15 +1,17 @@
 from airflow import DAG  # type: ignore
-from airflow.tasks.ticker_pipline_task import TickerPipelineTask
-from airflow.utils.dates import days_ago  # type: ignore
+from tasks.ticker_pipline_task import TickerPipelineTask
+from datetime import datetime, timedelta
 from airflow.sensors.external_task import ExternalTaskSensor  # type: ignore
 
 default_args = {
     "owner": "airflow",
-    "start_date": days_ago(1),
+    "start_date": datetime.now() - timedelta(days=1),
+
 }
 with DAG(
     dag_id="Ticker_dag",
-    schedule_interval=None,
+    schedule=None,
+    default_args=default_args,
     catchup=False,
 ) as dag:
     wait_for_init = ExternalTaskSensor(
@@ -22,3 +24,4 @@ with DAG(
     image = "dwh-stock-bigdata:3.0"
     ticker_pipeline = TickerPipelineTask(image).build()
     wait_for_init >> ticker_pipeline
+globals()["Ticker_dag"] = dag

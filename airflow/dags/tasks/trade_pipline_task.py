@@ -1,15 +1,14 @@
 
-from airflow import DAG
-from airflow.providers.cncf.kubernetes.operators.kubernetes_pod import KubernetesPodOperator
-from datetime import datetime
+from airflow import DAG  # type: ignore
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
 
 
-class TickerPipelineTask:
+class TradePipelineTask:
     def __init__(self, image, namespace="default"):
-        self.task_id = "Ticker_Pipe_line_Task"
+        self.task_id = "Trade_Pipe_line_Task"
         self.image = image
         self.cmds = ["python3"]
-        self.arguments = ["core/run/run_ticker_pipline.py"]
+        self.arguments = ["core/run/run_trade_pipline.py"]
         self.namespace = namespace
 
     def build(self):
