@@ -1,7 +1,7 @@
 from airflow import DAG  # type: ignore
 from tasks.book_ticker_pipline_task import BookTickerPipelineTask
 from datetime import datetime, timedelta
-from airflow.sensors.external_task import ExternalTaskSensor  # type: ignore
+from airflow.providers.standard.sensors.external_task import ExternalTaskSensor  # type: ignore
 
 default_args = {
     "owner": "airflow",
