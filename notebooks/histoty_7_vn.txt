@@ -20,3 +20,6 @@
         thư mục vì vậy Dagprocesser sẽ ko tìm ra khi quét mặc dùi dùng ls vẫn thấy file - vì nó trỏ đến hai nơi kahcs nhau dù cùng địa chỉ
         cần persistence=false. 
     + à, còn from airflow.sensors.external_task import ExternalTaskSensor nữa chứ, nó bị thay đổi r
+- Vấn đề với việc load env trong airflow, vì airflow orchesration dùng image, mà image thì chưa run, mà chưa run thì ko có env, mà ko có env thì ko chạy dc nên cần phải laod vào
+    + mà load từ đâu , t đang làm bên k8s nên load từ cluster k8s tức là configmap và secret,
+    + nhwung mà t mất 1 ngày để vọc ra airflow bản > 2.7 đã bỏ configmap , chỉ nhận secret, vì vận cẩn convvert configmap - secret.
