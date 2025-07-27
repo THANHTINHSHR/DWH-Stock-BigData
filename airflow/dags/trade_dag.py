@@ -54,7 +54,7 @@ with DAG(
         external_dag_id="Project_init_dag",
         external_task_id="Project_init_Task",
         # execution_date_fn=lambda _: default_args["start_date"],
-        execution_date_fn=lambda ctx: ctx.execution_date,
+        execution_date_fn=lambda ctx: ctx.logical_date,
         check_existence=False,
         mode="poke",
         timeout=600,
