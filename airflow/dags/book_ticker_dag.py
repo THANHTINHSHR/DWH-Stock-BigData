@@ -54,6 +54,7 @@ with DAG(
         task_id="wait_for_project_init",
         external_dag_id="Project_init_dag",
         external_task_id="Project_init_Task",
+        execution_date_fn=lambda _: default_args["start_date"],
         check_existence=False,
         mode="poke",
         timeout=600,
