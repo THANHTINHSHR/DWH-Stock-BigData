@@ -51,10 +51,10 @@ with DAG(
 ) as dag:
     wait_for_init_task = ExternalTaskSensor(
         task_id='Wait_For_Init_Task',
-        external_dag_id='Project_init_dag',           # tên DAG bạn muốn kiểm tra
-        external_task_id='Project_init_Task',         # tên task trong DAG kia
+        external_dag_id='Project_init_dag',
+        external_task_id='Project_init_Task',
         mode='poke',
-        timeout=600,                              # thời gian chờ
+        timeout=600,
         poke_interval=30,
         allowed_states=['success'],
         failed_states=['failed', 'skipped']

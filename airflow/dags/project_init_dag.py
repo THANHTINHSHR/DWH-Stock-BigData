@@ -53,6 +53,5 @@ with DAG(
 ) as dag:
     image = "dwh-stock-bigdata:3.0"
     project_init_task = ProjectInitTask(image, secrets=secrets).build()
-    task = project_init_task
-
+    project_init_task
 globals()["Project_init_dag"] = dag
