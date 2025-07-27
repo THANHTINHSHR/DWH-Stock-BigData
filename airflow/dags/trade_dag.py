@@ -1,7 +1,7 @@
 from airflow import DAG  # type: ignore
 from tasks.trade_pipline_task import TradePipelineTask
 from datetime import datetime, timedelta
-from airflow.providers.standard.sensors.external_task import ExternalTaskSensor  # type: ignore
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator  # type: ignore
 from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 default_args = {
     "owner": "airflow",
@@ -49,18 +49,16 @@ with DAG(
     default_args=default_args,
     catchup=False,
 ) as dag:
-    wait_for_init_task = ExternalTaskSensor(
-        task_id='Wait_For_Init_Task',
-        external_dag_id='Project_init_dag',
-        external_task_id='Project_init_Task',
-        mode='poke',
-        timeout=600,                              # thời gian chờ
-        poke_interval=30,
+    trigger_init_dag = TriggerDagRunOperator(
+        task_id='trigger_project_init',
+        trigger_dag_id='Project_init_dag',
+        wait_for_completion=True,
+        reset_dag_run=True,  # xóa run cũ nếu cùng execution_date
         allowed_states=['success'],
         failed_states=['failed', 'skipped']
     )
 
     image = "dwh-stock-bigdata:3.0"
     trade_pipeline = TradePipelineTask(image, secrets=secrets).build()
-    wait_for_init_task >> trade_pipeline
+    trigger_init_dag >> trade_pipeline
 globals()["Trade_dag"] = dag
