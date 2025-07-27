@@ -55,4 +55,3 @@ with DAG(
     image = "dwh-stock-bigdata:3.0"
     ticker_pipeline = TickerPipelineTask(image, secrets=secrets).build()
     ticker_pipeline
-globals()["Ticker_dag"] = dag
