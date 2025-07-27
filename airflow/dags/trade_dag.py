@@ -49,8 +49,18 @@ with DAG(
     default_args=default_args,
     catchup=False,
 ) as dag:
+    wait_for_init_task = ExternalTaskSensor(
+        task_id='Wait_For_Init_Task',
+        external_dag_id='Project_init_dag',
+        external_task_id='Project_init_Task',
+        mode='poke',
+        timeout=600,                              # thời gian chờ
+        poke_interval=30,
+        allowed_states=['success'],
+        failed_states=['failed', 'skipped']
+    )
 
     image = "dwh-stock-bigdata:3.0"
     trade_pipeline = TradePipelineTask(image, secrets=secrets).build()
-    trade_pipeline
+    wait_for_init_task >> trade_pipeline
 globals()["Trade_dag"] = dag
