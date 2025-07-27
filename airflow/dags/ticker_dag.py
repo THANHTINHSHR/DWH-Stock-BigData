@@ -51,7 +51,16 @@ with DAG(
     default_args=default_args,
     catchup=False,
 ) as dag:
-
+    wait_for_init = ExternalTaskSensor(
+        task_id="wait_for_project_init",
+        external_dag_id="Project_init_dag",
+        external_task_id="Project_init_Task",
+        execution_date_fn=lambda _: default_args["start_date"],
+        check_existence=False,
+        mode="poke",
+        timeout=600,
+        poke_interval=30,
+    )
     image = "dwh-stock-bigdata:3.0"
     ticker_pipeline = TickerPipelineTask(image, secrets=secrets).build()
     ticker_pipeline

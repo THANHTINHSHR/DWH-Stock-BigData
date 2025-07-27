@@ -10,7 +10,7 @@ class BookTickerPipelineTask:
         self.image = image
         self.cmds = ["python3"]
         self.arguments = ["core/run/run_book_ticker_pipline.py"]
-        self.namespace = namespace,
+        self.namespace = namespace
         self.secrets = secrets
 
     def build(self):

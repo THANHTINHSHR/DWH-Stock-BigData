@@ -11,7 +11,7 @@ class InformerPredictTask:
         self.cmds = ["python3"]
         self.arguments = [
             "core/streaming/informerAI/predict/ai_ticker_predictor.py"]
-        self.namespace = namespace,
+        self.namespace = namespace
         self.secrets = secrets
 
     def build(self):
