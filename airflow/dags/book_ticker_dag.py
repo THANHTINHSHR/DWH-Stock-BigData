@@ -5,7 +5,7 @@ from airflow.providers.standard.sensors.external_task import ExternalTaskSensor 
 from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 default_args = {
     "owner": "airflow",
-    "start_date": datetime.now() - timedelta(days=1),
+    "start_date": datetime(2025, 7, 27, 3, 46, 37),
 
 }
 
@@ -53,8 +53,7 @@ with DAG(
     wait_for_init = ExternalTaskSensor(
         task_id="wait_for_project_init",
         external_dag_id="Project_init_dag",
-        external_task_id=None,
-        execution_date_fn=lambda _: None,
+        external_task_id="Project_init_Task",
         check_existence=False,
         mode="poke",
         timeout=600,

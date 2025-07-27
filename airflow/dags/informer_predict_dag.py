@@ -1,11 +1,12 @@
 from airflow import DAG  # type: ignore
-from tasks.trade_pipline_task import TradePipelineTask
+from tasks.informer_predict_task import InformerPredictTask
 from datetime import datetime, timedelta
 from airflow.providers.standard.sensors.external_task import ExternalTaskSensor  # type: ignore
 from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 default_args = {
     "owner": "airflow",
     "start_date": datetime(2025, 7, 27, 3, 46, 37),
+
 }
 secret_keys = [
     # aiSpark
@@ -44,7 +45,7 @@ secrets = [
     for key in secret_keys
 ]
 with DAG(
-    dag_id="Trade_dag",
+    dag_id="Predict_dag",
     schedule=None,
     default_args=default_args,
     catchup=False,
@@ -58,7 +59,7 @@ with DAG(
         timeout=600,
         poke_interval=30,
     )
-    image = "dwh-stock-bigdata:3.0"
-    trade_pipeline = TradePipelineTask(image, secrets=secrets).build()
-    wait_for_init >> trade_pipeline
-globals()["Trade_dag"] = dag
+    image = "informer-ai:3.0"
+    predict_task = InformerPredictTask(image, secrets=secrets).build()
+    wait_for_init >> predict_task
+globals()["Predict_dag"] = dag

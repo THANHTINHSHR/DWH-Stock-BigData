@@ -5,7 +5,7 @@ from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 
 default_args = {
     "owner": "airflow",
-    "start_date": datetime.now() - timedelta(days=1),
+    "start_date": datetime(2025, 7, 27, 3, 46, 37),
 }
 
 secret_keys = [
