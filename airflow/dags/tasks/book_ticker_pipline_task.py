@@ -1,11 +1,5 @@
-
-from airflow import DAG  # type: ignore
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-
-
 class BookTickerPipelineTask:
-    def __init__(self, image, namespace="default", secrets: Secret = None):
+    def __init__(self, image, namespace="default", secrets=None):
         self.task_id = "Book_Ticker_Pipe_line_Task"
         self.image = image
         self.cmds = ["python3"]
@@ -14,6 +8,9 @@ class BookTickerPipelineTask:
         self.secrets = secrets
 
     def build(self):
+        # Lazy import để tránh nặng khi Airflow scan DAG
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
+
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,
@@ -24,5 +21,4 @@ class BookTickerPipelineTask:
             get_logs=True,
             is_delete_operator_pod=True,
             secrets=self.secrets
-
         )
