@@ -2,7 +2,7 @@ from airflow import DAG  # type: ignore
 from tasks.trade_pipline_task import TradePipelineTask
 from datetime import datetime
 from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-from airflow.sensors.sql import SqlSensor  # type: ignore
+from airflow.providers.common.sql.sensors.sql import SqlSensor  # type: ignore
 
 
 default_args = {
