@@ -5,7 +5,7 @@ from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 from airflow.operators.python import PythonOperator  # type: ignore
 
 # IMPORT FOR AIRFLOW 3.0.2
-from airflow.dag_run import DagRun  # type: ignore
+from airflow.models.dagrun import DagRun  # type: ignore
 from airflow.utils.state import DagRunState  # type: ignore
 from airflow.utils.session import NEW_SESSION  # type: ignore
 from airflow.exceptions import AirflowFailException  # type: ignore
