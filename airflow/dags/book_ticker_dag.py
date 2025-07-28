@@ -1,7 +1,7 @@
 from airflow import DAG  # type: ignore
 from datetime import datetime
 from airflow.providers.common.sql.sensors.sql import SqlSensor  # type: ignore
-from tasks.book_ticker_pipeline_task import BookTickerPipelineTask  # type: ignore
+from tasks.book_ticker_pipline_task import BookTickerPipelineTask
 
 
 def load_secrets():
