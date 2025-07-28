@@ -56,7 +56,7 @@ def check_init_success(**kwargs):
     if success_flag is True:
         print("✅ Project_init_dag success.")
     else:
-        raise ValueError("❌ Task in Project_init_dag Failed. ")
+        raise ValueError("❌ Task Project_init_dag Failed. ")
 
 
 with DAG(
