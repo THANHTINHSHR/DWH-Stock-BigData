@@ -2,13 +2,7 @@ from airflow import DAG  # type: ignore
 from tasks.trade_pipline_task import TradePipelineTask
 from datetime import datetime
 from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-from airflow.operators.python import PythonOperator  # type: ignore
-
-# IMPORT FOR AIRFLOW 3.0.2
-from airflow.models.dagrun import DagRun  # type: ignore
-from airflow.utils.state import DagRunState  # type: ignore
-from airflow.utils.session import NEW_SESSION  # type: ignore
-from airflow.exceptions import AirflowFailException  # type: ignore
+from airflow.sensors.sql import SqlSensor  # type: ignore
 
 
 default_args = {
@@ -53,18 +47,6 @@ secrets = [
     for key in secret_keys
 ]
 
-# c1
-
-
-def check_project_init_dag_success(**context):
-    """Checks if the Project_init_dag has at least one successful run."""
-    successful_runs = DagRun.find(
-        dag_id="Project_init_dag", state=DagRunState.SUCCESS)
-    if not successful_runs:
-        raise AirflowFailException(
-            "❌ Project_init_dag has not had a successful run yet.")
-    print(f"✅ Project_init_dag has {len(successful_runs)} successful run(s).")
-
 
 with DAG(
     dag_id="Trade_dag",
@@ -72,9 +54,10 @@ with DAG(
     default_args=default_args,
     catchup=False,
 ) as dag:
-    check_task = PythonOperator(
+    check_task = SqlSensor(
         task_id='check_project_init_success',
-        python_callable=check_project_init_dag_success,
+        conn_id='airflow_db',
+        sql="SELECT COUNT(1) FROM dag_run WHERE dag_id = 'Project_init_dag' AND state = 'success'",
     )
 
     image = "dwh-stock-bigdata:3.0"
