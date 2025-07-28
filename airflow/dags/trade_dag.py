@@ -75,7 +75,6 @@ with DAG(
     check_task = PythonOperator(
         task_id='check_project_init_success',
         python_callable=check_project_init_dag_success,
-        provide_context=True,
     )
 
     image = "dwh-stock-bigdata:3.0"
