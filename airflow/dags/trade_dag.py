@@ -71,6 +71,9 @@ with DAG(
     default_args=default_args,
     catchup=False,
 ) as dag:
+    print(">>>", check_project_init_dag_success)
+    print(">>>", type(check_project_init_dag_success))
+
     check_task = PythonOperator(
         task_id='check_project_init_success',
         python_callable=check_project_init_dag_success,
