@@ -45,11 +45,6 @@ secrets = [
     for key in secret_keys
 ]
 
-
-def push_success_flag(**kwargs):
-    kwargs['ti'].xcom_push(key='init_success', value=True)
-
-
 with DAG(
     dag_id="Project_init_dag",
     schedule="@once",
@@ -58,7 +53,5 @@ with DAG(
 ) as dag:
     image = "dwh-stock-bigdata:3.0"
     project_init_task = ProjectInitTask(image, secrets=secrets).build()
-    project_init_task.on_success_callback = push_success_flag
-
     project_init_task
 globals()["Project_init_dag"] = dag
