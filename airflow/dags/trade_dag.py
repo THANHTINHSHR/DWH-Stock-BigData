@@ -56,7 +56,8 @@ secrets = [
 
 def check_project_init_dag_success(**context):
     with NEW_SESSION() as session:
-        dag_runs = DagRun.find(dag_id='Project_init_dag', session=session)
+        dag_runs = session.query(DagRun).filter(
+            DagRun.dag_id == 'Project_init_dag').all()
         success_runs = [
             dr for dr in dag_runs if dr.state == DagRunState.SUCCESS]
 
