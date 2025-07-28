@@ -31,7 +31,7 @@ default_args = {
 with DAG(
     dag_id="Book_Ticker_dag",
     default_args=default_args,
-    schedule_interval=None,
+    schedule=None,
     catchup=False,
 ) as dag:
     check_task = SqlSensor(
