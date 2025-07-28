@@ -60,10 +60,8 @@ def check_project_init_dag_success(**context):
             DagRun.dag_id == 'Project_init_dag').all()
         success_runs = [
             dr for dr in dag_runs if dr.state == DagRunState.SUCCESS]
-
         if not success_runs:
-            raise AirflowFailException(
-                "❌ Project_init_dag Un_Success.")
+            raise AirflowFailException("❌ Project_init_dag Un_Success.")
         print(f"✅ Project_init_dag run success {len(success_runs)} times.")
 
 
