@@ -57,14 +57,13 @@ secrets = [
 
 
 def check_project_init_dag_success(**context):
-    with NEW_SESSION() as session:
-        dag_runs = session.query(DagRun).filter(
-            DagRun.dag_id == 'Project_init_dag').all()
-        success_runs = [
-            dr for dr in dag_runs if dr.state == DagRunState.SUCCESS]
-        if not success_runs:
-            raise AirflowFailException("❌ Project_init_dag Un_Success.")
-        print(f"✅ Project_init_dag run success {len(success_runs)} times.")
+    """Checks if the Project_init_dag has at least one successful run."""
+    successful_runs = DagRun.find(
+        dag_id="Project_init_dag", state=DagRunState.SUCCESS)
+    if not successful_runs:
+        raise AirflowFailException(
+            "❌ Project_init_dag has not had a successful run yet.")
+    print(f"✅ Project_init_dag has {len(successful_runs)} successful run(s).")
 
 
 with DAG(
