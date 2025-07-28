@@ -1,6 +1,6 @@
 from airflow import DAG  # type: ignore
 from tasks.project_init_task import ProjectInitTask
-from datetime import datetime, timedelta
+from datetime import datetime
 from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 
 default_args = {
