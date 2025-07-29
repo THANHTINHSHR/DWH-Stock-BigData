@@ -1,10 +1,5 @@
-from airflow import DAG  # type: ignore
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-
-
 class TickerPipelineTask:
-    def __init__(self, image, namespace="default", secrets: Secret = None):
+    def __init__(self, image, namespace="default", secrets=None):
         self.task_id = "Ticker_Pipe_line_Task"
         self.image = image
         self.cmds = ["python3"]
@@ -13,6 +8,7 @@ class TickerPipelineTask:
         self.secrets = secrets
 
     def build(self):
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,

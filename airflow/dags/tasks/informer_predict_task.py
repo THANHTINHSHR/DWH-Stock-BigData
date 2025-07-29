@@ -1,11 +1,7 @@
 
-from airflow import DAG  # type: ignore
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-
 
 class InformerPredictTask:
-    def __init__(self, image, namespace="default", secrets: Secret = None):
+    def __init__(self, image, namespace="default", secrets=None):
         self.task_id = "Informer_Predict_Task"
         self.image = image
         self.cmds = ["python3"]
@@ -15,6 +11,7 @@ class InformerPredictTask:
         self.secrets = secrets
 
     def build(self):
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,

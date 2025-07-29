@@ -8,9 +8,8 @@ class BookTickerPipelineTask:
         self.secrets = secrets
 
     def build(self):
-        # Lazy import để tránh nặng khi Airflow scan DAG
+        # Lazy import
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,
