@@ -1,7 +1,7 @@
 from airflow import DAG  # type: ignore
 from tasks.ticker_pipline_task import TickerPipelineTask
 from datetime import datetime, timedelta
-from airflow.dags.tasks.sensor_check_project_init_task import SensorCheckProjectInitTask
+from tasks.sensor_check_project_init_task import SensorCheckProjectInitTask
 from common.secret_loader import load_secrets
 from common.dag_config import get_dag_config
 
