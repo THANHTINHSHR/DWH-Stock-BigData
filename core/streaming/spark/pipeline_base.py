@@ -77,7 +77,8 @@ class PipelineBase(ABC):
             .config("spark.hadoop.fs.s3a.connection.timeout", "5000") \
             .config("spark.hadoop.fs.s3a.attempts.maximum", "3") \
             .config("spark.hadoop.fs.s3a.retry.limit", "3") \
-            .config("spark.hadoop.fs.s3a.fast.upload", "true")
+            .config("spark.hadoop.fs.s3a.fast.upload", "true") \
+            .config("spark.hadoop.fs.s3a.multipart.uploads.enabled", "false")
 
         # Spark tuning
         builder = builder.config("spark.sql.shuffle.partitions", "300") \
