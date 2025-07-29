@@ -13,7 +13,7 @@ class InformerTrainTask:
             "core/streaming/informerAI/train/ai_ticker_trainer.py"]
         self.namespace = namespace
         self.secrets = secrets
-        self.request_memory = 1024*16
+        self.request_memory = 1024*1024*16
 
     def build(self):
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
