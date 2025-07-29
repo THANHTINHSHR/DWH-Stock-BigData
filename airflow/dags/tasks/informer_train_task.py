@@ -14,15 +14,23 @@ class InformerTrainTask:
         self.namespace = namespace
         self.secrets = secrets
 
-    def build(self):
-        return KubernetesPodOperator(
-            task_id=self.task_id,
-            name=self.task_id,
-            namespace=self.namespace,
-            image=self.image,
-            cmds=self.cmds,
-            arguments=self.arguments,
-            get_logs=True,
-            is_delete_operator_pod=True,
-            secrets=self.secrets
-        )
+
+def build(self):
+    from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
+    from kubernetes.client import V1ResourceRequirements  # type: ignore
+
+    return KubernetesPodOperator(
+        task_id=self.task_id,
+        name=self.task_id,
+        namespace=self.namespace,
+        image=self.image,
+        cmds=self.cmds,
+        arguments=self.arguments,
+        get_logs=True,
+        is_delete_operator_pod=True,
+        secrets=self.secrets,
+        resources=V1ResourceRequirements(
+            requests={"memory": self.request_memory},
+            limits={"memory": self.limit_memory},
+        ),
+    )
