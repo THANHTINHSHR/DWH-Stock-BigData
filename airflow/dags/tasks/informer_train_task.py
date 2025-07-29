@@ -1,11 +1,6 @@
 
-from airflow import DAG  # type: ignore
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-
-
 class InformerTrainTask:
-    def __init__(self, image, namespace="default", secrets: Secret = None):
+    def __init__(self, image, namespace="default", secrets=None):
         self.task_id = "Informer_Train_Task"
         self.image = image
         self.cmds = ["python3"]
@@ -18,6 +13,8 @@ class InformerTrainTask:
     def build(self):
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
         from airflow.utils.operator_resources import Resources  # type: ignore
+        from airflow.kubernetes.volume import Volume  # type: ignore
+        from airflow.kubernetes.volume_mount import VolumeMount  # type: ignore
 
         return KubernetesPodOperator(
             task_id=self.task_id,
@@ -32,4 +29,7 @@ class InformerTrainTask:
             resources=Resources(
                 ram=self.request_memory
             ),
+            volumes=[Volume.get_informer_volume()],
+            volume_mounts=[VolumeMount.get_informer_volume_mount()],
+
         )
