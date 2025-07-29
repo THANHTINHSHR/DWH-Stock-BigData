@@ -67,7 +67,9 @@ class SparkLoader:
             .config("spark.hadoop.fs.defaultFS", f"s3a://{self.BUCKET_NAME}/") \
             .config("spark.hadoop.fs.s3a.endpoint", f"s3.{self.AWS_REGION}.amazonaws.com") \
             .config("spark.jars", jars) \
-            .config("spark.sql.debug.maxToStringFields", 100)
+            .config("spark.sql.debug.maxToStringFields", 100) \
+            .config("spark.hadoop.fs.s3a.multipart.uploads.enabled", "false")
+
         # Spark local dir (temp files)
         if self.mode == SparkMode.LOCAL:
             temp_dir = (self.project_root_dir /
