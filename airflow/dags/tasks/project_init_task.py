@@ -7,7 +7,7 @@ from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
 class ProjectInitTask:
 
     def __init__(self, image, namespace="default", secrets: Secret = None):
-        self.task_id = "Project_init_Task"
+        self.task_id = "Project_Init_Task"
         self.image = image
         self.cmds = ["python3"]
         self.arguments = ["core/run/run_init.py"]

@@ -6,7 +6,7 @@ from common.secret_loader import load_secrets
 from common.dag_config import get_dag_config
 
 with DAG(
-    dag_id="Project_init_dag",
+    dag_id="Project_Init_Dag",
     schedule="@once",
     default_args=get_dag_config(),
     catchup=False,
@@ -15,4 +15,4 @@ with DAG(
     image = "dwh-stock-bigdata:3.0"
     project_init_task = ProjectInitTask(image, secrets=secrets).build()
     project_init_task
-globals()["Project_init_dag"] = dag
+globals()["Project_Init_Dag"] = dag

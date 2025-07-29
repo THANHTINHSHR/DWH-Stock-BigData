@@ -6,7 +6,7 @@ from common.secret_loader import load_secrets
 from common.dag_config import get_dag_config
 
 with DAG(
-    dag_id="Book_Ticker_dag",
+    dag_id="Book_Ticker_Dag",
     default_args=get_dag_config(),
     schedule=None,
     catchup=False,
@@ -23,4 +23,4 @@ with DAG(
     check_task >> book_ticker_task
 
 
-globals()["Book_Ticker_dag"] = dag
+globals()["Book_Ticker_Dag"] = dag

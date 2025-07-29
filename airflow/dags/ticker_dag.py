@@ -6,7 +6,7 @@ from common.secret_loader import load_secrets
 from common.dag_config import get_dag_config
 
 with DAG(
-    dag_id="Ticker_dag",
+    dag_id="Ticker_Dag",
     schedule=None,
     default_args=get_dag_config(),
     catchup=False,
@@ -16,4 +16,4 @@ with DAG(
     image = "dwh-stock-bigdata:3.0"
     ticker_pipeline = TickerPipelineTask(image, secrets=secrets).build()
     check_task >> ticker_pipeline
-globals()["Ticker_dag"] = dag
+globals()["Ticker_Dag"] = dag
