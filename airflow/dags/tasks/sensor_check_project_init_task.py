@@ -15,6 +15,6 @@ class SensorCheckProjectInitTask:
             sql=self.sql,
             timeout=180,  # wait for 3 minutes
             poke_interval=60,  # recheck every 60 seconds
-            mode='poke',  # use poke mode to check the condition
+            mode='reschedule',  # use reschedule mode to check the condition
             soft_fail=True  # allow the task to fail without failing the DAG
         )
