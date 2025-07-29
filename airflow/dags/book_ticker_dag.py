@@ -1,7 +1,7 @@
 from airflow import DAG  # type: ignore
 from datetime import datetime
 from tasks.book_ticker_pipline_task import BookTickerPipelineTask
-from tasks.sensor_check_project_init import SensorCheckProjectInit
+from airflow.dags.tasks.sensor_check_project_init_task import SensorCheckProjectInitTask
 from common.secret_loader import load_secrets
 from common.dag_config import get_dag_config
 
@@ -11,7 +11,7 @@ with DAG(
     schedule=None,
     catchup=False,
 ) as dag:
-    check_task = SensorCheckProjectInit(state="Success")
+    check_task = SensorCheckProjectInitTask(state="Success").build()
 
     secrets = load_secrets()
     image = "dwh-stock-bigdata:3.0"

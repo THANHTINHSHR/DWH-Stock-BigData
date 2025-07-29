@@ -1,7 +1,7 @@
 from airflow.providers.common.sql.sensors.sql import SqlSensor  # type: ignore
 
 
-class SensorCheckProjectInit:
+class SensorCheckProjectInitTask:
     def __init__(self, state="Success"):
         self.task_id = f"Check_Project_Init_{state}"
         self.conn_id = 'airflow_db'
