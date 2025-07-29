@@ -2,7 +2,7 @@ from airflow.providers.common.sql.sensors.sql import SqlSensor  # type: ignore
 
 
 class SensorCheckProjectInitTask:
-    def __init__(self, state="Success"):
+    def __init__(self, state="success"):
         self.task_id = f"Check_Project_Init_{state}"
         self.conn_id = 'airflow_db'
         self.state = state
@@ -16,5 +16,4 @@ class SensorCheckProjectInitTask:
             timeout=120,  # wait for 2 minutes
             poke_interval=30,  # recheck every 30 seconds
             mode='reschedule',  # use reschedule mode to check the condition
-            soft_fail=True  # allow the task to fail without failing the DAG
         )

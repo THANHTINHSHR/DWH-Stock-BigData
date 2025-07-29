@@ -11,7 +11,7 @@ with DAG(
     schedule=None,
     catchup=False,
 ) as dag:
-    check_task = SensorCheckProjectInitTask(state="Success").build()
+    check_task = SensorCheckProjectInitTask(state="success").build()
 
     secrets = load_secrets()
     image = "dwh-stock-bigdata:3.0"
