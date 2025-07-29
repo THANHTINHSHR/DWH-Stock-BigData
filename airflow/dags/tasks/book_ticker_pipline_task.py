@@ -10,7 +10,7 @@ class BookTickerPipelineTask:
         self.arguments = ["core/run/run_book_ticker_pipline.py"]
         self.namespace = namespace
         self.secrets = secrets
-        self.request_memory = "1Gi"
+        self.request_memory = 1024
 
     def build(self):
         return KubernetesPodOperator(

@@ -13,7 +13,7 @@ class InformerTrainTask:
             "core/streaming/informerAI/train/ai_ticker_trainer.py"]
         self.namespace = namespace
         self.secrets = secrets
-        self.request_memory = "1Gi"
+        self.request_memory = 1024
 
 
 def build(self):

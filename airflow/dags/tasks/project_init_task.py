@@ -13,7 +13,7 @@ class ProjectInitTask:
         self.arguments = ["core/run/run_init.py"]
         self.namespace = namespace
         self.secrets = secrets
-        self.request_memory = "1Gi"
+        self.request_memory = 1024
 
     def build(self):
         from airflow.utils.operator_resources import Resources  # type: ignore

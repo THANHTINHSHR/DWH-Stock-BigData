@@ -9,7 +9,7 @@ class InformerPredictTask:
             "core/streaming/informerAI/predict/ai_ticker_predictor.py"]
         self.namespace = namespace
         self.secrets = secrets
-        self.request_memory = "1Gi"
+        self.request_memory = 1024
 
     def build(self):
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore

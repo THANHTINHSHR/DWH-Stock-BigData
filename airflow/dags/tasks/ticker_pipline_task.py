@@ -6,7 +6,7 @@ class TickerPipelineTask:
         self.arguments = ["core/run/run_ticker_pipline.py"]
         self.namespace = namespace
         self.secrets = secrets
-        self.request_memory = "1Gi"
+        self.request_memory = 1024
 
     def build(self):
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
