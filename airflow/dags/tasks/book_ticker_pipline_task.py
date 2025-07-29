@@ -1,3 +1,7 @@
+from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
+from airflow.utils.operator_resources import Resources  # type: ignore
+
+
 class BookTickerPipelineTask:
     def __init__(self, image, namespace="default", secrets=None):
         self.task_id = "Book_Ticker_Pipe_line_Task"
@@ -7,12 +11,8 @@ class BookTickerPipelineTask:
         self.namespace = namespace
         self.secrets = secrets
         self.request_memory = "1Gi"
-        self.limit_memory = "4Gi"
 
     def build(self):
-        # Lazy import
-        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-        from kubernetes.client import V1ResourceRequirements  # type: ignore
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,
@@ -23,9 +23,7 @@ class BookTickerPipelineTask:
             get_logs=True,
             is_delete_operator_pod=True,
             secrets=self.secrets,
-            resources=V1ResourceRequirements(
-                requests={"memory": self.request_memory},
-                limits={"memory": self.limit_memory},
+            resources=Resources(
+                ram=self.request_memory
             ),
-
         )
