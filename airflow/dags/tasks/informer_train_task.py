@@ -13,8 +13,8 @@ class InformerTrainTask:
     def build(self):
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
         from airflow.utils.operator_resources import Resources  # type: ignore
-        from airflow.providers.cncf.kubernetes.volume import Volume  # type: ignore
-        from airflow.providers.cncf.kubernetes.volume_mount import VolumeMount  # type: ignore
+        from common.pvc_mount import PVCMount  # type: ignore
+
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,
@@ -28,7 +28,7 @@ class InformerTrainTask:
             resources=Resources(
                 ram=self.request_memory
             ),
-            volumes=[Volume.get_informer_volume()],
-            volume_mounts=[VolumeMount.get_informer_volume_mount()],
+            volumes=[PVCMount.get_informer_volume()],
+            volume_mounts=[PVCMount.get_informer_volume_mount()],
 
         )
