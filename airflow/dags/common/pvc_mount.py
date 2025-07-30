@@ -10,7 +10,7 @@ class PVCMount:
         volume = k8s.V1Volume(
             name='informer-storage',
             persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
-                claim_name='my-pvc')
+                claim_name='informer-ai-pvc')
         )
         return volume
 
