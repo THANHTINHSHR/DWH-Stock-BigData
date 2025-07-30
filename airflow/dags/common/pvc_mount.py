@@ -8,7 +8,7 @@ class PVCMount:
     @staticmethod
     def get_informer_volume():
         volume = k8s.V1Volume(
-            name='my-volume',
+            name='informer-storage',
             persistent_volume_claim=k8s.V1PersistentVolumeClaimVolumeSource(
                 claim_name='my-pvc')
         )
