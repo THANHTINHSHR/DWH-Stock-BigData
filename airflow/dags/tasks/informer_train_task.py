@@ -13,7 +13,7 @@ class InformerTrainTask:
     def build(self):
         from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
         from airflow.utils.operator_resources import Resources  # type: ignore
-        from common.pvc_mount import PVCMount  # type: ignore
+        from common.pvc-mount import PVCMount  # type: ignore
 
         return KubernetesPodOperator(
             task_id=self.task_id,
