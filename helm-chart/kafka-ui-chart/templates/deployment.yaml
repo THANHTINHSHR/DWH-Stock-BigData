@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-metadata:
   name: {{ include "kafka-ui-chart.fullname" . }}
 spec:
   replicas: {{ .Values.replicaCount }}
@@ -18,7 +17,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.service.port }}
+            - name: http
+              containerPort: {{ .Values.service.port }}
           env:
             - name: KAFKA_CLUSTERS_0_NAME
               value: {{ .Values.env.kafka_clusters_0_name }}
@@ -26,6 +26,9 @@ spec:
               value: {{ .Values.env.kafka_clusters_0_bootstrap_servers }}
             - name: KAFKA_CLUSTERS_0_KAFKA_VERSION
               value: {{ .Values.env.kafka_clusters_0_kafka_version }}
-
-
-
+            - name: SERVER_FORWARD_HEADERS_STRATEGY
+              value: {{ .Values.env.forward_headers_strategy | default "FRAMEWORK" }}
+            - name: SERVER_SERVLET_CONTEXT_PATH
+              value: /
+            - name: SERVER_PORT
+              value: {{ .Values.service.port | quote }}

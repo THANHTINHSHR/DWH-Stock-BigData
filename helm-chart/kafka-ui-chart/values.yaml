@@ -6,11 +6,14 @@ image:
   pullPolicy: IfNotPresent
 
 service:
-  type: NodePort
-  port: 8080
-  nodePort: 30080
+  type: ClusterIP
+  port: 9090
+ingress:
+  enabled: true
 
 env:
+
   kafka_clusters_0_name: k_raft-cluster   
   kafka_clusters_0_kafka_version: 4.0.0
-  kafka_clusters_0_bootstrap_servers: 192.168.49.2:30092
+  #kafka_clusters_0_bootstrap_servers: 192.168.49.2:30092
+  kafka_clusters_0_bootstrap_servers: "bitnami-kafka-release:9092"

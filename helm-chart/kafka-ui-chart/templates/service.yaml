@@ -8,8 +8,8 @@ spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: 8080
+      targetPort: {{ .Values.service.port }}
       protocol: TCP
       name: http
   selector:
-    {{- include "kafka-ui-chart.selectorLabels" . | nindent 4 }}
+    app: {{ include "kafka-ui-chart.name" . }}
