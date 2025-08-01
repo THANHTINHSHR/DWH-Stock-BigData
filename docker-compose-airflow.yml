@@ -10,3 +10,8 @@ services:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
     command: airflow standalone
+    networks:
+      - kafka_network 
+networks:
+  kafka_network:
+    driver: bridge
