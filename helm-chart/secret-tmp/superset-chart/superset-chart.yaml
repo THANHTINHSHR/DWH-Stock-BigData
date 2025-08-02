@@ -1,10 +1,3 @@
-replicaCount: 1
-
-image:
-  repository: superset-custom
-  tag: 5.0.0
-  pullPolicy: IfNotPresent
-
 secret:
   secret_key: "xxx-hiden"
   admin_username: admin
