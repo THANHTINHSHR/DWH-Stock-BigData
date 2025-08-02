@@ -1,4 +1,3 @@
-from airflow.providers.common.sql.sensors.sql import SqlSensor  # type: ignore
 
 
 class SensorCheckProjectInitTask:
@@ -9,6 +8,7 @@ class SensorCheckProjectInitTask:
         self.sql = f"SELECT COUNT(1) FROM task_instance WHERE dag_id = 'Project_Init_Dag' AND task_id = 'Project_Init_Task' AND state = '{self.state}'"
 
     def build(self):
+        from airflow.providers.common.sql.sensors.sql import SqlSensor  # type: ignore
         return SqlSensor(
             task_id=self.task_id,
             conn_id=self.conn_id,

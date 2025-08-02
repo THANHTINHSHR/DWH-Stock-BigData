@@ -1,12 +1,8 @@
 
-from airflow import DAG  # type: ignore
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-from airflow.providers.cncf.kubernetes.secret import Secret  # type: ignore
-
 
 class ProjectInitTask:
 
-    def __init__(self, image, namespace="default", secrets: Secret = None):
+    def __init__(self, image, namespace="default", secrets=None):
         self.task_id = "Project_Init_Task"
         self.image = image
         self.cmds = ["python3"]
@@ -16,6 +12,7 @@ class ProjectInitTask:
         self.request_memory = 1024
 
     def build(self):
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
         from airflow.utils.operator_resources import Resources  # type: ignore
         return KubernetesPodOperator(
             task_id=self.task_id,

@@ -1,6 +1,3 @@
-from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
-from airflow.utils.operator_resources import Resources  # type: ignore
-
 
 class BookTickerPipelineTask:
     def __init__(self, image, namespace="default", secrets=None):
@@ -13,6 +10,9 @@ class BookTickerPipelineTask:
         self.request_memory = 1024
 
     def build(self):
+        from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator  # type: ignore
+        from airflow.utils.operator_resources import Resources  # type: ignore
+
         return KubernetesPodOperator(
             task_id=self.task_id,
             name=self.task_id,
