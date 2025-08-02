@@ -708,7 +708,7 @@ workers:
 
     # How many seconds KEDA will wait before scaling to zero.
     # Note that HPA has a separate cooldown period for scale-downs
-    cooldownPeriod: 30
+    cooldownPeriod: 150
 
     # Minimum number of Airflow Celery workers created by keda
     minReplicaCount: 0
