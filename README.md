@@ -81,8 +81,10 @@ Below is a high-level overview of the system architecture:
     git clone https://github.com/THANHTINHSHR/DWH-Stock-BigData/tree/Airflow-Orchestration
     cd DWH-Stock-BigData
     ```
-    - Download the required `jars`folders from this [Google Drive link.](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=sharing). Extract and copy all file `.jar` into folder `/jars`
+    - Download the required `jars`folders from this [jars](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=sharing). Extract and copy all file `.jar` into folder `/jars`
     - Download [spark-3.5.6-bin-hadoop3.tgz](https://dlcdn.apache.org/spark/spark-3.5.6/spark-3.5.6-bin-hadoop3.tgz) and copy to folder `/tar`.
+    - Download [wheels](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=drive_link). Extract and copy file `.whl` into folder `/wheels`
+
 ### 🐳 Docker Setup
  📌 **Note: In Docker, the project runs as isolated containers and does not support an orchestrator.**
 
