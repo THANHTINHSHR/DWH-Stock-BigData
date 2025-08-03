@@ -66,7 +66,7 @@ Below is a high-level overview of the system architecture:
 - Currently supports only the **`ticker`** data stream.
 - Codebase is **modular** and **easily extendable** for other data flows.
 ### Informer-AI-Architecture
-Below is a high-level overview of the system architecture:
+Informer-AI system architecture overview::
 ![Informer-AI-Architecture](images/System_Architecture_Informer.png)
 
 ## 🔧 Installation
@@ -82,7 +82,7 @@ Below is a high-level overview of the system architecture:
 
     cd DWH-Stock-BigData
     ```
-    - Download the required `jars`folders from this [jars](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=sharing). Extract and copy all file `.jar` into folder `/jars`
+    - Download the required `jars` folders from this [jars](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=sharing). Extract and copy all file `.jar` into folder `/jars`
     - Download [spark-3.5.6-bin-hadoop3.tgz](https://dlcdn.apache.org/spark/spark-3.5.6/spark-3.5.6-bin-hadoop3.tgz) and copy to folder `/tar`.
     - Download [wheels](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=drive_link). Extract and copy file `.whl` into folder `/wheels`
 
@@ -104,7 +104,8 @@ Below is a high-level overview of the system architecture:
 
 
 3.  **Configure Keys & Finalize Setup:**
-    -   Update your `.env` file with the `INFLUXDB_TOKEN` and `GRAFANA_KEY` obtained in the previous step.
+    -  Update your .env file with the `INFLUXDB_TOKEN` and `GRAFANA_KEY` you obtained in the previous step.
+
     -   Ensure the `SUPERSET_SECRET_KEY` (generated in step 2) is also correctly set in your `.env` file.
     -   After config, build two container:
 
@@ -117,11 +118,10 @@ Below is a high-level overview of the system architecture:
         ```bash
         docker-compose -f docker-compose-trainer.yml build
         ```
-        - informerAI_trainer
+        - informerAI_predictor
         ```bash
         docker-compose -f docker-compose-predictor.yml build
         ```
-        All components should now be fully functional with the correct API keys. After this step, your system is ready to operate as described in the "Running the Application" section.
 ### 🌐 Kubernetes Setup
 
 1. **Download/Build Images**
@@ -157,7 +157,7 @@ Below is a high-level overview of the system architecture:
         ```
         kubectl port-forward svc/superset-release-superset-chart 8088:8088
     - Update Service key:
-        + Open file `helm-chart\secret-tmp\project-env-chart\values-secret.yaml`, update you usernames, passwords, keys, ... .Copy this file and add to `helm-chart\project-env-chart`.
+        + Open file `helm-chart\secret-tmp\project-env-chart\values-secret.yaml`, update you usernames, passwords, keys, ... .Copy this file and add it to `helm-chart\project-env-chart`.
         + Run script to install main project:
         ```
         ./script-install-project-helm.ps1
