@@ -7,25 +7,14 @@ DWH-Stock-BigData v3 is a production-grade, Kubernetes-native real-time stock da
 - [Technologies Used](#technologies-used)
 - [Features](#features)
 - [System Architecture](#system-architecture)
-- [Changes Compared to Previous Version](#changes-compared-to-previous-version)
-
+- [Informer-AI Module](#informer-ai-module)
+  - [Functionality](#functionality)
+  - [Informer-AI-Architecture](#informer-ai-architecture)
 - [Installation](#installation)
   - [Prerequisites](#prerequisites)
   - [Docker Setup](#docker-setup)
   - [Kubernetes Setup](#kubernetes-setup)
-- [Running the Application](#running-the-application)
-  - [Run On Docker](#run-on-docker)
-  - [Run On Kubernetes](#run-on-kubernetes)
-    - [Starting Minikube](#starting-minikube)
-    - [Access Web UIs](#access-web-uis)
-- [Informer-AI Module](#informer-ai-module)
-  - [Functionality](#functionality)
-  - [Informer-AI-Architecture](#informer-ai-architecture)
-  - [How to Run](#how-to-run-informer)
-
-
-- [Demo](#demo)
-- [Troubleshooting](#troubleshooting)
+- [Screenshots](#screenshots)
 - [Key Takeaways & Experiences](#key-takeaways--experiences)
 - [Contact](#contact)
 
@@ -62,6 +51,24 @@ DWH-Stock-BigData v3 is a production-grade, Kubernetes-native real-time stock da
 ## 🧱 System Architecture
 Below is a high-level overview of the system architecture:
 ![System Architecture](images/System_Architecture_3.png)
+### 🤖 Informer-AI Module
+
+#### Functionality
+
+- Input data is loaded from **S3** (time-series format).
+- Performs **short-term forecasting** using the **Informer** model.
+- Supports **automatic training and prediction** workflows.
+- Automatically generates **charts and dashboards** on:
+  - **Grafana**
+          ![Grafana-informer](images/grafana_ticker_predict_1.png)
+  - **Superset**
+          ![Superset-informer](images/superset_ticker_predict.png)
+- Currently supports only the **`ticker`** data stream.
+- Codebase is **modular** and **easily extendable** for other data flows.
+### Informer-AI-Architecture
+Below is a high-level overview of the system architecture:
+![Informer-AI-Architecture](images/System_Architecture_Informer.png)
+
 ## 🔧 Installation
 ### 📥 Prerequisites
 - [Git](https://git-scm.com/downloads)
@@ -114,14 +121,76 @@ Below is a high-level overview of the system architecture:
         All components should now be fully functional with the correct API keys. After this step, your system is ready to operate as described in the "Running the Application" section.
 ### 🌐 Kubernetes Setup
 
-1.  **Dowload/Build Images:**
-    - Build images locally using the provided PowerShell script:
+1. **Download/Build Images**
+   - Build Docker images locally using the provided PowerShell script:
+     ```powershell
+     ./script-build-images.ps1
+     ```
+
+2. **Set Up Secret Variables**
+   - Add your environment secrets to each file in the `secret-tmp/` folder.
+   - Then copy the generated `values-secret.yaml` files into the corresponding folders under `helm-chart/`.(Except `project-env-chart`)
+    ![Secret tmp](images/secret-tmp.png)
+
+3. **Install Services with Helm**
+   - Use the PowerShell script to install all services via Helm:
+     ```powershell
+     ./script-install-services-helm.ps1
+     ```
+    - Access service:
+        + Access Influxdb at [http://localhost:8086](http://localhost:8086) (login and save key):
         ```
-        ./script-build-images.ps1
+        kubectl port-forward svc/influxdb-release-influxdb-chart 8086:8086
         ```
-2.  **Install Services By Helm:**
-3.  **Install Services By Helm:**
-    - Install services using Helm by PowerShell script:
+        + Access Grafana at [http://localhost:3000](http://localhost:3000) (login and save key):
         ```
-        ./script-install-services-helm.ps1
+        kubectl port-forward svc/grafana-release-grafana-chart 3000:3000
         ```
+        + Access Kafka UI at [http://localhost:9090](http://localhost:9090):
+        ```
+        kubectl port-forward svc/kafka-ui-release-kafka-ui-chart 9090:9090
+        ```
+        + Access Superset at [http://localhost:8088](http://localhost:8088) (login and save key):
+        ```
+        kubectl port-forward svc/superset-release-superset-chart 8088:8088
+    - Update Service key:
+        + Open file `helm-chart\secret-tmp\project-env-chart\values-secret.yaml`, update you usernames, passwords, keys, ... .Copy this file and add to `helm-chart\project-env-chart`.
+        + Run script to install main project:
+        ```
+        ./script-install-project-helm.ps1
+        ```
+    - Access Airflow UI at [http://localhost:8080/](http://localhost:8080/):
+       ```
+       kubectl port-forward svc/airflow-release-api-server 8080:8080
+        ```
+        ![Airflow UI](images/Airflow-2.png)
+        ![Airflow UI](images/Airflow-3.png)
+
+## 📸 Screenshots
+- InfluxDB:
+    ![InfluxDB](images/influx_Interface.png)
+- Grafana:
+    ![Grafana-trade](images/grafana_trade.png)
+    ![Grafana-ticker](images/grafana_ticker.png)
+    ![Grafana-bookticker](images/grafana_bookticker.png)
+
+- Superset:
+    ![Superset-dashboard](images/superset_dashboard.png)
+
+## 🎯 Key Takeaways & Experiences
+
+- Gained hands-on experience with time-series forecasting using Informer.
+- Learned to integrate ML output with real-time visualization tools (Grafana, Superset).
+- Improved skills in Kubernetes deployment and Helm chart configuration.
+- Understood challenges in handling big data pipelines with Spark & Kafka.
+- Practiced modular and scalable code design for future extension.
+- During the development of this project, I have documented several key experiences, challenges, and solutions.
+You can find detailed experience logs in the `notebooks` directory of this project. Please note that these logs are primarily written in Vietnamese.
+
+## Contact
+
+If you have any questions, suggestions, or would like to discuss this project further, feel free to reach out:
+
+- **Email**: thanhtinh14.16.1998@gmail.com
+- **Phone**: 0899986747
+- **ZALO**: 0356657722
