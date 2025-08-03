@@ -78,7 +78,8 @@ Below is a high-level overview of the system architecture:
 - [Helm](https://helm.sh/)
 -   **Clone Repository & Download Dependencies:**
     ```bash
-    git clone https://github.com/THANHTINHSHR/DWH-Stock-BigData/tree/Airflow-Orchestration
+    git clone -b Airflow-Orchestration https://github.com/THANHTINHSHR/DWH-Stock-BigData.git
+
     cd DWH-Stock-BigData
     ```
     - Download the required `jars`folders from this [jars](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=sharing). Extract and copy all file `.jar` into folder `/jars`
