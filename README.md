@@ -87,7 +87,7 @@ Informer-AI system architecture overview::
     - Download [wheels](https://drive.google.com/file/d/19l1vo4G3sWoPF1UYXeGnaES5Ny_m9Xm8/view?usp=drive_link). Extract and copy file `.whl` into folder `/wheels`
 
 ### 🐳 Docker Setup
- 📌 **Note: In Docker, the project runs as isolated containers and does not support an orchestrator.**
+ 📌 **Note: Project runs in isolated Docker containers without orchestration support.**
 
 1.  **Configure environment variables:**
     - Create a `.env` file in the project root (you can copy `.env.example` if provided in the repository) and populate it with your specific configuration values.
@@ -131,7 +131,7 @@ Informer-AI system architecture overview::
      ```
 
 2. **Set Up Secret Variables**
-   - Add your environment secrets to each file in the `secret-tmp/` folder.
+   - Fill in environment variables in each file under `secret-tmp/`.
    - Then copy the generated `values-secret.yaml` files into the corresponding folders under `helm-chart/`.(Except `project-env-chart`)
     ![Secret tmp](images/secret-tmp.png)
 
@@ -157,7 +157,7 @@ Informer-AI system architecture overview::
         ```
         kubectl port-forward svc/superset-release-superset-chart 8088:8088
     - Update Service key:
-        + Open file `helm-chart\secret-tmp\project-env-chart\values-secret.yaml`, update you usernames, passwords, keys, ... .Copy this file and add it to `helm-chart\project-env-chart`.
+        + Open file `helm-chart\secret-tmp\project-env-chart\values-secret.yaml`, update your usernames, passwords, keys, ... .Copy this file and add it to `helm-chart\project-env-chart`.
         + Run script to install main project:
         ```
         ./script-install-project-helm.ps1
@@ -166,34 +166,46 @@ Informer-AI system architecture overview::
        ```
        kubectl port-forward svc/airflow-release-api-server 8080:8080
         ```
+        - Airflow Dags
         ![Airflow UI](images/Airflow-2.png)
+        - Airflow Ticker Dag
         ![Airflow UI](images/Airflow-3.png)
 
 ## 📸 Screenshots
 - InfluxDB:
     ![InfluxDB](images/influx_Interface.png)
 - Grafana:
+    - Grafana-Trade
     ![Grafana-trade](images/grafana_trade.png)
+    - Grafana-Ticker
     ![Grafana-ticker](images/grafana_ticker.png)
+    - Grafana-Bookticker
     ![Grafana-bookticker](images/grafana_bookticker.png)
 
 - Superset:
     ![Superset-dashboard](images/superset_dashboard.png)
 
-## 🎯 Key Takeaways & Experiences
+🎯 Key Takeaways & Experiences
+- Gained practical experience in designing and operating a real-time data warehouse system.
 
-- Gained hands-on experience with time-series forecasting using Informer.
-- Learned to integrate ML output with real-time visualization tools (Grafana, Superset).
-- Improved skills in Kubernetes deployment and Helm chart configuration.
-- Understood challenges in handling big data pipelines with Spark & Kafka.
-- Practiced modular and scalable code design for future extension.
-- During the development of this project, I have documented several key experiences, challenges, and solutions.
-You can find detailed experience logs in the `notebooks` directory of this project. Please note that these logs are primarily written in Vietnamese.
+- Integrated end-to-end workflows, from data ingestion to processing, storage, and visualization.
 
+- Strengthened skills in deploying microservices using Kubernetes and Helm.
+
+- Improved understanding of big data streaming with Kafka and batch processing using Spark.
+
+- Applied modular and scalable software design for better maintainability and extensibility.
+
+- Gained experience in Airflow orchestration, including DAG scheduling, dependency control, and automated pipeline triggering.
+
+- Documented technical decisions, challenges, and lessons learned throughout development.
+
+- 📁 Experience logs are available in the notebooks/ directory.
+📌 Note: These logs are primarily written in Vietnamese.
 ## Contact
 
 If you have any questions, suggestions, or would like to discuss this project further, feel free to reach out:
 
-- **Email**: thanhtinh14.16.1998@gmail.com
+- **Email**: thanhtinh.de@gmail.com
 - **Phone**: 0899986747
 - **ZALO**: 0356657722
