@@ -1,1 +1,1 @@
-FROM bitnami/kafka:4.0.0-debian-12-r8
+FROM soldevelo/kafka:4.0.0-debian-12-r0
